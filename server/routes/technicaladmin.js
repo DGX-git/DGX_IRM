@@ -1,12 +1,11 @@
 var express = require('express');
 var router = express.Router();
-const user = require('../controller/usercontroller');
+const technicaladmin = require('../controller/technicaladmincontroller');
 var cors = require('cors');
 
 router.use(cors());
 
-router.post('/register', user.saveUser);
+router.post('/technicaladmin', technicaladmin.technicaladmin);
 
-router.post('/user', user.user);
 
 module.exports = router;

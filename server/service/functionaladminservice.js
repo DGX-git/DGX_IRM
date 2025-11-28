@@ -1,7 +1,7 @@
 const sequelize = require('../config/sequelize.config');
 
 
-const user = async(request, response) => {
+const functionaladmin = async(request, response) => {
     try {
         // Query logic
     } catch (error) {
@@ -11,4 +11,4 @@ const user = async(request, response) => {
 }
 
 
-module.exports = { user }
+module.exports = { functionaladmin }
