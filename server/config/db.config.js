@@ -1,10 +1,10 @@
 const config = { 
-	// USER: "postgres",
-    // HOST: "localhost" ,
-    // DATABASE: "iglu",
-	// PASSWORD: "root",
-    // DIALECT: "postgres",
-    // PORT: "5432"
+	USER: "postgres",
+    HOST: "192.168.1.105",
+    DATABASE: "DGX",
+	PASSWORD: "root",
+    DIALECT: "postgres",
+    PORT: "7894"
 } 
 
 module.exports = config;

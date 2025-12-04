@@ -1,4 +1,4 @@
-const { Sequelize, DataTypes, Model } = require('sequelize');
+const { DataTypes } = require('sequelize');
 const sequelize = require('../config/sequelize.config');
 const DGX_USER = require('./dgx_user.model');
 const Institute = require('./institute.model');
@@ -37,11 +37,11 @@ const User_Institute_Association = sequelize.define('User_Institute_Association'
         }
     },
     created_timestamp: {
-        type: DataTypes.TIMESTAMP,
+        type: DataTypes.DATE ,
         allowNull: true
     },
     updated_timestamp: {
-        type: DataTypes.TIMESTAMP,
+        type: DataTypes.DATE ,
         allowNull: true
     },
     created_by: {
