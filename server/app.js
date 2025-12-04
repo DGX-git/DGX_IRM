@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
@@ -9,6 +11,10 @@ var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var instancerequestRouter = require("./routes/instancerequest");
 var userProfile = require("./routes/profile");
+var technicaladminRouter = require('./routes/technicaladmin');
+var functionaladminRouter = require('./routes/functionaladmin');
+var emailsRouter = require('./routes/emails');
+
 
 var app = express();
 
@@ -24,10 +30,16 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/", indexRouter);
-app.use("/users", usersRouter);
-app.use("/instancerequest", instancerequestRouter);
+
+
+app.use('/', indexRouter);
 app.use("/profile", userProfile);
+app.use('/users', usersRouter);
+app.use('/instancerequest', instancerequestRouter);
+app.use('/technicaladmin', technicaladminRouter);
+app.use('/functionaladmin', functionaladminRouter);
+app.use('/emails', emailsRouter);
+
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -47,7 +59,7 @@ app.use(function (err, req, res, next) {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`:rocket: Server running on port ${PORT}`);
 });
 
-module.exports = app;     
+module.exports = app;

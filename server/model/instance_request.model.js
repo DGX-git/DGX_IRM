@@ -1,7 +1,7 @@
 const { Sequelize, DataTypes, Model } = require('sequelize');
 const sequelize = require('../config/sequelize.config');
 const GPU_Partition = require('./gpu_partition.model');
-const DGX_USER = require('./user.model');
+const DGX_USER = require('./dgx_user.model');
 const IMAGE = require('./image.model');
 const CPU = require('./cpu.model');
 const Status = require('./status.model');

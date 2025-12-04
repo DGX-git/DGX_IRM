@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
+    "formik": "^2.4.9",
     "lucide-react": "^0.555.0",
     "next": "16.0.5",
+    "nodemailer": "^7.0.11",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },

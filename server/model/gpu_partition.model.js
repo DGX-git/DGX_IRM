@@ -1,6 +1,6 @@
 const { Sequelize, DataTypes, Model } = require('sequelize');
 const sequelize = require('../config/sequelize.config');
-const DGX_User = require('./user.model');
+const DGX_User = require('./dgx_user.model');
 
 const GPU_Partition = sequelize.define('GPU_Partition', {
     // Model attributes are defined here
