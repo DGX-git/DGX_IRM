@@ -4,19 +4,15 @@ const DGX_User = require('./dgx_user.model');
 
 const GPU_Partition = sequelize.define('GPU_Partition', {
     // Model attributes are defined here
-    employee_store_association_id: {
+    gpu_partition_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
         primaryKey: true,
         autoIncrement: true
     },
-    user_id: {
+    gpu_partition: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: {
-            model: DGX_User,
-            key: 'user_id'
-          },
     }
 }, {
     tableName: 'gpu_partition',

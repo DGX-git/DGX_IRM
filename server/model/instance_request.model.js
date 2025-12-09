@@ -115,11 +115,11 @@ const Instance_Request = sequelize.define('Instance_Request', {
         allowNull: true,
     },
      created_timestamp: {
-        type: DataTypes.TIMESTAMP,
+        type: DataTypes.DATE,
         allowNull: false,
     },
     updated_timestamp: {
-        type: DataTypes.TIMESTAMP,
+        type: DataTypes.DATE,
         allowNull: false,
     },
     created_by: {
