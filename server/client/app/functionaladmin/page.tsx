@@ -139,7 +139,9 @@ function DGXDashboard() {
   const [selectedStatus, setSelectedStatus] = useState<Status | null>(null);
   const [status, setStatus] = useState<Status[]>([]);
   const [requests, setRequests] = useState<InstanceRequest[]>([]);
-  const [filteredRequests, setFilteredRequests] = useState<InstanceRequest[]>([]);
+  const [filteredRequests, setFilteredRequests] = useState<InstanceRequest[]>(
+    []
+  );
   const [users, setUsers] = useState<User[]>([]);
   const [institutes, setInstitutes] = useState<Institute[]>([]);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -151,15 +153,19 @@ function DGXDashboard() {
   });
 
   // Popup state
-  const [selectedRequest, setSelectedRequest] = useState<InstanceRequest | null>(null);
+  const [selectedRequest, setSelectedRequest] =
+    useState<InstanceRequest | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   // Filter validation popup state
-  const [isFilterValidationPopupOpen, setIsFilterValidationPopupOpen] = useState(false);
+  const [isFilterValidationPopupOpen, setIsFilterValidationPopupOpen] =
+    useState(false);
 
   // Confirmation popup state
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
-  const [confirmationAction, setConfirmationAction] = useState<"approve" | "reject" | null>(null);
+  const [confirmationAction, setConfirmationAction] = useState<
+    "approve" | "reject" | null
+  >(null);
 
   // Remarks modal state
   const [isRemarksModalOpen, setIsRemarksModalOpen] = useState(false);
@@ -172,7 +178,8 @@ function DGXDashboard() {
   // Time slots and date/time details
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [userTimeSlots, setUserTimeSlots] = useState<UserTimeSlot[]>([]);
-  const [selectedRequestTimeDetails, setSelectedRequestTimeDetails] = useState<any>(null);
+  const [selectedRequestTimeDetails, setSelectedRequestTimeDetails] =
+    useState<any>(null);
   const [remarksError, setRemarksError] = useState("");
 
   // Snackbar state
@@ -193,52 +200,59 @@ function DGXDashboard() {
   const [gpuPartitions, setGpuPartitions] = useState<GPUPartition[]>([]);
   const [gpuVendors, setGpuVendors] = useState<GPU[]>([]);
   const [imageList, setImageList] = useState<Image[]>([]);
-  const [userInstituteAssociation, setUserInstituteAssociation] = useState<UserInstituteAssociation[]>([]);
+  const [userInstituteAssociation, setUserInstituteAssociation] = useState<
+    UserInstituteAssociation[]
+  >([]);
   const [userInstitutes, setUserInstitutes] = useState<Institute[]>([]);
-  const [selectedInstitute, setSelectedInstitute] = useState<Institute | null>(null);
-  const [currentFilteredInstitute, setCurrentFilteredInstitute] = useState<Institute | null>(null);
+  const [selectedInstitute, setSelectedInstitute] = useState<Institute | null>(
+    null
+  );
+  const [currentFilteredInstitute, setCurrentFilteredInstitute] =
+    useState<Institute | null>(null);
   const [areFiltersApplied, setAreFiltersApplied] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
 
   const admin = "Functional";
 
   const searchParams = useSearchParams();
-  // const loggedInUserId = searchParams.get("userId") || "";
-  const loggedInUserName = decodeURIComponent(searchParams.get("userName") || "");
-
-  const loggedInUserId = 8; // TEMPORARY HARD-CODED USER ID FOR TESTING
+  const loggedInUserId = searchParams.get("userId") || "";
+  const loggedInUserName = decodeURIComponent(
+    searchParams.get("userName") || ""
+  );
 
   // Fetch user's institutes from Supabase
- useEffect(() => {
-   const fetchInstitutes = async () => {
-     try {
-       const response = await fetch(
-         process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin//user-institutes/" + loggedInUserId, // direct URL
-         {
-           method: "GET",
-           headers: { "Content-Type": "application/json" },
-         }
-       );
- 
-       if (!response.ok) throw new Error("Network response was not ok");
- 
-       const data = await response.json();
-       console.log("Fetched institutes:", data);
- 
-       if (!data || data.length === 0) return;
- 
-       const allOption = { institute_id: "all", institute_name: "All" };
-       const updatedList = [allOption, ...data];
- 
-       setUserInstitutes(updatedList);
-       setSelectedInstitute(allOption);
-     } catch (error) {
-       console.error("Error fetching institutes:", error);
-     }
-   };
- 
-   fetchInstitutes();
- }, [loggedInUserId]);
+  useEffect(() => {
+    const fetchInstitutes = async () => {
+      try {
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL +
+            "/technicaladmin//user-institutes/" +
+            loggedInUserId, // direct URL
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        if (!response.ok) throw new Error("Network response was not ok");
+
+        const data = await response.json();
+        console.log("Fetched institutes:", data);
+
+        if (!data || data.length === 0) return;
+
+        const allOption = { institute_id: "all", institute_name: "All" };
+        const updatedList = [allOption, ...data];
+
+        setUserInstitutes(updatedList);
+        setSelectedInstitute(allOption);
+      } catch (error) {
+        console.error("Error fetching institutes:", error);
+      }
+    };
+
+    fetchInstitutes();
+  }, [loggedInUserId]);
 
   // Update this useEffect to reapply filters when requests change
   useEffect(() => {
@@ -250,27 +264,30 @@ function DGXDashboard() {
   }, [requests]);
 
   // Fetch time slots and user time slots
- const fetchTimeData = async () => {
-   try {
-     // Fetch time slots
-     const timeSlotRes = await fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/time-slots",);
-     const timeSlotsData = await timeSlotRes.json();
- 
-     // Fetch user time slots
-     const userTimeSlotRes = await fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/user-time-slots");
-     const userTimeSlotsData = await userTimeSlotRes.json();
- 
-     setTimeSlots(timeSlotsData || []);
-     setUserTimeSlots(userTimeSlotsData || []);
-   } catch (err) {
-     console.error("Error fetching time data:", err);
-   }
- };
- 
- useEffect(() => {
-   fetchTimeData();
- }, []);
- 
+  const fetchTimeData = async () => {
+    try {
+      // Fetch time slots
+      const timeSlotRes = await fetch(
+        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/time-slots"
+      );
+      const timeSlotsData = await timeSlotRes.json();
+
+      // Fetch user time slots
+      const userTimeSlotRes = await fetch(
+        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/user-time-slots"
+      );
+      const userTimeSlotsData = await userTimeSlotRes.json();
+
+      setTimeSlots(timeSlotsData || []);
+      setUserTimeSlots(userTimeSlotsData || []);
+    } catch (err) {
+      console.error("Error fetching time data:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchTimeData();
+  }, []);
 
   // Function to get time details for a specific request
   const getTimeDetailsForRequest = (instanceRequestId: number) => {
@@ -285,15 +302,23 @@ function DGXDashboard() {
       );
 
       // Case 1: No user time slots found — fallback to instanceRequest date
-      if (!allUserTimeSlotsForRequest || allUserTimeSlotsForRequest.length === 0) {
+      if (
+        !allUserTimeSlotsForRequest ||
+        allUserTimeSlotsForRequest.length === 0
+      ) {
         const fallbackDate = relatedRequest?.selected_date;
 
         if (fallbackDate) {
-          const formattedFallbackDate = new Date(fallbackDate).toLocaleDateString("en-GB");
+          const formattedFallbackDate = new Date(
+            fallbackDate
+          ).toLocaleDateString("en-GB");
           return {
             date: "1 date selected",
             time: "No time slots",
-            formatted: `${formattedFallbackDate.replace(/\//g, "-")} / No time slots`,
+            formatted: `${formattedFallbackDate.replace(
+              /\//g,
+              "-"
+            )} / No time slots`,
           };
         }
 
@@ -337,7 +362,8 @@ function DGXDashboard() {
       const extractStartTime = (timeSlotStr: string): string => {
         if (!timeSlotStr) return "";
         if (timeSlotStr.includes("-")) return timeSlotStr.split("-")[0].trim();
-        if (timeSlotStr.includes(" to ")) return timeSlotStr.split(" to ")[0].trim();
+        if (timeSlotStr.includes(" to "))
+          return timeSlotStr.split(" to ")[0].trim();
         return timeSlotStr.trim();
       };
 
@@ -400,7 +426,9 @@ function DGXDashboard() {
       }
 
       return {
-        date: `${sortedDates.length} date${sortedDates.length > 1 ? "s" : ""} selected`,
+        date: `${sortedDates.length} date${
+          sortedDates.length > 1 ? "s" : ""
+        } selected`,
         time: "Multiple time slots",
         formatted: formattedOutput,
       };
@@ -416,27 +444,28 @@ function DGXDashboard() {
 
   // Fetch master tables
   useEffect(() => {
-   const fetchMasters = async () => {
-     try {
-       const response = await fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/masters");
-       const data = await response.json();
- 
-       setDepartments(data.departments || []);
-       setUserTypes(data.userTypes || []);
-       setCpuList(data.cpuList || []);
-       setRamList(data.ramList || []);
-       setGpuPartitions(data.gpuPartitions || []);
-       setGpuVendors(data.gpuVendors || []);
-       setImageList(data.imageList || []);
-       
-     } catch (err) {
-       console.error("Error fetching master tables", err);
-     }
-   };
- 
-   fetchMasters();
- }, []);
- 
+    const fetchMasters = async () => {
+      try {
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/masters"
+        );
+        const data = await response.json();
+
+        setDepartments(data.departments || []);
+        setUserTypes(data.userTypes || []);
+        setCpuList(data.cpuList || []);
+        setRamList(data.ramList || []);
+        setGpuPartitions(data.gpuPartitions || []);
+        setGpuVendors(data.gpuVendors || []);
+        setImageList(data.imageList || []);
+      } catch (err) {
+        console.error("Error fetching master tables", err);
+      }
+    };
+
+    fetchMasters();
+  }, []);
+
   // Helper functions
   const getDepartmentName = (userId: number): string => {
     if (!userId) return "Not Assigned";
@@ -472,12 +501,14 @@ function DGXDashboard() {
   };
 
   const getGpuPartitionName = (partitionId: number) => {
-    const partition = gpuPartitions.find((p) => p.gpu_partition_id === partitionId);
+    const partition = gpuPartitions.find(
+      (p) => p.gpu_partition_id === partitionId
+    );
     return partition?.gpu_partition || "";
   };
 
   const getGpuName = (gpuId: number) => {
-   const vendor = gpuVendors.find((v) => v.gpu_id === gpuId);
+    const vendor = gpuVendors.find((v) => v.gpu_id === gpuId);
     return vendor?.gpu_vendor || "";
   };
 
@@ -487,14 +518,16 @@ function DGXDashboard() {
   };
 
   // Show snackbar
-  const showSnackbar = (message: string, type: "success" | "error" = "success") => {
+  const showSnackbar = (
+    message: string,
+    type: "success" | "error" = "success"
+  ) => {
     setSnackbar({ show: true, message, type });
     setTimeout(() => {
       setSnackbar({ show: false, message: "", type: "success" });
     }, 3000);
   };
 
- 
   const formatDateForDisplay = (dateString: string) => {
     if (!dateString) return "";
     const [year, month, day] = dateString.split("-");
@@ -575,7 +608,10 @@ function DGXDashboard() {
   );
 
   const requestRangeStart = (currentPage - 1) * rowsPerPage + 1;
-  const requestRangeEnd = Math.min(currentPage * rowsPerPage, sortedRequests.length);
+  const requestRangeEnd = Math.min(
+    currentPage * rowsPerPage,
+    sortedRequests.length
+  );
 
   // Handle sorting toggle
   const handleSort = (key: string) => {
@@ -630,132 +666,69 @@ function DGXDashboard() {
     setIsConfirmationOpen(true);
   };
 
-  // Handle confirmation yes button
-//   const handleConfirmationYes = async () => {
-//     if (!selectedRequest || !confirmationAction) return; 
+  const handleConfirmationYes = async () => {
+    if (!selectedRequest || !confirmationAction) return;
 
-//     if (confirmationAction === "reject") {
-//       setIsConfirmationOpen(false);
-//       setIsRemarksModalOpen(true);
-//       return;
-//     }
-
-//     try {
-//       // Find the "Approved-Functional" status ID
-//       const approvedStatus = status.find((s) => s.status_name === "Approved-Functional");
-//       if (!approvedStatus) {
-//         showSnackbar("Error: Approved-Functional status not found.", "error");
-//         return;
-//       }
-
-//       const newStatusId = Number(approvedStatus.status_id);
-
-//       // Update the request in Supabase
-//       const { data, error } = await supabase
-//         .from("instance_request")
-//         .update({
-//           status_id: newStatusId,
-//           updated_by: parseInt(loggedInUserId),
-//           updated_timestamp: new Date().toISOString(),
-//         })
-//         .eq("instance_request_id", selectedRequest.instance_request_id)
-//         .select();
-
-//       if (error) throw error;
-
-//       if (data && data.length > 0) {
-//         // Update local state
-//         setRequests((prevRequests) =>
-//           prevRequests.map((req) =>
-//             req.instance_request_id === selectedRequest.instance_request_id
-//               ? { ...req, status_id: newStatusId }
-//               : req
-//           )
-//         );
-
-//         setFilteredRequests((prevFiltered) =>
-//           prevFiltered.map((req) =>
-//             req.instance_request_id === selectedRequest.instance_request_id
-//               ? { ...req, status_id: newStatusId }
-//               : req
-//           )
-//         );
-
-//         closeConfirmation();
-//         setSelectedRequest(null);
-//         showSnackbar("Request approved successfully!", "success");
-//         fetchData();
-//       }
-//     } catch (error) {
-//       console.error(`Error approving request:`, error);
-//       showSnackbar("Error approving request. Please try again.", "error");
-//     }
-//   };
-
-const handleConfirmationYes = async () => {
-  if (!selectedRequest || !confirmationAction) return;
-
-  // If rejecting, open remarks modal
-  if (confirmationAction === "reject") {
-    setIsConfirmationOpen(false);
-    setIsRemarksModalOpen(true);
-    return;
-  }
-
-  try {
-    // Call backend API
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_DGX_API_URL + "/functionaladmin/approve-functional",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-        //   instance_request_id: selectedRequest.instance_request_id,
-        //   updated_by: loggedInUserId,
-          instance_request_id: Number(selectedRequest.instance_request_id),
-        //   updated_by: Number(loggedInUserId),
-            updated_by: loggedInUserId,
-        }),
-      }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      showSnackbar(result.message || "Error approving request", "error");
+    // If rejecting, open remarks modal
+    if (confirmationAction === "reject") {
+      setIsConfirmationOpen(false);
+      setIsRemarksModalOpen(true);
       return;
     }
 
-    const newStatusId = result.data.status_id;
+    try {
+      // Call backend API
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_DGX_API_URL +
+          "/functionaladmin/approve-functional",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            //   instance_request_id: selectedRequest.instance_request_id,
+            //   updated_by: loggedInUserId,
+            instance_request_id: Number(selectedRequest.instance_request_id),
+            //   updated_by: Number(loggedInUserId),
+            updated_by: loggedInUserId,
+          }),
+        }
+      );
 
-    // Update local state
-    setRequests((prevRequests) =>
-      prevRequests.map((req) =>
-        req.instance_request_id === selectedRequest.instance_request_id
-          ? { ...req, status_id: newStatusId }
-          : req
-      )
-    );
+      const result = await response.json();
 
-    setFilteredRequests((prevFiltered) =>
-      prevFiltered.map((req) =>
-        req.instance_request_id === selectedRequest.instance_request_id
-          ? { ...req, status_id: newStatusId }
-          : req
-      )
-    );
+      if (!response.ok) {
+        showSnackbar(result.message || "Error approving request", "error");
+        return;
+      }
 
-    closeConfirmation();
-    setSelectedRequest(null);
-    showSnackbar("Request approved successfully!", "success");
-    fetchData();
+      const newStatusId = result.data.status_id;
 
-  } catch (error) {
-    console.error("Error approving request:", error);
-    showSnackbar("Error approving request. Please try again.", "error");
-  }
-};
+      // Update local state
+      setRequests((prevRequests) =>
+        prevRequests.map((req) =>
+          req.instance_request_id === selectedRequest.instance_request_id
+            ? { ...req, status_id: newStatusId }
+            : req
+        )
+      );
 
+      setFilteredRequests((prevFiltered) =>
+        prevFiltered.map((req) =>
+          req.instance_request_id === selectedRequest.instance_request_id
+            ? { ...req, status_id: newStatusId }
+            : req
+        )
+      );
+
+      closeConfirmation();
+      setSelectedRequest(null);
+      showSnackbar("Request approved successfully!", "success");
+      fetchData();
+    } catch (error) {
+      console.error("Error approving request:", error);
+      showSnackbar("Error approving request. Please try again.", "error");
+    }
+  };
 
   // Handle remarks submit (for reject) with email functionality
   const handleRemarksSubmit = async () => {
@@ -776,91 +749,94 @@ const handleConfirmationYes = async () => {
 
       const newStatusId = Number(rejectedStatus.status_id);
 
-     // 1️⃣ CALL BACKEND API
-    const res = await fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/functionaladmin/reject-request", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        instance_request_id: selectedRequest.instance_request_id,
-        remarks: remarksText.trim(),
-        new_status_id: newStatusId,
-        // logged_in_user_id: Number(loggedInUserId),
-        logged_in_user_id: loggedInUserId,
-      }),
-    });
+      // 1️⃣ CALL BACKEND API
+      const res = await fetch(
+        process.env.NEXT_PUBLIC_DGX_API_URL + "/functionaladmin/reject-request",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            instance_request_id: selectedRequest.instance_request_id,
+            remarks: remarksText.trim(),
+            new_status_id: newStatusId,
+            // logged_in_user_id: Number(loggedInUserId),
+            logged_in_user_id: loggedInUserId,
+          }),
+        }
+      );
 
-    const result = await res.json();
+      const result = await res.json();
 
-    if (!result.success) {
-      setRemarksError(result.message);
-      setIsEmailSending(false);
-      return;
-    }
-
-
-        setRequests((prevRequests) =>
-          prevRequests.map((req) =>
-            req.instance_request_id === selectedRequest.instance_request_id
-              ? {
-                  ...req,
-                  status_id: newStatusId,
-                  remarks: remarksText.trim(),
-                }
-              : req
-          )
-        );
-
-        setFilteredRequests((prevFiltered) =>
-          prevFiltered.map((req) =>
-            req.instance_request_id === selectedRequest.instance_request_id
-              ? {
-                  ...req,
-                  status_id: newStatusId,
-                  remarks: remarksText.trim(),
-                }
-              : req
-          )
-        );
-
+      if (!result.success) {
+        setRemarksError(result.message);
         setIsEmailSending(false);
-        closeRemarksModal();
-        setSelectedRequest(null);
-        setConfirmationAction(null);
-        setIsConfirmationOpen(false);
-        showSnackbar("Request rejected successfully!", "success");
-        fetchData();
+        return;
+      }
 
-        // Send email asynchronously
-        const timeDetails = getTimeDetailsForRequest(selectedRequest.instance_request_id);
-        const userDetails = users.find((u) => u.user_id === selectedRequest.user_id);
-        console.log("GPU Vendor", selectedRequest.gpu_id);
-        const emailData = {
-          ...selectedRequest,
-          id: selectedRequest.instance_request_id,  // ✅ ADD THIS LINE
-          admin,
-          loggedInUserName,
-          user: userDetails,
-          date_time: timeDetails.formatted,
-          userTypeName: getUserTypeName(selectedRequest.user_type_id),
-          customImageName: getCustomImageName(selectedRequest.image_id),
-          cpuName: getCpuName(selectedRequest.cpu_id),
-          ramName: getRamName(selectedRequest.ram_id),
-          gpuPartitionName: getGpuPartitionName(selectedRequest.gpu_partition_id),
-          gpuVendorName: getGpuName(selectedRequest.gpu_id),
-        };
+      setRequests((prevRequests) =>
+        prevRequests.map((req) =>
+          req.instance_request_id === selectedRequest.instance_request_id
+            ? {
+                ...req,
+                status_id: newStatusId,
+                remarks: remarksText.trim(),
+              }
+            : req
+        )
+      );
 
-        console.log("Email Data GPU Name:", emailData.gpuVendorName); 
+      setFilteredRequests((prevFiltered) =>
+        prevFiltered.map((req) =>
+          req.instance_request_id === selectedRequest.instance_request_id
+            ? {
+                ...req,
+                status_id: newStatusId,
+                remarks: remarksText.trim(),
+              }
+            : req
+        )
+      );
 
-        sendRejectionEmail(emailData, remarksText.trim()).catch((emailError) => {
-          console.error("Error sending rejection email:", emailError);
-          setTimeout(() => {
-            showSnackbar(
-              "Note: There was an issue sending the notification email.",
-              "error"
-            );
-          }, 2000);
-        });
-      
+      setIsEmailSending(false);
+      closeRemarksModal();
+      setSelectedRequest(null);
+      setConfirmationAction(null);
+      setIsConfirmationOpen(false);
+      showSnackbar("Request rejected successfully!", "success");
+      fetchData();
+
+      // Send email asynchronously
+      const timeDetails = getTimeDetailsForRequest(
+        selectedRequest.instance_request_id
+      );
+      const userDetails = users.find(
+        (u) => u.user_id === selectedRequest.user_id
+      );
+
+      const emailData = {
+        ...selectedRequest,
+        id: selectedRequest.instance_request_id, // ✅ ADD THIS LINE
+        admin,
+        loggedInUserName,
+        user: userDetails,
+        date_time: timeDetails.formatted,
+        userTypeName: getUserTypeName(selectedRequest.user_type_id),
+        customImageName: getCustomImageName(selectedRequest.image_id),
+        cpuName: getCpuName(selectedRequest.cpu_id),
+        ramName: getRamName(selectedRequest.ram_id),
+        gpuPartitionName: getGpuPartitionName(selectedRequest.gpu_partition_id),
+        gpuVendorName: getGpuName(selectedRequest.gpu_id),
+      };
+
+      sendRejectionEmail(emailData, remarksText.trim()).catch((emailError) => {
+        console.error("Error sending rejection email:", emailError);
+        setTimeout(() => {
+          showSnackbar(
+            "Note: There was an issue sending the notification email.",
+            "error"
+          );
+        }, 2000);
+      });
     } catch (error) {
       console.error(`Error rejecting request:`, error);
       setRemarksError("Error rejecting request. Please try again.");
@@ -880,204 +856,209 @@ const handleConfirmationYes = async () => {
   };
 
   // Fetch status from Supabase
- useEffect(() => {
-   const fetchStatus = async () => {
-     try {
-       const response = await fetch(
-         process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/status", // direct URL
-         {
-           method: "GET",
-           headers: { "Content-Type": "application/json" },
-         }
-       );
- 
-       if (!response.ok) {
-         throw new Error("Network response was not ok");
-       }
- 
-       const data = await response.json();
- 
-       console.log("Fetched status:", data);
- 
-       if (!data || data.length === 0) return;
- 
-       // Add "All" option
-       const allOption = { status_id: "all", status_name: "All" };
-       const updatedStatusList = [allOption, ...data];
- 
-       setStatus(updatedStatusList);
-       setSelectedStatus(allOption);
- 
-       console.log("Default status set: All (showing all statuses)");
-     } catch (error) {
-       console.error("Error fetching status:", error);
-     }
-   };
- 
-   fetchStatus();
- }, []);
-  
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/status", // direct URL
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const data = await response.json();
+
+        if (!data || data.length === 0) return;
+
+        // Add "All" option
+        const allOption = { status_id: "all", status_name: "All" };
+        const updatedStatusList = [allOption, ...data];
+
+        setStatus(updatedStatusList);
+        setSelectedStatus(allOption);
+      } catch (error) {
+        console.error("Error fetching status:", error);
+      }
+    };
+
+    fetchStatus();
+  }, []);
+
   // Replace your existing fetchData function with this:
 
-const fetchData = async () => {
-  try {
-    setLoading(true);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
 
-    const [userRes, assocRes, instRes] = await Promise.all([
-      fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/users"),
-      fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/associations"),
-      fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/institutes"),
-    ]);
+      const [userRes, assocRes, instRes] = await Promise.all([
+        fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/users"),
+        fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/associations"
+        ),
+        fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/institutes"
+        ),
+      ]);
 
-    const users = await userRes.json();
-    const associations = await assocRes.json();
-    const institutes = await instRes.json();
+      const users = await userRes.json();
+      const associations = await assocRes.json();
+      const institutes = await instRes.json();
 
-    setUsers(users);
-    setUserInstituteAssociation(associations);
-    setInstitutes(institutes);
+      setUsers(users);
+      setUserInstituteAssociation(associations);
+      setInstitutes(institutes);
 
-    const body = {
-      logged_in_user_id: loggedInUserId,
-      from_date_param: null,
-      to_date_param: null,
-      status_id_param: null,
-      institute_id_param:
-        selectedInstitute?.institute_id === "all"
-          ? null
-          : selectedInstitute?.institute_id || null,
-    };
+      const body = {
+        logged_in_user_id: loggedInUserId,
+        from_date_param: null,
+        to_date_param: null,
+        status_id_param: null,
+        institute_id_param:
+          selectedInstitute?.institute_id === "all"
+            ? null
+            : selectedInstitute?.institute_id || null,
+      };
 
-    const reqRes = await fetch(
-      process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/filtered-requests",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      }
-    );
+      const reqRes = await fetch(
+        process.env.NEXT_PUBLIC_DGX_API_URL +
+          "/technicaladmin/filtered-requests",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
 
-    const requests = await reqRes.json();
+      const requests = await reqRes.json();
 
-     // ✅ Ensure it's always an array
-    const requestsArray = Array.isArray(requests) ? requests : [];
-    setRequests(requestsArray);
-    console.log("Fetched requests:", requestsArray);
-    setFilteredRequests(requestsArray); // ✅ Add this line
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    showSnackbar("Error fetching data.", "error");
-  } finally {
-    setLoading(false);
-  }
-};
+      // ✅ Ensure it's always an array
+      const requestsArray = Array.isArray(requests) ? requests : [];
+      setRequests(requestsArray);
+      console.log("Fetched requests:", requestsArray);
+      setFilteredRequests(requestsArray); // ✅ Add this line
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      showSnackbar("Error fetching data.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-
-      fetchData();
-    
+    fetchData();
   }, [loggedInUserId]);
 
-// Replace your validateAndFilter function with this:
+  // Replace your validateAndFilter function with this:
 
-const validateAndFilter = async () => {
-  if (!fromDate && !toDate && !selectedStatus && !selectedInstitute) {
-    setIsFilterValidationPopupOpen(true);
-    return;
-  }
+  const validateAndFilter = async () => {
+    if (!fromDate && !toDate && !selectedStatus && !selectedInstitute) {
+      setIsFilterValidationPopupOpen(true);
+      return;
+    }
 
-  if (!fromDate && toDate) {
-    setDateError("Please select From Date.");
-    return;
-  }
+    if (!fromDate && toDate) {
+      setDateError("Please select From Date.");
+      return;
+    }
 
-  if (fromDate && toDate && new Date(toDate) < new Date(fromDate)) {
-    setDateError("To Date cannot be earlier than From Date.");
-    return;
-  }
+    if (fromDate && toDate && new Date(toDate) < new Date(fromDate)) {
+      setDateError("To Date cannot be earlier than From Date.");
+      return;
+    }
 
-  setDateError("");
+    setDateError("");
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const body = {
-      logged_in_user_id: loggedInUserId,
-      from_date_param: fromDate || null,
-      to_date_param: toDate || null,
-      status_id_param:
-        selectedStatus?.status_id === "all" ? null : selectedStatus?.status_id,
-      institute_id_param:
-        selectedInstitute?.institute_id === "all"
-          ? null
-          : selectedInstitute?.institute_id,
-    };
+      const body = {
+        logged_in_user_id: loggedInUserId,
+        from_date_param: fromDate || null,
+        to_date_param: toDate || null,
+        status_id_param:
+          selectedStatus?.status_id === "all"
+            ? null
+            : selectedStatus?.status_id,
+        institute_id_param:
+          selectedInstitute?.institute_id === "all"
+            ? null
+            : selectedInstitute?.institute_id,
+      };
 
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/filtered-requests",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      }
-    );
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_DGX_API_URL +
+          "/technicaladmin/filtered-requests",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
 
-    const filtered = await response.json();
+      const filtered = await response.json();
 
-    // ✅ Ensure it's always an array
-    const filteredArray = Array.isArray(filtered) ? filtered : [];
-    setFilteredRequests(filteredArray);
-    setCurrentPage(1);
-    setCurrentFilteredInstitute(selectedInstitute);
-    setAreFiltersApplied(true);
-  } catch (error) {
-    console.error("❌ Error filtering data:", error);
-    showSnackbar("Error filtering data. Please try again.", "error");
-    setFilteredRequests([]);
-  } finally {
-    setLoading(false);
-  }
-};
+      // ✅ Ensure it's always an array
+      const filteredArray = Array.isArray(filtered) ? filtered : [];
+      setFilteredRequests(filteredArray);
+      setCurrentPage(1);
+      setCurrentFilteredInstitute(selectedInstitute);
+      setAreFiltersApplied(true);
+    } catch (error) {
+      console.error("❌ Error filtering data:", error);
+      showSnackbar("Error filtering data. Please try again.", "error");
+      setFilteredRequests([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-// Update reapplyCurrentFilters to use the function:
+  // Update reapplyCurrentFilters to use the function:
 
-const reapplyCurrentFilters = async () => {
-  if (!areFiltersApplied) {
-    setFilteredRequests(requests);
-    return;
-  }
+  const reapplyCurrentFilters = async () => {
+    if (!areFiltersApplied) {
+      setFilteredRequests(requests);
+      return;
+    }
 
-  try {
-    const body = {
-      logged_in_user_id: loggedInUserId,
-      from_date_param: fromDate || null,
-      to_date_param: toDate || null,
-      status_id_param:
-        selectedStatus?.status_id === "all" ? null : selectedStatus?.status_id,
-      institute_id_param:
-        selectedInstitute?.institute_id === "all"
-          ? null
-          : selectedInstitute?.institute_id,
-    };
+    try {
+      const body = {
+        logged_in_user_id: loggedInUserId,
+        from_date_param: fromDate || null,
+        to_date_param: toDate || null,
+        status_id_param:
+          selectedStatus?.status_id === "all"
+            ? null
+            : selectedStatus?.status_id,
+        institute_id_param:
+          selectedInstitute?.institute_id === "all"
+            ? null
+            : selectedInstitute?.institute_id,
+      };
 
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/filtered-requests",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      }
-    );
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_DGX_API_URL +
+          "/technicaladmin/filtered-requests",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
 
-    const filtered = await response.json();
-    // ✅ Ensure it's always an array
-    const filteredArray = Array.isArray(filtered) ? filtered : [];
-    setFilteredRequests(filteredArray);
-  } catch (error) {
-    console.error("❌ Error reapplying filters:", error);
-    setFilteredRequests([]);
-  }
-};
+      const filtered = await response.json();
+      // ✅ Ensure it's always an array
+      const filteredArray = Array.isArray(filtered) ? filtered : [];
+      setFilteredRequests(filteredArray);
+    } catch (error) {
+      console.error("❌ Error reapplying filters:", error);
+      setFilteredRequests([]);
+    }
+  };
 
   // Get Full User Name
   const getUserName = (userId: number): string => {
@@ -1101,7 +1082,10 @@ const reapplyCurrentFilters = async () => {
     if (!user) return `Unknown User (${userId})`;
 
     // If table is filtered by a specific institute
-    if (currentFilteredInstitute && currentFilteredInstitute.institute_id !== "all") {
+    if (
+      currentFilteredInstitute &&
+      currentFilteredInstitute.institute_id !== "all"
+    ) {
       const hasAssociation = userInstituteAssociation.some(
         (assoc) =>
           assoc.user_id === userId &&
@@ -1114,14 +1098,21 @@ const reapplyCurrentFilters = async () => {
     }
 
     // Otherwise → find user's first/default institute
-    const association = userInstituteAssociation.find((assoc) => assoc.user_id === userId);
+    const association = userInstituteAssociation.find(
+      (assoc) => assoc.user_id === userId
+    );
 
     if (!association) return "No Institute Assigned";
 
     // Match institute details
-    const institute = institutes.find((inst) => inst.institute_id === association.institute_id);
+    const institute = institutes.find(
+      (inst) => inst.institute_id === association.institute_id
+    );
 
-    return institute?.institute_name ?? `Unknown Institute (${association.institute_id})`;
+    return (
+      institute?.institute_name ??
+      `Unknown Institute (${association.institute_id})`
+    );
   };
 
   // Updated function to check status by name instead of ID
@@ -1191,7 +1182,9 @@ const reapplyCurrentFilters = async () => {
                   cursor-pointer flex items-center justify-between
                   ${dateError ? "border-red-300" : ""}`}
                   onClick={() => {
-                    const input = document.getElementById("fromDatePicker") as HTMLInputElement;
+                    const input = document.getElementById(
+                      "fromDatePicker"
+                    ) as HTMLInputElement;
                     input?.showPicker?.();
                   }}
                 >
@@ -1199,7 +1192,9 @@ const reapplyCurrentFilters = async () => {
                     {fromDate ? (
                       <>
                         <span className="text-gray-500">From</span>
-                        <span className="ml-3">{formatDateForDisplay(fromDate)}</span>
+                        <span className="ml-3">
+                          {formatDateForDisplay(fromDate)}
+                        </span>
                       </>
                     ) : (
                       <>
@@ -1241,7 +1236,9 @@ const reapplyCurrentFilters = async () => {
                   cursor-pointer flex items-center justify-between
                   ${dateError ? "border-red-300" : ""}`}
                   onClick={() => {
-                    const input = document.getElementById("toDatePicker") as HTMLInputElement;
+                    const input = document.getElementById(
+                      "toDatePicker"
+                    ) as HTMLInputElement;
                     input?.showPicker?.();
                   }}
                 >
@@ -1249,7 +1246,9 @@ const reapplyCurrentFilters = async () => {
                     {toDate ? (
                       <>
                         <span className="text-gray-500">To</span>
-                        <span className="ml-3">{formatDateForDisplay(toDate)}</span>
+                        <span className="ml-3">
+                          {formatDateForDisplay(toDate)}
+                        </span>
                       </>
                     ) : (
                       <>
@@ -1281,11 +1280,21 @@ const reapplyCurrentFilters = async () => {
                 <div className="relative">
                   <label
                     className={`absolute left-3 transition-all duration-200 pointer-events-none z-20
-                   ${selectedStatus ? "text-xs -top-2 px-1" : "top-1/2 -translate-y-1/2 text-sm"}
-                   ${selectedStatus ? "text-[#5A8F00] font-medium" : "text-gray-500"}
+                   ${
+                     selectedStatus
+                       ? "text-xs -top-2 px-1"
+                       : "top-1/2 -translate-y-1/2 text-sm"
+                   }
+                   ${
+                     selectedStatus
+                       ? "text-[#5A8F00] font-medium"
+                       : "text-gray-500"
+                   }
                  `}
                     style={{
-                      backgroundColor: selectedStatus ? "#ffffff" : "transparent",
+                      backgroundColor: selectedStatus
+                        ? "#ffffff"
+                        : "transparent",
                     }}
                   >
                     {selectedStatus ? "Status" : "Select Status"}
@@ -1322,15 +1331,28 @@ const reapplyCurrentFilters = async () => {
 
             {/* Institute Dropdown */}
             <div className="relative w-90">
-              <Listbox value={selectedInstitute} onChange={setSelectedInstitute}>
+              <Listbox
+                value={selectedInstitute}
+                onChange={setSelectedInstitute}
+              >
                 <div className="relative">
                   <label
                     className={`absolute left-3 transition-all duration-200 pointer-events-none z-20
-                   ${selectedInstitute ? "text-xs -top-2 px-1" : "top-1/2 -translate-y-1/2 text-sm"}
-                   ${selectedInstitute ? "text-[#5A8F00] font-medium" : "text-gray-500"}
+                   ${
+                     selectedInstitute
+                       ? "text-xs -top-2 px-1"
+                       : "top-1/2 -translate-y-1/2 text-sm"
+                   }
+                   ${
+                     selectedInstitute
+                       ? "text-[#5A8F00] font-medium"
+                       : "text-gray-500"
+                   }
                  `}
                     style={{
-                      backgroundColor: selectedInstitute ? "#ffffff" : "transparent",
+                      backgroundColor: selectedInstitute
+                        ? "#ffffff"
+                        : "transparent",
                     }}
                   >
                     {selectedInstitute ? "Institute" : "Select Institute"}
@@ -1342,7 +1364,9 @@ const reapplyCurrentFilters = async () => {
                             focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent truncate"
                   >
                     <span className="truncate mr-2">
-                      {selectedInstitute ? selectedInstitute.institute_name : ""}
+                      {selectedInstitute
+                        ? selectedInstitute.institute_name
+                        : ""}
                     </span>
 
                     <ChevronDown className="w-4 h-4 text-gray-700 flex-shrink-0 cursor-pointer" />
@@ -1380,7 +1404,9 @@ const reapplyCurrentFilters = async () => {
 
           {/* Error Message */}
           {dateError && (
-            <div className="mt-2 text-red-600 text-sm font-medium">{dateError}</div>
+            <div className="mt-2 text-red-600 text-sm font-medium">
+              {dateError}
+            </div>
           )}
         </div>
 
@@ -1423,7 +1449,9 @@ const reapplyCurrentFilters = async () => {
                     <td colSpan={10} className="text-center py-6">
                       <div className="flex items-center justify-center space-x-3">
                         <div className="animate-spin h-5 w-5 border-2 border-lime-500 border-t-transparent rounded-full"></div>
-                        <span className="text-gray-600 text-sm">Loading data...</span>
+                        <span className="text-gray-600 text-sm">
+                          Loading data...
+                        </span>
                       </div>
                     </td>
                   </tr>
@@ -1459,7 +1487,9 @@ const reapplyCurrentFilters = async () => {
                           <span className="text-gray-700">
                             {(() => {
                               const requestTimeSlots = userTimeSlots.filter(
-                                (uts) => uts.instance_request_id === request.instance_request_id
+                                (uts) =>
+                                  uts.instance_request_id ===
+                                  request.instance_request_id
                               );
 
                               if (requestTimeSlots.length === 0) {
@@ -1474,23 +1504,34 @@ const reapplyCurrentFilters = async () => {
                                   : "No date available";
                               }
 
-                              const formattedDates = requestTimeSlots.map((uts) => {
-                                const date = uts?.selected_date;
-                                if (!date) return "No date";
-                                const formatted = new Date(date).toLocaleDateString("en-GB", {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "numeric",
-                                });
-                                return formatted.replace(/\//g, "-");
-                              });
+                              const formattedDates = requestTimeSlots.map(
+                                (uts) => {
+                                  const date = uts?.selected_date;
+                                  if (!date) return "No date";
+                                  const formatted = new Date(
+                                    date
+                                  ).toLocaleDateString("en-GB", {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                  });
+                                  return formatted.replace(/\//g, "-");
+                                }
+                              );
 
-                              const uniqueDates = Array.from(new Set(formattedDates));
+                              const uniqueDates = Array.from(
+                                new Set(formattedDates)
+                              );
 
                               const sortedDates = uniqueDates.sort((a, b) => {
-                                if (a === "No date" || b === "No date") return 0;
-                                const [dayA, monthA, yearA] = a.split("-").map(Number);
-                                const [dayB, monthB, yearB] = b.split("-").map(Number);
+                                if (a === "No date" || b === "No date")
+                                  return 0;
+                                const [dayA, monthA, yearA] = a
+                                  .split("-")
+                                  .map(Number);
+                                const [dayB, monthB, yearB] = b
+                                  .split("-")
+                                  .map(Number);
                                 return (
                                   new Date(yearA, monthA - 1, dayA).getTime() -
                                   new Date(yearB, monthB - 1, dayB).getTime()
@@ -1498,7 +1539,9 @@ const reapplyCurrentFilters = async () => {
                               });
 
                               if (sortedDates.length > 1) {
-                                return `${sortedDates[0]} - ${sortedDates[sortedDates.length - 1]}`;
+                                return `${sortedDates[0]} - ${
+                                  sortedDates[sortedDates.length - 1]
+                                }`;
                               } else {
                                 return sortedDates[0];
                               }
@@ -1512,9 +1555,12 @@ const reapplyCurrentFilters = async () => {
                               <div className="min-w-[200px] max-w-[400px] w-max max-h-15 overflow-y-auto pt-1 px-2 whitespace-normal break-words">
                                 <div className="text-xs text-gray-900 leading-relaxed">
                                   {(() => {
-                                    const requestTimeSlots = userTimeSlots.filter(
-                                      (uts) => uts.instance_request_id === request.instance_request_id
-                                    );
+                                    const requestTimeSlots =
+                                      userTimeSlots.filter(
+                                        (uts) =>
+                                          uts.instance_request_id ===
+                                          request.instance_request_id
+                                      );
 
                                     if (requestTimeSlots.length === 0) {
                                       return (
@@ -1537,45 +1583,63 @@ const reapplyCurrentFilters = async () => {
                                       );
                                     }
 
-                                    const groupedByDate = requestTimeSlots.reduce(
-                                      (groups: any, uts) => {
-                                        const dateKey = uts.selected_date
-                                          ? new Date(uts.selected_date)
-                                              .toLocaleDateString("en-GB", {
-                                                day: "2-digit",
-                                                month: "2-digit",
-                                                year: "numeric",
-                                              })
-                                              .replace(/\//g, "-")
-                                          : "No date";
+                                    const groupedByDate =
+                                      requestTimeSlots.reduce(
+                                        (groups: any, uts) => {
+                                          const dateKey = uts.selected_date
+                                            ? new Date(uts.selected_date)
+                                                .toLocaleDateString("en-GB", {
+                                                  day: "2-digit",
+                                                  month: "2-digit",
+                                                  year: "numeric",
+                                                })
+                                                .replace(/\//g, "-")
+                                            : "No date";
 
-                                        if (!groups[dateKey]) {
-                                          groups[dateKey] = [];
-                                        }
-                                        groups[dateKey].push(uts);
-                                        return groups;
-                                      },
-                                      {}
-                                    );
+                                          if (!groups[dateKey]) {
+                                            groups[dateKey] = [];
+                                          }
+                                          groups[dateKey].push(uts);
+                                          return groups;
+                                        },
+                                        {}
+                                      );
 
-                                    const sortedDates = Object.keys(groupedByDate).sort(
-                                      (a, b) => {
-                                        if (a === "No date" || b === "No date") return 0;
-                                        const [dayA, monthA, yearA] = a.split("-").map(Number);
-                                        const [dayB, monthB, yearB] = b.split("-").map(Number);
-                                        return (
-                                          new Date(yearA, monthA - 1, dayA).getTime() -
-                                          new Date(yearB, monthB - 1, dayB).getTime()
-                                        );
-                                      }
-                                    );
+                                    const sortedDates = Object.keys(
+                                      groupedByDate
+                                    ).sort((a, b) => {
+                                      if (a === "No date" || b === "No date")
+                                        return 0;
+                                      const [dayA, monthA, yearA] = a
+                                        .split("-")
+                                        .map(Number);
+                                      const [dayB, monthB, yearB] = b
+                                        .split("-")
+                                        .map(Number);
+                                      return (
+                                        new Date(
+                                          yearA,
+                                          monthA - 1,
+                                          dayA
+                                        ).getTime() -
+                                        new Date(
+                                          yearB,
+                                          monthB - 1,
+                                          dayB
+                                        ).getTime()
+                                      );
+                                    });
 
-                                    const extractStartTime = (timeSlotStr: string) => {
+                                    const extractStartTime = (
+                                      timeSlotStr: string
+                                    ) => {
                                       if (!timeSlotStr) return "";
                                       if (timeSlotStr.includes("-")) {
                                         return timeSlotStr.split("-")[0].trim();
                                       } else if (timeSlotStr.includes(" to ")) {
-                                        return timeSlotStr.split(" to ")[0].trim();
+                                        return timeSlotStr
+                                          .split(" to ")[0]
+                                          .trim();
                                       }
                                       return timeSlotStr.trim();
                                     };
@@ -1588,7 +1652,8 @@ const reapplyCurrentFilters = async () => {
                                     };
 
                                     const formatTimeRanges = (times: any[]) => {
-                                      if (times.length === 0) return "No times available";
+                                      if (times.length === 0)
+                                        return "No times available";
                                       const sorted = times
                                         .map((t) => ({
                                           original: extractStartTime(t),
@@ -1602,7 +1667,10 @@ const reapplyCurrentFilters = async () => {
 
                                       for (let i = 1; i < sorted.length; i++) {
                                         const current = sorted[i];
-                                        if (current.minutes - end.minutes === 30) {
+                                        if (
+                                          current.minutes - end.minutes ===
+                                          30
+                                        ) {
                                           end = current;
                                         } else {
                                           ranges.push(
@@ -1630,16 +1698,21 @@ const reapplyCurrentFilters = async () => {
                                           const times = slots
                                             .map((uts: any) => {
                                               const timeSlot = timeSlots.find(
-                                                (ts) => ts.time_slot_id === uts.time_slot_id
+                                                (ts) =>
+                                                  ts.time_slot_id ===
+                                                  uts.time_slot_id
                                               );
-                                              return timeSlot?.time_slot || null;
+                                              return (
+                                                timeSlot?.time_slot || null
+                                              );
                                             })
                                             .filter(Boolean);
 
                                           return (
                                             <div key={index}>
                                               <div className="font-medium text-gray-900 mb-1">
-                                                {date} / {formatTimeRanges(times)}
+                                                {date} /{" "}
+                                                {formatTimeRanges(times)}
                                               </div>
                                             </div>
                                           );
@@ -1661,7 +1734,10 @@ const reapplyCurrentFilters = async () => {
                             <>
                               <span className="text-gray-700 truncate max-w-[150px]">
                                 {request.work_description.length > 15
-                                  ? `${request.work_description.substring(0, 15)}...`
+                                  ? `${request.work_description.substring(
+                                      0,
+                                      15
+                                    )}...`
                                   : request.work_description}
                               </span>
 
@@ -1700,7 +1776,9 @@ const reapplyCurrentFilters = async () => {
                       <td>{""}</td>
 
                       {/* Remarks */}
-                      <td className="px-4 py-4 text-sm text-gray-700">{request.remarks}</td>
+                      <td className="px-4 py-4 text-sm text-gray-700">
+                        {request.remarks}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -1711,7 +1789,9 @@ const reapplyCurrentFilters = async () => {
           {/* Pagination Footer */}
           <div className="bg-lime-500 px-6 py-2 flex justify-end items-center">
             <div className="flex items-center space-x-2">
-              <span className="text-white text-sm font-medium">Rows per page:</span>
+              <span className="text-white text-sm font-medium">
+                Rows per page:
+              </span>
 
               <div className="relative">
                 <select
@@ -1745,15 +1825,27 @@ const reapplyCurrentFilters = async () => {
 
               <div className="flex items-center space-x-3">
                 <ChevronLeft
-                  onClick={() => currentPage > 1 && setCurrentPage((p) => p - 1)}
+                  onClick={() =>
+                    currentPage > 1 && setCurrentPage((p) => p - 1)
+                  }
                   className={`w-5 h-5 cursor-pointer 
-          ${currentPage === 1 ? "text-white opacity-50 cursor-not-allowed" : "text-white hover:text-gray-200"}`}
+          ${
+            currentPage === 1
+              ? "text-white opacity-50 cursor-not-allowed"
+              : "text-white hover:text-gray-200"
+          }`}
                 />
 
                 <ChevronRight
-                  onClick={() => currentPage < totalPages && setCurrentPage((p) => p + 1)}
+                  onClick={() =>
+                    currentPage < totalPages && setCurrentPage((p) => p + 1)
+                  }
                   className={`w-5 h-5 cursor-pointer 
-          ${currentPage === totalPages ? "text-white opacity-50 cursor-not-allowed" : "text-white hover:text-gray-200"}`}
+          ${
+            currentPage === totalPages
+              ? "text-white opacity-50 cursor-not-allowed"
+              : "text-white hover:text-gray-200"
+          }`}
                 />
               </div>
             </div>
@@ -1773,13 +1865,17 @@ const reapplyCurrentFilters = async () => {
               <div className="w-4 h-4 rounded-full bg-orange-400 flex items-center justify-center text-white text-xs">
                 ✓
               </div>
-              <span className="font-medium text-gray-700">Approved-Functional</span>
+              <span className="font-medium text-gray-700">
+                Approved-Functional
+              </span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">
                 ✓
               </div>
-              <span className="font-medium text-gray-700">Approved-Technical</span>
+              <span className="font-medium text-gray-700">
+                Approved-Technical
+              </span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-4 h-4 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">
@@ -1814,7 +1910,9 @@ const reapplyCurrentFilters = async () => {
             <div className="bg-white rounded-lg shadow-xl p-6 text-center">
               <div className="flex items-center justify-center space-x-2 mb-4">
                 <div className="w-6 h-6 border-2 border-lime-500 border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-lg font-medium text-gray-800">Sending Email...</span>
+                <span className="text-lg font-medium text-gray-800">
+                  Sending Email...
+                </span>
               </div>
               <p className="text-sm text-gray-600">
                 Please wait while we send the notification email.
@@ -1897,7 +1995,10 @@ const reapplyCurrentFilters = async () => {
 
                 <div className="mt-2">
                   {[
-                    { label: "Request Id", value: selectedRequest.instance_request_id },
+                    {
+                      label: "Request Id",
+                      value: selectedRequest.instance_request_id,
+                    },
                     {
                       label: "User Name",
                       value: getUserName(selectedRequest.user_id),
@@ -1914,7 +2015,8 @@ const reapplyCurrentFilters = async () => {
                       label: "Email Id",
                       value: getUser(selectedRequest.user_id)?.email_id,
                     },
-                    ...(getStatusName(selectedRequest.status_id || 0) === "Approved-Technical"
+                    ...(getStatusName(selectedRequest.status_id || 0) ===
+                    "Approved-Technical"
                       ? [
                           {
                             label: "User ID",
@@ -1948,12 +2050,17 @@ const reapplyCurrentFilters = async () => {
                         ]
                       : []),
                   ].map((item, idx) => (
-                    <div key={idx} className="grid grid-cols-[150px_20px_1fr] w-full">
+                    <div
+                      key={idx}
+                      className="grid grid-cols-[150px_20px_1fr] w-full"
+                    >
                       <span className="font-medium text-gray-700 text-right">
                         {item.label}
                       </span>
                       <span className="text-gray-700 text-center">:</span>
-                      <span className="text-gray-900 text-left break-words">{item.value}</span>
+                      <span className="text-gray-900 text-left break-words">
+                        {item.value}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -1979,15 +2086,23 @@ const reapplyCurrentFilters = async () => {
                     },
                     {
                       label: "Requested CPUs",
-                      value: `${getCpuName(selectedRequest.cpu_id)} + 1 (${Number(getCpuName(selectedRequest.cpu_id)) + 1})`,
+                      value: `${getCpuName(selectedRequest.cpu_id)} + 1 (${
+                        Number(getCpuName(selectedRequest.cpu_id)) + 1
+                      })`,
                     },
                     {
                       label: "Requested RAM in GB",
-                      value: `${parseInt(getRamName(selectedRequest.ram_id))} + 1 (${parseInt(getRamName(selectedRequest.ram_id)) + 1}) GB`,
+                      value: `${parseInt(
+                        getRamName(selectedRequest.ram_id)
+                      )} + 1 (${
+                        parseInt(getRamName(selectedRequest.ram_id)) + 1
+                      }) GB`,
                     },
                     {
                       label: "Number of GPU",
-                      value: getGpuPartitionName(selectedRequest.gpu_partition_id),
+                      value: getGpuPartitionName(
+                        selectedRequest.gpu_partition_id
+                      ),
                     },
                     {
                       label: "GPU Vendor",
@@ -1997,7 +2112,8 @@ const reapplyCurrentFilters = async () => {
                       label: "Selected Date / Time",
                       value: (
                         <span className="whitespace-pre-wrap text-gray-900 text-left block break-words">
-                          {selectedRequestTimeDetails?.formatted || "Date and time not available"}
+                          {selectedRequestTimeDetails?.formatted ||
+                            "Date and time not available"}
                         </span>
                       ),
                     },
@@ -2005,23 +2121,28 @@ const reapplyCurrentFilters = async () => {
                       label: "Status",
                       value: getStatusName(selectedRequest.status_id || 0),
                     },
-                    ...(getStatusName(selectedRequest.status_id || 0) === "Approved-Functional" ||
-                    getStatusName(selectedRequest.status_id || 0) === "Approved-Technical"
+                    ...(getStatusName(selectedRequest.status_id || 0) ===
+                      "Approved-Functional" ||
+                    getStatusName(selectedRequest.status_id || 0) ===
+                      "Approved-Technical"
                       ? [
                           {
                             label: "Approved By",
                             value: getUserName(selectedRequest.updated_by || 0),
                           },
                         ]
-                      : getStatusName(selectedRequest.status_id || 0) === "Rejected"
-                        ? [
-                            {
-                              label: "Rejected By",
-                              value: getUserName(selectedRequest.updated_by || 0),
-                            },
-                          ]
-                        : []),
-                    ...(["Rejected"].includes(getStatusName(selectedRequest.status_id || 0))
+                      : getStatusName(selectedRequest.status_id || 0) ===
+                        "Rejected"
+                      ? [
+                          {
+                            label: "Rejected By",
+                            value: getUserName(selectedRequest.updated_by || 0),
+                          },
+                        ]
+                      : []),
+                    ...(["Rejected"].includes(
+                      getStatusName(selectedRequest.status_id || 0)
+                    )
                       ? [
                           {
                             label: "Remarks",
@@ -2038,12 +2159,17 @@ const reapplyCurrentFilters = async () => {
                       ),
                     },
                   ].map((item, idx) => (
-                    <div key={idx} className="grid grid-cols-[150px_20px_1fr] w-full">
+                    <div
+                      key={idx}
+                      className="grid grid-cols-[150px_20px_1fr] w-full"
+                    >
                       <span className="font-medium text-gray-700 text-right">
                         {item.label}
                       </span>
                       <span className="text-gray-700 text-center">:</span>
-                      <span className="text-gray-900 text-left break-words">{item.value}</span>
+                      <span className="text-gray-900 text-left break-words">
+                        {item.value}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -2120,16 +2246,25 @@ const reapplyCurrentFilters = async () => {
             </button>
 
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-800 mb-4 text-center">Remarks</h3>
+              <h3 className="text-lg font-medium text-gray-800 mb-4 text-center">
+                Remarks
+              </h3>
 
               <div className="relative w-full">
                 <label
                   className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
               ${remarksText || remarksError ? "text-xs -top-2 px-1" : "top-3"}
-              ${remarksError ? "text-red-500" : remarksText ? "text-[#5a8f00] font-medium" : "text-gray-500"}
+              ${
+                remarksError
+                  ? "text-red-500"
+                  : remarksText
+                  ? "text-[#5a8f00] font-medium"
+                  : "text-gray-500"
+              }
             `}
                   style={{
-                    backgroundColor: remarksText || remarksError ? "#ffffff" : "transparent",
+                    backgroundColor:
+                      remarksText || remarksError ? "#ffffff" : "transparent",
                   }}
                 >
                   {remarksError || "Remarks*"}
@@ -2142,15 +2277,22 @@ const reapplyCurrentFilters = async () => {
                     if (e.target.value.trim() !== "") setRemarksError("");
                   }}
                   className={`w-full text-gray-700 h-24 p-3 rounded-lg text-sm resize-none focus:outline-none transition-all duration-200
-              ${remarksError ? "border-2 border-red-500 focus:border-red-500" : "border-2 border-[#e8f5d0] hover:border-[#e8f5d0]"}
+              ${
+                remarksError
+                  ? "border-2 border-red-500 focus:border-red-500"
+                  : "border-2 border-[#e8f5d0] hover:border-[#e8f5d0]"
+              }
             `}
                   onFocus={(e) => {
                     e.target.style.borderColor = "#76B900";
-                    e.target.style.boxShadow = "0 0 0 3px rgba(118, 185, 0, 0.1)";
+                    e.target.style.boxShadow =
+                      "0 0 0 3px rgba(118, 185, 0, 0.1)";
                   }}
                   style={{
                     color: "#2d4a00",
-                    boxShadow: remarksError ? "0 0 0 3px rgba(239, 68, 68, 0.1)" : "none",
+                    boxShadow: remarksError
+                      ? "0 0 0 3px rgba(239, 68, 68, 0.1)"
+                      : "none",
                   }}
                 />
               </div>
@@ -2163,7 +2305,7 @@ const reapplyCurrentFilters = async () => {
                   style={{
                     backgroundColor: isEmailSending ? "#9ca3af" : "#76B900",
                   }}
-                     onMouseEnter={(e) => {
+                  onMouseEnter={(e) => {
                     if (!isEmailSending) {
                       e.currentTarget.style.backgroundColor = "#5a8f00";
                       e.currentTarget.style.transform = "translateY(0px)";
@@ -2195,6 +2337,3 @@ export default function FunctionalDashboard() {
     </Suspense>
   );
 }
-
-
-

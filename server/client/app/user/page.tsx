@@ -1,5 +1,11 @@
 "use client";
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  Suspense,
+} from "react";
 import {
   ChevronDown,
   Filter,
@@ -12,7 +18,7 @@ import {
 import { Listbox } from "@headlessui/react";
 import { useRouter } from "next/navigation";
 import Header from "../navbar/page";
-
+import { useSearchParams } from "next/navigation";
 
 // Define proper types for the data
 type InstanceRequest = {
@@ -61,7 +67,7 @@ type SnackbarState = {
   type: "success" | "error";
 };
 
-const DGXDashboard = () => {
+function DGXDashboard() {
   // Dynamic user ID state
   // const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
@@ -72,7 +78,9 @@ const DGXDashboard = () => {
   const [selectedStatus, setSelectedStatus] = useState<Status | null>(null);
   const [status, setStatus] = useState<Status[]>([]);
   const [requests, setRequests] = useState<InstanceRequest[]>([]);
-  const [filteredRequests, setFilteredRequests] = useState<InstanceRequest[]>([]);
+  const [filteredRequests, setFilteredRequests] = useState<InstanceRequest[]>(
+    []
+  );
   const [users, setUsers] = useState<User[]>([]);
   const [institutes, setInstitutes] = useState<Institute[]>([]);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -84,13 +92,16 @@ const DGXDashboard = () => {
   });
 
   // Popup states
-  const [selectedRequest, setSelectedRequest] = useState<InstanceRequest | null>(null);
+  const [selectedRequest, setSelectedRequest] =
+    useState<InstanceRequest | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [isFilterValidationPopupOpen, setIsFilterValidationPopupOpen] = useState(false);
+  const [isFilterValidationPopupOpen, setIsFilterValidationPopupOpen] =
+    useState(false);
 
   // Delete confirmation popup state
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
-  const [requestToDelete, setRequestToDelete] = useState<InstanceRequest | null>(null);
+  const [requestToDelete, setRequestToDelete] =
+    useState<InstanceRequest | null>(null);
 
   // Snackbar state
   const [snackbar, setSnackbar] = useState<SnackbarState>({
@@ -113,31 +124,40 @@ const DGXDashboard = () => {
   // Time slots state
   const [timeSlots, setTimeSlots] = useState<any[]>([]);
   const [userTimeSlots, setUserTimeSlots] = useState<any[]>([]);
-  const [selectedRequestTimeDetails, setSelectedRequestTimeDetails] = useState<any>(null);
-  const [userInstituteAssociation, setUserInstituteAssociation] = useState<any[]>([]);
+  const [selectedRequestTimeDetails, setSelectedRequestTimeDetails] =
+    useState<any>(null);
+  const [userInstituteAssociation, setUserInstituteAssociation] = useState<
+    any[]
+  >([]);
   const [authLoading, setAuthLoading] = useState(true);
 
-  const currentUserId = 8; // <---- HARD-CODED
+  const searchParams = useSearchParams();
+  const currentUserId = Number(searchParams.get("userId") || "");
 
+  // const currentUserId = 8; // <---- HARD-CODED
 
   // Fetch time data
   const fetchTimeData = async () => {
     try {
       // Fetch time slots
-      const timeSlotRes = await fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/time-slots",);
+      const timeSlotRes = await fetch(
+        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/time-slots"
+      );
       const timeSlotsData = await timeSlotRes.json();
-  
+
       // Fetch user time slots
-      const userTimeSlotRes = await fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/user-time-slots");
+      const userTimeSlotRes = await fetch(
+        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/user-time-slots"
+      );
       const userTimeSlotsData = await userTimeSlotRes.json();
-  
+
       setTimeSlots(timeSlotsData || []);
       setUserTimeSlots(userTimeSlotsData || []);
     } catch (err) {
       console.error("Error fetching time data:", err);
     }
   };
-  
+
   useEffect(() => {
     fetchTimeData();
   }, []);
@@ -149,7 +169,10 @@ const DGXDashboard = () => {
         (uts) => uts.instance_request_id === instanceRequestId
       );
 
-      if (!allUserTimeSlotsForRequest || allUserTimeSlotsForRequest.length === 0) {
+      if (
+        !allUserTimeSlotsForRequest ||
+        allUserTimeSlotsForRequest.length === 0
+      ) {
         return {
           date: "No date available",
           time: "No time available",
@@ -186,7 +209,8 @@ const DGXDashboard = () => {
       const extractStartTime = (timeSlotStr: string): string => {
         if (!timeSlotStr) return "";
         if (timeSlotStr.includes("-")) return timeSlotStr.split("-")[0].trim();
-        if (timeSlotStr.includes(" to ")) return timeSlotStr.split(" to ")[0].trim();
+        if (timeSlotStr.includes(" to "))
+          return timeSlotStr.split(" to ")[0].trim();
         return timeSlotStr.trim();
       };
 
@@ -262,27 +286,28 @@ const DGXDashboard = () => {
   };
 
   // Fetch master data
-useEffect(() => {
-  const fetchMasters = async () => {
-    try {
-      const response = await fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/masters");
-      const data = await response.json();
+  useEffect(() => {
+    const fetchMasters = async () => {
+      try {
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/masters"
+        );
+        const data = await response.json();
 
-      setDepartments(data.departments || []);
-      setUserTypes(data.userTypes || []);
-      setCpuList(data.cpuList || []);
-      setRamList(data.ramList || []);
-      setGpuPartitions(data.gpuPartitions || []);
-      setGpuVendors(data.gpuVendors || []);
-      setImage(data.imageList || []);
-      
-    } catch (err) {
-      console.error("Error fetching master tables", err);
-    }
-  };
+        setDepartments(data.departments || []);
+        setUserTypes(data.userTypes || []);
+        setCpuList(data.cpuList || []);
+        setRamList(data.ramList || []);
+        setGpuPartitions(data.gpuPartitions || []);
+        setGpuVendors(data.gpuVendors || []);
+        setImage(data.imageList || []);
+      } catch (err) {
+        console.error("Error fetching master tables", err);
+      }
+    };
 
-  fetchMasters();
-}, []);
+    fetchMasters();
+  }, []);
 
   const getUserTypeName = (userTypeId: number) => {
     const type = userTypes.find((t) => t.user_type_id === userTypeId);
@@ -300,12 +325,11 @@ useEffect(() => {
   };
 
   const getGpuPartitionName = (partitionId: number) => {
-    console.log("gpuPartitions", partitionId);
-    const partition = gpuPartitions.find((p) => p.gpu_partition_id === partitionId);
-    console.log("partitionId", partitionId, partition);
-    return partition?.gpu_partition || "";
+    const partition = gpuPartitions.find(
+      (p) => p.gpu_partition_id === partitionId
+    );
 
-    
+    return partition?.gpu_partition || "";
   };
 
   const getGpuVendorName = (vendorId: number) => {
@@ -317,46 +341,6 @@ useEffect(() => {
     const img = image.find((i) => i.image_id === imageId);
     return img?.image_name || "";
   };
-
-  // Function to get current user - you'll need to implement this based on your auth
-  // const fetchCurrentUser = useCallback(async () => {
-  //   try {
-  //     setIsLoadingUser(true);
-      
-  //     // Get current user from Supabase Auth
-  //     const { data: { user }, error } = await supabase.auth.getUser();
-      
-  //     if (error) throw error;
-      
-  //     if (user) {
-  //       // Try to find user in dgx_user table by email
-  //       const { data: dgxUser, error: userError } = await supabase
-  //         .from("dgx_user")
-  //         .select("user_id")
-  //         .eq("email_id", user.email)
-  //         .single();
-
-  //       if (userError) throw userError;
-
-  //       if (dgxUser) {
-  //         setCurrentUserId(8);
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching current user:", error);
-  //     showSnackbar("Error fetching user information", "error");
-  //     // You might want to redirect to login here
-  //   } finally {
-  //     setIsLoadingUser(false);
-  //   }
-  // }, []);
-
-  
-  // Fetch current user on component mount
-  // useEffect(() => {
-  //   fetchCurrentUser();
-  // }, [fetchCurrentUser]);
-
 
   // Show snackbar
   const showSnackbar = useCallback(
@@ -381,53 +365,54 @@ useEffect(() => {
     setRequestToDelete(null);
   };
 
-  
-
-
   const handleDeleteConfirm = async () => {
-  if (!requestToDelete) return;
+    if (!requestToDelete) return;
 
-  try {
-    const instanceRequestId = requestToDelete.instance_request_id;
+    try {
+      const instanceRequestId = requestToDelete.instance_request_id;
 
-    // Call backend delete API
-    const res = await fetch(process.env.NEXT_PUBLIC_DGX_API_URL + `/users/delete/${instanceRequestId}`, {
-      method: "DELETE",
-    });
+      // Call backend delete API
+      const res = await fetch(
+        process.env.NEXT_PUBLIC_DGX_API_URL +
+          `/users/delete/${instanceRequestId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
-    const result = await res.json();
+      const result = await res.json();
 
-    if (!res.ok) throw new Error(result.error || "Delete failed");
+      if (!res.ok) throw new Error(result.error || "Delete failed");
 
-    // Refetch with filters
-    const hasDateFilter = fromDate || toDate;
-    const hasStatusFilter = selectedStatus && selectedStatus.status_id !== "all";
-    let statusIdToFilter;
+      // Refetch with filters
+      const hasDateFilter = fromDate || toDate;
+      const hasStatusFilter =
+        selectedStatus && selectedStatus.status_id !== "all";
+      let statusIdToFilter;
 
-    if (hasStatusFilter) {
-      statusIdToFilter = Number(selectedStatus.status_id);
+      if (hasStatusFilter) {
+        statusIdToFilter = Number(selectedStatus.status_id);
+      }
+
+      if (hasDateFilter || hasStatusFilter) {
+        await fetchFilteredRequests(fromDate, toDate, statusIdToFilter);
+      } else {
+        await fetchFilteredRequests();
+      }
+
+      // Remove from local userTimeSlots state
+      const updatedUserTimeSlots = userTimeSlots.filter(
+        (uts) => uts.instance_request_id !== instanceRequestId
+      );
+      setUserTimeSlots(updatedUserTimeSlots);
+
+      showSnackbar("Request deleted successfully", "success");
+      closeDeletePopup();
+    } catch (error) {
+      console.error("Error deleting request:", error);
+      showSnackbar("Failed to delete request. Please try again.", "error");
     }
-
-    if (hasDateFilter || hasStatusFilter) {
-      await fetchFilteredRequests(fromDate, toDate, statusIdToFilter);
-    } else {
-      await fetchFilteredRequests();
-    }
-
-    // Remove from local userTimeSlots state
-    const updatedUserTimeSlots = userTimeSlots.filter(
-      (uts) => uts.instance_request_id !== instanceRequestId
-    );
-    setUserTimeSlots(updatedUserTimeSlots);
-
-    showSnackbar("Request deleted successfully", "success");
-    closeDeletePopup();
-  } catch (error) {
-    console.error("Error deleting request:", error);
-    showSnackbar("Failed to delete request. Please try again.", "error");
-  }
-};
-
+  };
 
   const handleRequestInstanceClick = () => {
     router.push("/user/instanceaccessrequest");
@@ -436,14 +421,14 @@ useEffect(() => {
   // Filter user's requests only
   useEffect(() => {
     if (currentUserId && requests.length > 0 && filteredRequests.length === 0) {
-      const userRequests = requests.filter((req) => req.user_id === currentUserId);
+      const userRequests = requests.filter(
+        (req) => req.user_id === currentUserId
+      );
       setFilteredRequests(userRequests);
     } else if (currentUserId && filteredRequests.length === 0) {
       setFilteredRequests([]);
     }
   }, [currentUserId]);
-
-  
 
   // Convert yyyy-mm-dd to dd/mm/yyyy for display
   const formatDateForDisplay = (dateString: string) => {
@@ -468,91 +453,85 @@ useEffect(() => {
     setIsFilterValidationPopupOpen(false);
   };
 
-const fetchData = useCallback(async () => {
-  try {
-    setLoading(true);
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
 
-    const [usersRes, instRes, assocRes] = await Promise.all([
-      fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/users"),
-      fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/institutes"),
-      fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/associations"),
-    ]);
+      const [usersRes, instRes, assocRes] = await Promise.all([
+        fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/users"),
+        fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/institutes"
+        ),
+        fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/associations"
+        ),
+      ]);
 
-    const usersData = await usersRes.json();
-    const institutesData = await instRes.json();
-    const assocData = await assocRes.json();
+      const usersData = await usersRes.json();
+      const institutesData = await instRes.json();
+      const assocData = await assocRes.json();
 
-    // 🔍 ADD THESE CONSOLE LOGS TO DEBUG
-    console.log("📊 Raw API Responses:");
-    console.log("Users Response:", usersData);
-    console.log("Institutes Response:", institutesData);
-    console.log("Associations Response:", assocData);
+      // Check if data is nested in a 'data' property
+      const users = usersData.data || usersData || [];
+      const institutes = institutesData.data || institutesData || [];
+      const associations = assocData.data || assocData || [];
 
-    // Check if data is nested in a 'data' property
-    const users = usersData.data || usersData || [];
-    const institutes = institutesData.data || institutesData || [];
-    const associations = assocData.data || assocData || [];
+      setUsers(users);
+      setInstitutes(institutes);
+      setUserInstituteAssociation(associations);
 
-    console.log("📊 Processed Arrays:");
-    console.log("Users Array:", users);
-    console.log("Institutes Array:", institutes);
-    console.log("Associations Array:", associations);
-
-    setUsers(users);
-    setInstitutes(institutes);
-    setUserInstituteAssociation(associations);
-
-    // Now call fetchFilteredRequests
-    if (currentUserId) {
-      await fetchFilteredRequests();
+      // Now call fetchFilteredRequests
+      if (currentUserId) {
+        await fetchFilteredRequests();
+      }
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      showSnackbar("Error fetching data", "error");
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("Error fetching data:", err);
-    showSnackbar("Error fetching data", "error");
-  } finally {
-    setLoading(false);
-  }
-}, [currentUserId, showSnackbar]);
+  }, [currentUserId, showSnackbar]);
 
   // New function to fetch filtered requests
 
-const fetchFilteredRequests = useCallback(async (
-  filterFromDate?: string,
-  filterToDate?: string,
-  filterStatusId?: number
-) => {
-  // if (!currentUserId) return;
-  // const currentUserId = 8;   // <---- HARD-CODED
+  const fetchFilteredRequests = useCallback(
+    async (
+      filterFromDate?: string,
+      filterToDate?: string,
+      filterStatusId?: number
+    ) => {
+      // if (!currentUserId) return;
+      // const currentUserId = 8;   // <---- HARD-CODED
 
+      try {
+        setLoading(true);
 
-  try {
-    setLoading(true);
+        const params = new URLSearchParams({
+          user_id: currentUserId.toString(),
+          from_date: filterFromDate || "",
+          to_date: filterToDate || "",
+          status_id: filterStatusId?.toString() || "",
+        });
 
-    const params = new URLSearchParams({
-      user_id: currentUserId.toString(),
-      from_date: filterFromDate || "",
-      to_date: filterToDate || "",
-      status_id: filterStatusId?.toString() || ""
-    });
+        const res = await fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL +
+            `/users/get-user?${params.toString()}`
+        );
+        const data = await res.json();
 
-    const res = await fetch(
-      process.env.NEXT_PUBLIC_DGX_API_URL + `/users/get-user?${params.toString()}`
-    );
-    const data = await res.json();
-
-    setRequests(data || []);
-    setFilteredRequests(data || []);
-    setCurrentPage(1);
-  } catch (err) {
-    console.error("Error fetching filtered requests:", err);
-    showSnackbar("Error fetching requests", "error");
-  } finally {
-    setLoading(false);
-  }
-}, [currentUserId, showSnackbar]);
-// }, [showSnackbar]);
-
-
+        setRequests(data || []);
+        setFilteredRequests(data || []);
+        setCurrentPage(1);
+      } catch (err) {
+        console.error("Error fetching filtered requests:", err);
+        showSnackbar("Error fetching requests", "error");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [currentUserId, showSnackbar]
+  );
+  // }, [showSnackbar]);
 
   // Updated validateAndFilter function
   const validateAndFilter = async () => {
@@ -588,44 +567,38 @@ const fetchFilteredRequests = useCallback(async (
   }, [fetchData]);
 
   // Fetch status from Supabase
- useEffect(() => {
-   const fetchStatus = async () => {
-     try {
-       const response = await fetch(
-         process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/status", // direct URL
-         {
-           method: "GET",
-           headers: { "Content-Type": "application/json" },
-         }
-       );
- 
-       if (!response.ok) {
-         throw new Error("Network response was not ok");
-       }
- 
-       const data = await response.json();
- 
-       console.log("Fetched status:", data);
- 
-       if (!data || data.length === 0) return;
- 
-       // Add "All" option
-       const allOption = { status_id: "all", status_name: "All" };
-       const updatedStatusList = [allOption, ...data];
- 
-       setStatus(updatedStatusList);
-       setSelectedStatus(allOption);
- 
-       console.log("Default status set: All (showing all statuses)");
-     } catch (error) {
-       console.error("Error fetching status:", error);
-     }
-   };
- 
-   fetchStatus();
- }, []);
- 
- 
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/status", // direct URL
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const data = await response.json();
+
+        if (!data || data.length === 0) return;
+
+        // Add "All" option
+        const allOption = { status_id: "all", status_name: "All" };
+        const updatedStatusList = [allOption, ...data];
+
+        setStatus(updatedStatusList);
+        setSelectedStatus(allOption);
+      } catch (error) {
+        console.error("Error fetching status:", error);
+      }
+    };
+
+    fetchStatus();
+  }, []);
 
   // Sorting logic
   const sortedRequests = useMemo(() => {
@@ -704,15 +677,16 @@ const fetchFilteredRequests = useCallback(async (
     if (statusName !== "Pending") {
       setIsPopupOpen(true);
       setSelectedRequest(request);
-      console.log("request", request);
-      console.log("partition_id", request.gpu_patition_id);
+
       const timeDetails = getTimeDetailsForRequest(request.instance_request_id);
       setSelectedRequestTimeDetails(timeDetails);
       return;
     }
 
     if (statusName === "Pending") {
-      router.push(`/user/instanceaccessrequest?id=${request.instance_request_id}`);
+      router.push(
+        `/user/instanceaccessrequest?id=${request.instance_request_id}`
+      );
       return;
     }
   };
@@ -745,7 +719,8 @@ const fetchFilteredRequests = useCallback(async (
     if (!userId) return "Not Assigned";
 
     const association = userInstituteAssociation.find(
-      (assoc: any) => assoc.user_id === userId && assoc.is_reg_institute === true
+      (assoc: any) =>
+        assoc.user_id === userId && assoc.is_reg_institute === true
     );
 
     if (!association) return "No Registered Institute";
@@ -813,7 +788,10 @@ const fetchFilteredRequests = useCallback(async (
     try {
       const currentStatusName = getStatusName(currentRequest.status_id);
 
-      if (currentStatusName !== "Pending" && currentStatusName !== "Approved-Functional") {
+      if (
+        currentStatusName !== "Pending" &&
+        currentStatusName !== "Approved-Functional"
+      ) {
         return 0;
       }
 
@@ -857,7 +835,7 @@ const fetchFilteredRequests = useCallback(async (
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header/>
+      <Header />
 
       <div className="p-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-10 text-center">
@@ -886,7 +864,9 @@ const fetchFilteredRequests = useCallback(async (
                     cursor-pointer flex items-center justify-between
                     ${dateError ? "border-red-300" : ""}`}
                   onClick={() => {
-                    const input = document.getElementById("fromDatePicker") as HTMLInputElement;
+                    const input = document.getElementById(
+                      "fromDatePicker"
+                    ) as HTMLInputElement;
                     input?.showPicker?.();
                   }}
                 >
@@ -894,7 +874,9 @@ const fetchFilteredRequests = useCallback(async (
                     {fromDate ? (
                       <>
                         <span className="text-gray-500">From</span>
-                        <span className="ml-3">{formatDateForDisplay(fromDate)}</span>
+                        <span className="ml-3">
+                          {formatDateForDisplay(fromDate)}
+                        </span>
                       </>
                     ) : (
                       <>
@@ -936,7 +918,9 @@ const fetchFilteredRequests = useCallback(async (
                     cursor-pointer flex items-center justify-between
                     ${dateError ? "border-red-300" : ""}`}
                   onClick={() => {
-                    const input = document.getElementById("toDatePicker") as HTMLInputElement;
+                    const input = document.getElementById(
+                      "toDatePicker"
+                    ) as HTMLInputElement;
                     input?.showPicker?.();
                   }}
                 >
@@ -944,7 +928,9 @@ const fetchFilteredRequests = useCallback(async (
                     {toDate ? (
                       <>
                         <span className="text-gray-500">To</span>
-                        <span className="ml-3">{formatDateForDisplay(toDate)}</span>
+                        <span className="ml-3">
+                          {formatDateForDisplay(toDate)}
+                        </span>
                       </>
                     ) : (
                       <>
@@ -976,11 +962,21 @@ const fetchFilteredRequests = useCallback(async (
                 <div className="relative">
                   <label
                     className={`absolute left-3 transition-all duration-200 pointer-events-none z-20
-                     ${selectedStatus ? "text-xs -top-2 px-1" : "top-1/2 -translate-y-1/2 text-sm"}
-                     ${selectedStatus ? "text-[#5A8F00] font-medium" : "text-gray-500"}
+                     ${
+                       selectedStatus
+                         ? "text-xs -top-2 px-1"
+                         : "top-1/2 -translate-y-1/2 text-sm"
+                     }
+                     ${
+                       selectedStatus
+                         ? "text-[#5A8F00] font-medium"
+                         : "text-gray-500"
+                     }
                    `}
                     style={{
-                      backgroundColor: selectedStatus ? "#ffffff" : "transparent",
+                      backgroundColor: selectedStatus
+                        ? "#ffffff"
+                        : "transparent",
                     }}
                   >
                     {selectedStatus ? "Status" : "Select Status"}
@@ -1082,7 +1078,9 @@ const fetchFilteredRequests = useCallback(async (
                     <td colSpan={9} className="text-center py-6">
                       <div className="flex items-center justify-center space-x-3">
                         <div className="animate-spin h-5 w-5 border-2 border-lime-500 border-t-transparent rounded-full"></div>
-                        <span className="text-gray-600 text-sm">Loading data...</span>
+                        <span className="text-gray-600 text-sm">
+                          Loading data...
+                        </span>
                       </div>
                     </td>
                   </tr>
@@ -1090,7 +1088,9 @@ const fetchFilteredRequests = useCallback(async (
                   paginatedRequests.map((request, index) => (
                     <tr
                       key={request.instance_request_id}
-                      className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50 cursor-pointer`}
+                      className={`${
+                        index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      } hover:bg-blue-50 cursor-pointer`}
                       onClick={() => handleRowClick(request)}
                     >
                       {/* Request ID */}
@@ -1108,161 +1108,188 @@ const fetchFilteredRequests = useCallback(async (
                         {getInstituteName(request.user_id)}
                       </td>
 
-                      
                       {/* Requested Date */}
-<td className="px-4 py-4 text-sm">
-  <div className="flex items-center gap-2">
-    <span className="text-gray-700">
-      {((): React.ReactNode => {
-              const slots = request.time_slots || [];
-      
-              // If no time slots -> show selected_date or fallback
-              if (slots.length === 0) {
-                return request.selected_date
-                  ? new Date(request.selected_date)
-                      .toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })
-                      .replace(/\//g, "-")
-                  : "No date available";
-              }
-      
-              // Extract unique dates and ensure typed as string[]
-              const formattedDates: string[] = Array.from(
-                new Set(
-                  slots.map((s: { selected_date: string | number | Date }) =>
-                    new Date(s.selected_date)
-                      .toLocaleDateString("en-GB")
-                      .replace(/\//g, "-")
-                  )
-                )
-              ) as string[];
-      
-              // Sort dates (DD-MM-YYYY) with typed parameters
-              formattedDates.sort((a: string, b: string) => {
-                const [dA, mA, yA] = a.split("-").map(Number);
-                const [dB, mB, yB] = b.split("-").map(Number);
-                return new Date(yA, mA - 1, dA).getTime() - new Date(yB, mB - 1, dB).getTime();
-              });
-      
-              // If multiple dates -> show range
-              if (formattedDates.length > 1) {
-                return `${formattedDates[0]} - ${
-                  formattedDates[formattedDates.length - 1]
-                }`;
-              }
-      
-              return formattedDates[0];
-            })()}
-    </span>
+                      <td className="px-4 py-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-700">
+                            {((): React.ReactNode => {
+                              const slots = request.time_slots || [];
 
-    {/* Info icon + tooltip */}
-    <div className="relative group flex-shrink-0">
-      <Info className="w-4 h-4 text-[#76B900] cursor-pointer hover:opacity-80" />
+                              // If no time slots -> show selected_date or fallback
+                              if (slots.length === 0) {
+                                return request.selected_date
+                                  ? new Date(request.selected_date)
+                                      .toLocaleDateString("en-GB", {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "numeric",
+                                      })
+                                      .replace(/\//g, "-")
+                                  : "No date available";
+                              }
 
-      <div className="absolute left-5 top-1/2 -translate-y-1/2 hidden group-hover:block bg-white border border-lime-500 rounded-lg shadow-lg z-[100] before:content-[''] before:absolute before:-left-5 before:top-0 before:w-5 before:h-full before:bg-transparent transition-opacity duration-200">
-        <div className="min-w-[200px] max-w-[400px] w-max max-h-15 overflow-y-auto pt-1 px-2 whitespace-normal break-word text-xs text-gray-900 leading-relaxed">
+                              // Extract unique dates and ensure typed as string[]
+                              const formattedDates: string[] = Array.from(
+                                new Set(
+                                  slots.map(
+                                    (s: {
+                                      selected_date: string | number | Date;
+                                    }) =>
+                                      new Date(s.selected_date)
+                                        .toLocaleDateString("en-GB")
+                                        .replace(/\//g, "-")
+                                  )
+                                )
+                              ) as string[];
 
-          {(() => {
-            const slots = request.time_slots || [];
+                              // Sort dates (DD-MM-YYYY) with typed parameters
+                              formattedDates.sort((a: string, b: string) => {
+                                const [dA, mA, yA] = a.split("-").map(Number);
+                                const [dB, mB, yB] = b.split("-").map(Number);
+                                return (
+                                  new Date(yA, mA - 1, dA).getTime() -
+                                  new Date(yB, mB - 1, dB).getTime()
+                                );
+                              });
 
-            if (slots.length === 0) {
-              return (
-                <div className="text-center">
-                  <div className="font-medium text-gray-900">
-                    {request.selected_date
-                      ? new Date(request.selected_date)
-                          .toLocaleDateString("en-GB")
-                          .replace(/\//g, "-")
-                      : "No date available"}
-                  </div>
-                  <div className="text-xs text-gray-600">Time Slots : N/A</div>
-                </div>
-              );
-            }
+                              // If multiple dates -> show range
+                              if (formattedDates.length > 1) {
+                                return `${formattedDates[0]} - ${
+                                  formattedDates[formattedDates.length - 1]
+                                }`;
+                              }
 
-            // Group by date
-            const grouped = slots.reduce((acc: { [x: string]: any[]; }, s: { selected_date: string | number | Date; time_slot: any; }) => {
-              const date = new Date(s.selected_date)
-                .toLocaleDateString("en-GB")
-                .replace(/\//g, "-");
+                              return formattedDates[0];
+                            })()}
+                          </span>
 
-              if (!acc[date]) acc[date] = [];
-              acc[date].push(s.time_slot);
-              return acc;
-            }, {});
+                          {/* Info icon + tooltip */}
+                          <div className="relative group flex-shrink-0">
+                            <Info className="w-4 h-4 text-[#76B900] cursor-pointer hover:opacity-80" />
 
-            const extractStartTime = (slot: string) =>
-              slot.includes("-")
-                ? slot.split("-")[0].trim()
-                : slot.trim();
+                            <div className="absolute left-5 top-1/2 -translate-y-1/2 hidden group-hover:block bg-white border border-lime-500 rounded-lg shadow-lg z-[100] before:content-[''] before:absolute before:-left-5 before:top-0 before:w-5 before:h-full before:bg-transparent transition-opacity duration-200">
+                              <div className="min-w-[200px] max-w-[400px] w-max max-h-15 overflow-y-auto pt-1 px-2 whitespace-normal break-word text-xs text-gray-900 leading-relaxed">
+                                {(() => {
+                                  const slots = request.time_slots || [];
 
-            const toMinutes = (t: string) => {
-              const [h, m] = extractStartTime(t).split(":").map(Number);
-              return h * 60 + m;
-            };
+                                  if (slots.length === 0) {
+                                    return (
+                                      <div className="text-center">
+                                        <div className="font-medium text-gray-900">
+                                          {request.selected_date
+                                            ? new Date(request.selected_date)
+                                                .toLocaleDateString("en-GB")
+                                                .replace(/\//g, "-")
+                                            : "No date available"}
+                                        </div>
+                                        <div className="text-xs text-gray-600">
+                                          Time Slots : N/A
+                                        </div>
+                                      </div>
+                                    );
+                                  }
 
-            const formatRanges = (times: any[]) => {
-              const sorted = times
-                .map((t) => ({
-                  original: extractStartTime(t),
-                  minutes: toMinutes(t),
-                }))
-                .sort((a, b) => a.minutes - b.minutes);
+                                  // Group by date
+                                  const grouped = slots.reduce(
+                                    (
+                                      acc: { [x: string]: any[] },
+                                      s: {
+                                        selected_date: string | number | Date;
+                                        time_slot: any;
+                                      }
+                                    ) => {
+                                      const date = new Date(s.selected_date)
+                                        .toLocaleDateString("en-GB")
+                                        .replace(/\//g, "-");
 
-              const ranges = [];
-              let start = sorted[0];
-              let end = sorted[0];
+                                      if (!acc[date]) acc[date] = [];
+                                      acc[date].push(s.time_slot);
+                                      return acc;
+                                    },
+                                    {}
+                                  );
 
-              for (let i = 1; i < sorted.length; i++) {
-                const cur = sorted[i];
-                if (cur.minutes - end.minutes === 30) {
-                  end = cur;
-                } else {
-                  ranges.push(
-                    start.minutes === end.minutes
-                      ? start.original
-                      : `${start.original} - ${end.original}`
-                  );
-                  start = cur;
-                  end = cur;
-                }
-              }
+                                  const extractStartTime = (slot: string) =>
+                                    slot.includes("-")
+                                      ? slot.split("-")[0].trim()
+                                      : slot.trim();
 
-              ranges.push(
-                start.minutes === end.minutes
-                  ? start.original
-                  : `${start.original} - ${end.original}`
-              );
+                                  const toMinutes = (t: string) => {
+                                    const [h, m] = extractStartTime(t)
+                                      .split(":")
+                                      .map(Number);
+                                    return h * 60 + m;
+                                  };
 
-              return ranges.join(", ");
-            };
+                                  const formatRanges = (times: any[]) => {
+                                    const sorted = times
+                                      .map((t) => ({
+                                        original: extractStartTime(t),
+                                        minutes: toMinutes(t),
+                                      }))
+                                      .sort((a, b) => a.minutes - b.minutes);
 
-            const sortedDates = Object.keys(grouped).sort((a, b) => {
-              const [dA, mA, yA] = a.split("-").map(Number);
-              const [dB, mB, yB] = b.split("-").map(Number);
-              return new Date(yA, mA - 1, dA).getTime() - new Date(yB, mB - 1, dB).getTime();
-            });
+                                    const ranges = [];
+                                    let start = sorted[0];
+                                    let end = sorted[0];
 
-            return (
-              <div className="space-y-2">
-                {sortedDates.map((date) => (
-                  <div key={date}>
-                    <div className="font-medium text-gray-900 mb-1">
-                      {date} / {formatRanges(grouped[date])}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            );
-          })()}
-        </div>
-      </div>
-    </div>
-  </div>
-</td>
+                                    for (let i = 1; i < sorted.length; i++) {
+                                      const cur = sorted[i];
+                                      if (cur.minutes - end.minutes === 30) {
+                                        end = cur;
+                                      } else {
+                                        ranges.push(
+                                          start.minutes === end.minutes
+                                            ? start.original
+                                            : `${start.original} - ${end.original}`
+                                        );
+                                        start = cur;
+                                        end = cur;
+                                      }
+                                    }
+
+                                    ranges.push(
+                                      start.minutes === end.minutes
+                                        ? start.original
+                                        : `${start.original} - ${end.original}`
+                                    );
+
+                                    return ranges.join(", ");
+                                  };
+
+                                  const sortedDates = Object.keys(grouped).sort(
+                                    (a, b) => {
+                                      const [dA, mA, yA] = a
+                                        .split("-")
+                                        .map(Number);
+                                      const [dB, mB, yB] = b
+                                        .split("-")
+                                        .map(Number);
+                                      return (
+                                        new Date(yA, mA - 1, dA).getTime() -
+                                        new Date(yB, mB - 1, dB).getTime()
+                                      );
+                                    }
+                                  );
+
+                                  return (
+                                    <div className="space-y-2">
+                                      {sortedDates.map((date) => (
+                                        <div key={date}>
+                                          <div className="font-medium text-gray-900 mb-1">
+                                            {date} /{" "}
+                                            {formatRanges(grouped[date])}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
 
                       {/* Description */}
                       <td className="px-4 py-4 text-sm">
@@ -1271,7 +1298,10 @@ const fetchFilteredRequests = useCallback(async (
                             <>
                               <span className="text-gray-700 truncate max-w-[150px]">
                                 {request.work_description.length > 30
-                                  ? `${request.work_description.substring(0, 30)}...`
+                                  ? `${request.work_description.substring(
+                                      0,
+                                      30
+                                    )}...`
                                   : request.work_description}
                               </span>
 
@@ -1311,7 +1341,9 @@ const fetchFilteredRequests = useCallback(async (
 
                       {/* Users in line */}
                       <td className="px-4 py-4 text-sm">
-                        <div className="relative group">{getUsersInLineCount(request)}</div>
+                        <div className="relative group">
+                          {getUsersInLineCount(request)}
+                        </div>
                       </td>
 
                       {/* Actions - Delete Button for Pending */}
@@ -1335,7 +1367,9 @@ const fetchFilteredRequests = useCallback(async (
           {/* Pagination Footer */}
           <div className="bg-lime-500 px-6 py-2 flex justify-end items-center">
             <div className="flex items-center space-x-2">
-              <span className="text-white text-sm font-medium">Rows per page:</span>
+              <span className="text-white text-sm font-medium">
+                Rows per page:
+              </span>
               <div className="relative">
                 <select
                   value={rowsPerPage}
@@ -1346,9 +1380,15 @@ const fetchFilteredRequests = useCallback(async (
                   className="px-3 py-2 pr-8 text-sm shadow appearance-none text-white rounded
              focus:outline-none focus:ring-2 focus:ring-white focus:border-white bg-white-500 cursor-pointer"
                 >
-                  <option value={5} className="text-black">5</option>
-                  <option value={10} className="text-black">10</option>
-                  <option value={20} className="text-black">20</option>
+                  <option value={5} className="text-black">
+                    5
+                  </option>
+                  <option value={10} className="text-black">
+                    10
+                  </option>
+                  <option value={20} className="text-black">
+                    20
+                  </option>
                 </select>
                 <ChevronDown className="w-4 h-4 text-white absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
@@ -1363,15 +1403,27 @@ const fetchFilteredRequests = useCallback(async (
 
               <div className="flex items-center space-x-3">
                 <ChevronLeft
-                  onClick={() => currentPage > 1 && setCurrentPage((p) => p - 1)}
+                  onClick={() =>
+                    currentPage > 1 && setCurrentPage((p) => p - 1)
+                  }
                   className={`w-5 h-5 cursor-pointer 
-                    ${currentPage === 1 ? "text-white opacity-50 cursor-not-allowed" : "text-white hover:text-gray-200"}`}
+                    ${
+                      currentPage === 1
+                        ? "text-white opacity-50 cursor-not-allowed"
+                        : "text-white hover:text-gray-200"
+                    }`}
                 />
 
                 <ChevronRight
-                  onClick={() => currentPage < totalPages && setCurrentPage((p) => p + 1)}
+                  onClick={() =>
+                    currentPage < totalPages && setCurrentPage((p) => p + 1)
+                  }
                   className={`w-5 h-5 cursor-pointer 
-                    ${currentPage === totalPages ? "text-white opacity-50 cursor-not-allowed" : "text-white hover:text-gray-200"}`}
+                    ${
+                      currentPage === totalPages
+                        ? "text-white opacity-50 cursor-not-allowed"
+                        : "text-white hover:text-gray-200"
+                    }`}
                 />
               </div>
             </div>
@@ -1382,19 +1434,31 @@ const fetchFilteredRequests = useCallback(async (
         <div className="mt-6 text-xs">
           <div className="flex flex-wrap gap-6">
             <div className="flex items-center space-x-3">
-              <div className="w-4 h-4 rounded-full bg-gray-400 flex items-center justify-center text-black text-xs">!</div>
+              <div className="w-4 h-4 rounded-full bg-gray-400 flex items-center justify-center text-black text-xs">
+                !
+              </div>
               <span className="font-medium text-gray-700">Pending</span>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-4 h-4 rounded-full bg-orange-400 flex items-center justify-center text-white text-xs">✓</div>
-              <span className="font-medium text-gray-700">Approved-Functional</span>
+              <div className="w-4 h-4 rounded-full bg-orange-400 flex items-center justify-center text-white text-xs">
+                ✓
+              </div>
+              <span className="font-medium text-gray-700">
+                Approved-Functional
+              </span>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">✓</div>
-              <span className="font-medium text-gray-700">Approved-Technical</span>
+              <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">
+                ✓
+              </div>
+              <span className="font-medium text-gray-700">
+                Approved-Technical
+              </span>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-4 h-4 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">✕</div>
+              <div className="w-4 h-4 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">
+                ✕
+              </div>
               <span className="font-medium text-gray-700">Rejected</span>
             </div>
           </div>
@@ -1450,7 +1514,8 @@ const fetchFilteredRequests = useCallback(async (
           <div className="bg-white rounded-md shadow-md w-full max-w-sm mx-4">
             <div className="p-6 text-center">
               <h3 className="text-base font-medium text-lime-600 mb-4">
-                Are you sure you want to delete this request ID({requestToDelete.instance_request_id})?
+                Are you sure you want to delete this request ID(
+                {requestToDelete.instance_request_id})?
               </h3>
 
               <div className="flex justify-center gap-2">
@@ -1507,20 +1572,44 @@ const fetchFilteredRequests = useCallback(async (
               {/* PERSONAL INFORMATION BOX */}
               <div className="relative border border-gray-300 rounded-lg p-4 shadow-sm w-[90%] max-w-lg mx-auto">
                 <div className="absolute -top-3 left-2 bg-white px-4">
-                  <h4 className="text-md font-semibold text-gray-800">Personal Information</h4>
+                  <h4 className="text-md font-semibold text-gray-800">
+                    Personal Information
+                  </h4>
                 </div>
 
                 <div className="mt-2">
                   {[
-                    { label: "Request Id", value: selectedRequest.instance_request_id },
-                    { label: "User Name", value: getUserName(selectedRequest.user_id) },
-                    { label: "Institute", value: getInstituteName(selectedRequest.user_id) },
-                    { label: "Department", value: getDepartmentName(selectedRequest.user_id) },
-                    { label: "Email Id", value: getUser(selectedRequest.user_id)?.email_id },
-                    ...(getStatusName(selectedRequest.status_id) === "Approved-Technical"
+                    {
+                      label: "Request Id",
+                      value: selectedRequest.instance_request_id,
+                    },
+                    {
+                      label: "User Name",
+                      value: getUserName(selectedRequest.user_id),
+                    },
+                    {
+                      label: "Institute",
+                      value: getInstituteName(selectedRequest.user_id),
+                    },
+                    {
+                      label: "Department",
+                      value: getDepartmentName(selectedRequest.user_id),
+                    },
+                    {
+                      label: "Email Id",
+                      value: getUser(selectedRequest.user_id)?.email_id,
+                    },
+                    ...(getStatusName(selectedRequest.status_id) ===
+                    "Approved-Technical"
                       ? [
-                          { label: "User ID", value: selectedRequest.login_id || "" },
-                          { label: "Password", value: selectedRequest.password || "" },
+                          {
+                            label: "User ID",
+                            value: selectedRequest.login_id || "",
+                          },
+                          {
+                            label: "Password",
+                            value: selectedRequest.password || "",
+                          },
                           {
                             label: "Access Link",
                             value: (
@@ -1545,10 +1634,17 @@ const fetchFilteredRequests = useCallback(async (
                         ]
                       : []),
                   ].map((item, idx) => (
-                    <div key={idx} className="grid grid-cols-[150px_20px_1fr] w-full">
-                      <span className="font-medium text-gray-700 text-right">{item.label}</span>
+                    <div
+                      key={idx}
+                      className="grid grid-cols-[150px_20px_1fr] w-full"
+                    >
+                      <span className="font-medium text-gray-700 text-right">
+                        {item.label}
+                      </span>
                       <span className="text-gray-700 text-center">:</span>
-                      <span className="text-gray-900 text-left break-words">{item.value}</span>
+                      <span className="text-gray-900 text-left break-words">
+                        {item.value}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -1557,18 +1653,34 @@ const fetchFilteredRequests = useCallback(async (
               {/* TECHNICAL INFORMATION BOX */}
               <div className="relative border border-gray-300 rounded-lg p-4 shadow-sm w-[90%] max-w-lg mx-auto">
                 <div className="absolute -top-3 left-2 bg-white px-4">
-                  <h4 className="text-md font-semibold text-gray-800">Technical Information</h4>
+                  <h4 className="text-md font-semibold text-gray-800">
+                    Technical Information
+                  </h4>
                 </div>
 
                 <div className="mt-2">
                   {[
-                    { label: "User Type", value: getUserTypeName(selectedRequest.user_type_id || 0) },
-                    { label: "Image", value: getCustomImageName(selectedRequest.image_id || 0) },
-                    { label: "Requested CPUs", value: getCpuName(selectedRequest.cpu_id || 0) },
-                    { label: "Requested RAM in GB", value: getRamName(selectedRequest.ram_id || 0) },
+                    {
+                      label: "User Type",
+                      value: getUserTypeName(selectedRequest.user_type_id || 0),
+                    },
+                    {
+                      label: "Image",
+                      value: getCustomImageName(selectedRequest.image_id || 0),
+                    },
+                    {
+                      label: "Requested CPUs",
+                      value: getCpuName(selectedRequest.cpu_id || 0),
+                    },
+                    {
+                      label: "Requested RAM in GB",
+                      value: getRamName(selectedRequest.ram_id || 0),
+                    },
                     {
                       label: "Number of GPU",
-                      value: getGpuPartitionName(selectedRequest.gpu_partition_id || 0),
+                      value: getGpuPartitionName(
+                        selectedRequest.gpu_partition_id || 0
+                      ),
                     },
                     {
                       label: "GPU Vendor",
@@ -1578,13 +1690,19 @@ const fetchFilteredRequests = useCallback(async (
                       label: "Selected Date / Time",
                       value: (
                         <span className="whitespace-pre-wrap text-gray-900 text-left block break-words">
-                          {selectedRequestTimeDetails?.formatted || "Date and time not available"}
+                          {selectedRequestTimeDetails?.formatted ||
+                            "Date and time not available"}
                         </span>
                       ),
                     },
-                    { label: "Status", value: getStatusName(selectedRequest.status_id) },
-                    ...(getStatusName(selectedRequest.status_id) === "Approved-Functional" ||
-                    getStatusName(selectedRequest.status_id) === "Approved-Technical"
+                    {
+                      label: "Status",
+                      value: getStatusName(selectedRequest.status_id),
+                    },
+                    ...(getStatusName(selectedRequest.status_id) ===
+                      "Approved-Functional" ||
+                    getStatusName(selectedRequest.status_id) ===
+                      "Approved-Technical"
                       ? [
                           {
                             label: "Approved By",
@@ -1592,25 +1710,43 @@ const fetchFilteredRequests = useCallback(async (
                           },
                         ]
                       : getStatusName(selectedRequest.status_id) === "Rejected"
-                        ? [
-                            {
-                              label: "Rejected By",
-                              value: getUserName(selectedRequest.updated_by || 0),
-                            },
-                          ]
-                        : []),
-                    ...(["Rejected"].includes(getStatusName(selectedRequest.status_id))
-                      ? [{ label: "Remarks", value: selectedRequest.remarks || "" }]
+                      ? [
+                          {
+                            label: "Rejected By",
+                            value: getUserName(selectedRequest.updated_by || 0),
+                          },
+                        ]
+                      : []),
+                    ...(["Rejected"].includes(
+                      getStatusName(selectedRequest.status_id)
+                    )
+                      ? [
+                          {
+                            label: "Remarks",
+                            value: selectedRequest.remarks || "",
+                          },
+                        ]
                       : []),
                     {
                       label: "Work Description",
-                      value: <span className="block break-words">{selectedRequest.work_description}</span>,
+                      value: (
+                        <span className="block break-words">
+                          {selectedRequest.work_description}
+                        </span>
+                      ),
                     },
                   ].map((item, idx) => (
-                    <div key={idx} className="grid grid-cols-[150px_20px_1fr] w-full">
-                      <span className="font-medium text-gray-700 text-right">{item.label}</span>
+                    <div
+                      key={idx}
+                      className="grid grid-cols-[150px_20px_1fr] w-full"
+                    >
+                      <span className="font-medium text-gray-700 text-right">
+                        {item.label}
+                      </span>
                       <span className="text-gray-700 text-center">:</span>
-                      <span className="text-gray-900 text-left break-words">{item.value}</span>
+                      <span className="text-gray-900 text-left break-words">
+                        {item.value}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -1630,6 +1766,13 @@ const fetchFilteredRequests = useCallback(async (
       )}
     </div>
   );
-};
+}
 
-export default DGXDashboard;
+// Export with Suspense Wrapper
+export default function UserDashboard() {
+  return (
+    <Suspense fallback={<div></div>}>
+      <DGXDashboard />
+    </Suspense>
+  );
+}

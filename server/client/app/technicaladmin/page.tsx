@@ -113,13 +113,10 @@ function DGXDashboard() {
   const admin = "Technical";
 
   const searchParams = useSearchParams();
-//   const loggedInUserId = searchParams.get("userId") || "1";
+  const loggedInUserId = searchParams.get("userId") || "";
   const loggedInUserName = decodeURIComponent(
     searchParams.get("userName") || ""
   );
-
-
-  const loggedInUserId = 8;  // For testing purposes, replace with actual user ID retrieval logic
 
   // Validation functions
   const validateLoginId = (value: string) => {
@@ -142,7 +139,6 @@ function DGXDashboard() {
     }
     return "";
   };
-
 
   useEffect(() => {
     if (areFiltersApplied) {
@@ -183,29 +179,30 @@ function DGXDashboard() {
     });
   };
 
+  const fetchTimeData = async () => {
+    try {
+      // Fetch time slots
+      const timeSlotRes = await fetch(
+        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/time-slots"
+      );
+      const timeSlotsData = await timeSlotRes.json();
 
-const fetchTimeData = async () => {
-  try {
-    // Fetch time slots
-    const timeSlotRes = await fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/time-slots",);
-    const timeSlotsData = await timeSlotRes.json();
+      // Fetch user time slots
+      const userTimeSlotRes = await fetch(
+        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/user-time-slots"
+      );
+      const userTimeSlotsData = await userTimeSlotRes.json();
 
-    // Fetch user time slots
-    const userTimeSlotRes = await fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/user-time-slots");
-    const userTimeSlotsData = await userTimeSlotRes.json();
+      setTimeSlots(timeSlotsData || []);
+      setUserTimeSlots(userTimeSlotsData || []);
+    } catch (err) {
+      console.error("Error fetching time data:", err);
+    }
+  };
 
-    setTimeSlots(timeSlotsData || []);
-    setUserTimeSlots(userTimeSlotsData || []);
-  } catch (err) {
-    console.error("Error fetching time data:", err);
-  }
-};
-
-useEffect(() => {
-  fetchTimeData();
-}, []);
-
-
+  useEffect(() => {
+    fetchTimeData();
+  }, []);
 
   // Function to get time details for a specific request
   const getTimeDetailsForRequest = (instanceRequestId: number) => {
@@ -233,7 +230,10 @@ useEffect(() => {
           return {
             date: "1 date selected",
             time: "No time slots",
-            formatted: `${formattedFallbackDate.replace(/\//g, "-")} / No time slots`,
+            formatted: `${formattedFallbackDate.replace(
+              /\//g,
+              "-"
+            )} / No time slots`,
           };
         }
 
@@ -353,29 +353,28 @@ useEffect(() => {
     }
   };
 
-
   useEffect(() => {
-  const fetchMasters = async () => {
-    try {
-      const response = await fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/masters");
-      const data = await response.json();
+    const fetchMasters = async () => {
+      try {
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/masters"
+        );
+        const data = await response.json();
 
-      setDepartments(data.departments || []);
-      setUserTypes(data.userTypes || []);
-      setCpuList(data.cpuList || []);
-      setRamList(data.ramList || []);
-      setGpuPartitions(data.gpuPartitions || []);
-      setGpuVendors(data.gpuVendors || []);
-      setImage(data.imageList || []);
-      
-    } catch (err) {
-      console.error("Error fetching master tables", err);
-    }
-  };
+        setDepartments(data.departments || []);
+        setUserTypes(data.userTypes || []);
+        setCpuList(data.cpuList || []);
+        setRamList(data.ramList || []);
+        setGpuPartitions(data.gpuPartitions || []);
+        setGpuVendors(data.gpuVendors || []);
+        setImage(data.imageList || []);
+      } catch (err) {
+        console.error("Error fetching master tables", err);
+      }
+    };
 
-  fetchMasters();
-}, []);
-
+    fetchMasters();
+  }, []);
 
   const getDepartmentName = (userId: number): string => {
     if (!userId) return "Not Assigned";
@@ -411,7 +410,9 @@ useEffect(() => {
   };
 
   const getGpuPartitionName = (partitionId: number) => {
-    const partition = gpuPartitions.find((p) => p.gpu_partition_id === partitionId);
+    const partition = gpuPartitions.find(
+      (p) => p.gpu_partition_id === partitionId
+    );
     return partition?.gpu_partition || "";
   };
 
@@ -450,7 +451,7 @@ useEffect(() => {
   };
 
   // Convert yyyy-mm-dd to dd/mm/yyyy for display
-  const formatDateForDisplay = (dateString: string) =>  {
+  const formatDateForDisplay = (dateString: string) => {
     if (!dateString) return "";
     const [year, month, day] = dateString.split("-");
     return `${day}/${month}/${year}`;
@@ -463,12 +464,11 @@ useEffect(() => {
 
   // Sorting logic
   const sortedRequests = useMemo(() => {
-
-     // ✅ Safety check
-  if (!Array.isArray(filteredRequests)) {
-    console.warn("filteredRequests is not an array:", filteredRequests);
-    return [];
-  }
+    // ✅ Safety check
+    if (!Array.isArray(filteredRequests)) {
+      console.warn("filteredRequests is not an array:", filteredRequests);
+      return [];
+    }
 
     let sortable = [...filteredRequests];
 
@@ -614,35 +614,175 @@ useEffect(() => {
   };
 
   // Handle confirmation yes
- const handleConfirmationYes = async () => {
-  if (!selectedRequest || !confirmationAction) return;
+  const handleConfirmationYes = async () => {
+    if (!selectedRequest || !confirmationAction) return;
 
-  if (confirmationAction === "reject") {
-    setIsConfirmationOpen(false);
-    setIsRemarksModalOpen(true);
-    return;
-  }
+    if (confirmationAction === "reject") {
+      setIsConfirmationOpen(false);
+      setIsRemarksModalOpen(true);
+      return;
+    }
 
-  if (confirmationAction === "approve") {
-    setIsConfirmationOpen(true);
-    setIsCredentialsFormOpen(true);
-    return;
-  }
+    if (confirmationAction === "approve") {
+      setIsConfirmationOpen(true);
+      setIsCredentialsFormOpen(true);
+      return;
+    }
 
-  if (confirmationAction === "revoke") {
-    setIsConfirmationOpen(false);
-    setIsRemarksModalOpen(true);
-    return;
-  }
+    if (confirmationAction === "revoke") {
+      setIsConfirmationOpen(false);
+      setIsRemarksModalOpen(true);
+      return;
+    }
 
-  // Handle grant access case
-  if (confirmationAction === "grant") {
+    // Handle grant access case
+    if (confirmationAction === "grant") {
+      try {
+        // API call to backend
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/grant-access",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              instance_request_id: selectedRequest.instance_request_id,
+              updated_by: loggedInUserId,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to grant access");
+        }
+
+        const updateResult = await response.json();
+
+        if (updateResult && updateResult.success) {
+          // Update local state
+          setRequests((prevRequests) =>
+            prevRequests.map((req) =>
+              req.instance_request_id === selectedRequest.instance_request_id
+                ? {
+                    ...req,
+                    is_access_granted: true,
+                    updated_by: loggedInUserId,
+                    updated_timestamp: new Date().toISOString(),
+                  }
+                : req
+            )
+          );
+
+          setFilteredRequests((prevFiltered) =>
+            prevFiltered.map((req) =>
+              req.instance_request_id === selectedRequest.instance_request_id
+                ? {
+                    ...req,
+                    is_access_granted: true,
+                    updated_by: loggedInUserId,
+                    updated_timestamp: new Date().toISOString(),
+                  }
+                : req
+            )
+          );
+
+          setIsConfirmationOpen(false);
+          setSelectedRequest(null);
+          showSnackbar("Access granted successfully!", "success");
+
+          // Prepare email data
+          const timeDetails = getTimeDetailsForRequest(
+            selectedRequest.instance_request_id
+          );
+          const userDetails = users.find(
+            (u) => u.user_id === selectedRequest.user_id
+          );
+
+          const emailData = {
+            ...selectedRequest,
+            id: selectedRequest.instance_request_id,
+            admin,
+            loggedInUserName,
+            user: userDetails,
+            date_time: timeDetails.formatted,
+            userTypeName: getUserTypeName(selectedRequest.user_type_id),
+            customImageName: getCustomImageName(selectedRequest.image_id),
+            cpuName: getCpuName(selectedRequest.cpu_id),
+            ramName: getRamName(selectedRequest.ram_id),
+            gpuPartitionName: getGpuPartitionName(
+              selectedRequest.gpu_partition_id
+            ),
+            gpuVendorName: getGpuVendorName(selectedRequest.gpu_id),
+          };
+
+          sendGrantAccessEmail(emailData).catch((emailError) => {
+            console.error("Error sending grant access email:", emailError);
+            setTimeout(() => {
+              showSnackbar(
+                "Note: There was an issue sending the notification email.",
+                "error"
+              );
+            }, 2000);
+          });
+        }
+      } catch (error: any) {
+        console.error(`❌ Error granting access:`, error);
+        showSnackbar(
+          error.message || "Error granting access. Please try again.",
+          "error"
+        );
+      }
+    }
+  };
+
+  // Handle credentials submit
+  // Frontend - Replace your handleCredentialsSubmit function with this
+
+  const handleCredentialsSubmit = async (e?: {
+    preventDefault: () => void;
+  }) => {
+    e?.preventDefault?.();
+
+    const loginIdError = validateLoginId(credentialsData.loginId);
+    const passwordError = validatePassword(credentialsData.password);
+    const additionalInfoError = validateAdditionalInfo(
+      credentialsData.additionalInfo
+    );
+
+    setCredentialsErrors({
+      loginId: loginIdError,
+      password: passwordError,
+      additionalInfo: additionalInfoError,
+    });
+
+    if (loginIdError || passwordError || additionalInfoError) {
+      return;
+    }
+
+    if (!selectedRequest) {
+      showSnackbar("No request selected.", "error");
+      return;
+    }
+
     try {
-      console.log("🔄 Granting access...");
+      setIsEmailSending(true);
 
-      // API call to backend
+      const approvedTechnicalStatus = status.find(
+        (s) => s.status_name === "Approved-Technical"
+      );
+      if (!approvedTechnicalStatus) {
+        showSnackbar("Error: Approved-Technical status not found.", "error");
+        setIsEmailSending(false);
+        return;
+      }
+
+      const newStatusId = approvedTechnicalStatus.status_id;
+
+      // ✅ NEW: API call to backend instead of Supabase
       const response = await fetch(
-        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/grant-access",
+        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/approve-request",
         {
           method: "POST",
           headers: {
@@ -650,6 +790,11 @@ useEffect(() => {
           },
           body: JSON.stringify({
             instance_request_id: selectedRequest.instance_request_id,
+            status_id: newStatusId,
+            login_id: credentialsData.loginId,
+            password: credentialsData.password,
+            additional_information: credentialsData.additionalInfo,
+            is_access_granted: true,
             updated_by: loggedInUserId,
           }),
         }
@@ -657,20 +802,22 @@ useEffect(() => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to grant access");
+        throw new Error(errorData.message || "Failed to approve request");
       }
 
       const updateResult = await response.json();
 
-      console.log("✅ Access granted:", updateResult);
-
-      if (updateResult && updateResult.success) {
-        // Update local state
+      if (updateResult && updateResult.data) {
+        // Update local state with the new data
         setRequests((prevRequests) =>
           prevRequests.map((req) =>
             req.instance_request_id === selectedRequest.instance_request_id
-              ? { 
-                  ...req, 
+              ? {
+                  ...req,
+                  status_id: newStatusId,
+                  login_id: credentialsData.loginId,
+                  password: credentialsData.password,
+                  additional_information: credentialsData.additionalInfo,
                   is_access_granted: true,
                   updated_by: loggedInUserId,
                   updated_timestamp: new Date().toISOString(),
@@ -682,8 +829,12 @@ useEffect(() => {
         setFilteredRequests((prevFiltered) =>
           prevFiltered.map((req) =>
             req.instance_request_id === selectedRequest.instance_request_id
-              ? { 
-                  ...req, 
+              ? {
+                  ...req,
+                  status_id: newStatusId,
+                  login_id: credentialsData.loginId,
+                  password: credentialsData.password,
+                  additional_information: credentialsData.additionalInfo,
                   is_access_granted: true,
                   updated_by: loggedInUserId,
                   updated_timestamp: new Date().toISOString(),
@@ -692,9 +843,12 @@ useEffect(() => {
           )
         );
 
+        setIsEmailSending(false);
+        closeCredentialsForm();
         setIsConfirmationOpen(false);
+        setConfirmationAction(null);
         setSelectedRequest(null);
-        showSnackbar("Access granted successfully!", "success");
+        showSnackbar("Request approved successfully!", "success");
 
         // Prepare email data
         const timeDetails = getTimeDetailsForRequest(
@@ -721,8 +875,9 @@ useEffect(() => {
           gpuVendorName: getGpuVendorName(selectedRequest.gpu_id),
         };
 
-        sendGrantAccessEmail(emailData).catch((emailError) => {
-          console.error("Error sending grant access email:", emailError);
+        // Send approval email
+        sendApprovalEmail(emailData, credentialsData).catch((emailError) => {
+          console.error("Error sending email:", emailError);
           setTimeout(() => {
             showSnackbar(
               "Note: There was an issue sending the notification email.",
@@ -732,413 +887,246 @@ useEffect(() => {
         });
       }
     } catch (error: any) {
-      console.error(`❌ Error granting access:`, error);
+      console.error(`❌ Error approving request:`, error);
       showSnackbar(
-        error.message || "Error granting access. Please try again.",
+        error.message || "Error approving request. Please try again.",
         "error"
       );
-    }
-  }
-};
-
-  // Handle credentials submit
-// Frontend - Replace your handleCredentialsSubmit function with this
-
-const handleCredentialsSubmit = async (e?: { preventDefault: () => void }) => {
-  e?.preventDefault?.();
-
-  const loginIdError = validateLoginId(credentialsData.loginId);
-  const passwordError = validatePassword(credentialsData.password);
-  const additionalInfoError = validateAdditionalInfo(
-    credentialsData.additionalInfo
-  );
-
-  setCredentialsErrors({
-    loginId: loginIdError,
-    password: passwordError,
-    additionalInfo: additionalInfoError,
-  });
-
-  if (loginIdError || passwordError || additionalInfoError) {
-    return;
-  }
-
-  if (!selectedRequest) {
-    showSnackbar("No request selected.", "error");
-    return;
-  }
-
-  try {
-    setIsEmailSending(true);
-
-    const approvedTechnicalStatus = status.find(
-      (s) => s.status_name === "Approved-Technical"
-    );
-    if (!approvedTechnicalStatus) {
-      showSnackbar("Error: Approved-Technical status not found.", "error");
       setIsEmailSending(false);
+    }
+  };
+
+  const handleRemarksSubmit = async () => {
+    if (!selectedRequest) return;
+
+    if (!remarksText.trim()) {
+      setRemarksError("Please enter remarks before submitting.");
       return;
     }
 
-    const newStatusId = approvedTechnicalStatus.status_id;
+    try {
+      setIsEmailSending(true);
 
-    // ✅ NEW: API call to backend instead of Supabase
-    const response = await fetch(
-     process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/approve-request",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          instance_request_id: selectedRequest.instance_request_id,
-          status_id: newStatusId,
-          login_id: credentialsData.loginId,
-          password: credentialsData.password,
-          additional_information: credentialsData.additionalInfo,
-          is_access_granted: true,
-          updated_by: loggedInUserId,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to approve request");
-    }
-
-    const updateResult = await response.json();
-
-    console.log("✅ Request approved:", updateResult);
-
-    if (updateResult && updateResult.data) {
-      // Update local state with the new data
-      setRequests((prevRequests) =>
-        prevRequests.map((req) =>
-          req.instance_request_id === selectedRequest.instance_request_id
-            ? {
-                ...req,
-                status_id: newStatusId,
-                login_id: credentialsData.loginId,
-                password: credentialsData.password,
-                additional_information: credentialsData.additionalInfo,
-                is_access_granted: true,
-                updated_by: loggedInUserId,
-                updated_timestamp: new Date().toISOString(),
-              }
-            : req
-        )
-      );
-
-      setFilteredRequests((prevFiltered) =>
-        prevFiltered.map((req) =>
-          req.instance_request_id === selectedRequest.instance_request_id
-            ? {
-                ...req,
-                status_id: newStatusId,
-                login_id: credentialsData.loginId,
-                password: credentialsData.password,
-                additional_information: credentialsData.additionalInfo,
-                is_access_granted: true,
-                updated_by: loggedInUserId,
-                updated_timestamp: new Date().toISOString(),
-              }
-            : req
-        )
-      );
-
-      setIsEmailSending(false);
-      closeCredentialsForm();
-      setIsConfirmationOpen(false);
-      setConfirmationAction(null);
-      setSelectedRequest(null);
-      showSnackbar("Request approved successfully!", "success");
-
-      // Prepare email data
-      const timeDetails = getTimeDetailsForRequest(
-        selectedRequest.instance_request_id
-      );
-      const userDetails = users.find(
-        (u) => u.user_id === selectedRequest.user_id
-      );
-
-      const emailData = {
-        ...selectedRequest,
-        id: selectedRequest.instance_request_id,
-        admin,
-        loggedInUserName,
-        user: userDetails,
-        date_time: timeDetails.formatted,
-        userTypeName: getUserTypeName(selectedRequest.user_type_id),
-        customImageName: getCustomImageName(selectedRequest.image_id),
-        cpuName: getCpuName(selectedRequest.cpu_id),
-        ramName: getRamName(selectedRequest.ram_id),
-        gpuPartitionName: getGpuPartitionName(
-          selectedRequest.gpu_partition_id
-        ),
-        gpuVendorName: getGpuVendorName(selectedRequest.gpu_id),
-      };
-
-      // Send approval email
-      sendApprovalEmail(emailData, credentialsData).catch((emailError) => {
-        console.error("Error sending email:", emailError);
-        setTimeout(() => {
-          showSnackbar(
-            "Note: There was an issue sending the notification email.",
-            "error"
-          );
-        }, 2000);
-      });
-    }
-  } catch (error: any) {
-    console.error(`❌ Error approving request:`, error);
-    showSnackbar(
-      error.message || "Error approving request. Please try again.",
-      "error"
-    );
-    setIsEmailSending(false);
-  }
-};
-
-
-  const handleRemarksSubmit = async () => {
-  if (!selectedRequest) return;
-
-  if (!remarksText.trim()) {
-    setRemarksError("Please enter remarks before submitting.");
-    return;
-  }
-
-  try {
-    setIsEmailSending(true);
-
-    if (confirmationAction === "reject") {
-      const rejectedStatus = status.find((s) => s.status_name === "Rejected");
-      if (!rejectedStatus) {
-        showSnackbar("Error: Rejected status not found.", "error");
-        setIsEmailSending(false);
-        return;
-      }
-
-      const newStatusId = rejectedStatus.status_id;
-
-      console.log("🔄 Rejecting request...");
-
-      // API call to backend
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/reject-request",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            instance_request_id: selectedRequest.instance_request_id,
-            status_id: newStatusId,
-            remarks: remarksText.trim(),
-            updated_by: loggedInUserId,
-          }),
+      if (confirmationAction === "reject") {
+        const rejectedStatus = status.find((s) => s.status_name === "Rejected");
+        if (!rejectedStatus) {
+          showSnackbar("Error: Rejected status not found.", "error");
+          setIsEmailSending(false);
+          return;
         }
-      );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to reject request");
-      }
+        const newStatusId = rejectedStatus.status_id;
 
-      const updateResult = await response.json();
-
-      console.log("✅ Request rejected:", updateResult);
-
-      if (updateResult && updateResult.success) {
-        // Refresh time slots data since they were deleted
-        await fetchTimeData();
-
-        // Update local state
-        setRequests((prevRequests) =>
-          prevRequests.map((req) =>
-            req.instance_request_id === selectedRequest.instance_request_id
-              ? {
-                  ...req,
-                  status_id: newStatusId,
-                  remarks: remarksText.trim(),
-                  is_access_granted: false,
-                  updated_by: loggedInUserId,
-                  updated_timestamp: new Date().toISOString(),
-                }
-              : req
-          )
+        // API call to backend
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL +
+            "/technicaladmin/reject-request",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              instance_request_id: selectedRequest.instance_request_id,
+              status_id: newStatusId,
+              remarks: remarksText.trim(),
+              updated_by: loggedInUserId,
+            }),
+          }
         );
 
-        setFilteredRequests((prevFiltered) =>
-          prevFiltered.map((req) =>
-            req.instance_request_id === selectedRequest.instance_request_id
-              ? {
-                  ...req,
-                  status_id: newStatusId,
-                  remarks: remarksText.trim(),
-                  is_access_granted: false,
-                  updated_by: loggedInUserId,
-                  updated_timestamp: new Date().toISOString(),
-                }
-              : req
-          )
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to reject request");
+        }
+
+        const updateResult = await response.json();
+
+        if (updateResult && updateResult.success) {
+          // Refresh time slots data since they were deleted
+          await fetchTimeData();
+
+          // Update local state
+          setRequests((prevRequests) =>
+            prevRequests.map((req) =>
+              req.instance_request_id === selectedRequest.instance_request_id
+                ? {
+                    ...req,
+                    status_id: newStatusId,
+                    remarks: remarksText.trim(),
+                    is_access_granted: false,
+                    updated_by: loggedInUserId,
+                    updated_timestamp: new Date().toISOString(),
+                  }
+                : req
+            )
+          );
+
+          setFilteredRequests((prevFiltered) =>
+            prevFiltered.map((req) =>
+              req.instance_request_id === selectedRequest.instance_request_id
+                ? {
+                    ...req,
+                    status_id: newStatusId,
+                    remarks: remarksText.trim(),
+                    is_access_granted: false,
+                    updated_by: loggedInUserId,
+                    updated_timestamp: new Date().toISOString(),
+                  }
+                : req
+            )
+          );
+
+          setIsEmailSending(false);
+          closeRemarksModal();
+          setSelectedRequest(null);
+          setConfirmationAction(null);
+          setIsConfirmationOpen(false);
+          showSnackbar("Request rejected successfully!", "success");
+
+          // Prepare email data
+          const timeDetails = getTimeDetailsForRequest(
+            selectedRequest.instance_request_id
+          );
+          const userDetails = users.find(
+            (u) => u.user_id === selectedRequest.user_id
+          );
+
+          const emailData = {
+            ...selectedRequest,
+            id: selectedRequest.instance_request_id,
+            admin,
+            loggedInUserName,
+            user: userDetails,
+            date_time: timeDetails.formatted,
+            userTypeName: getUserTypeName(selectedRequest.user_type_id),
+            customImageName: getCustomImageName(selectedRequest.image_id),
+            cpuName: getCpuName(selectedRequest.cpu_id),
+            ramName: getRamName(selectedRequest.ram_id),
+            gpuPartitionName: getGpuPartitionName(
+              selectedRequest.gpu_partition_id
+            ),
+            gpuVendorName: getGpuVendorName(selectedRequest.gpu_id),
+          };
+
+          sendRejectionEmail(emailData, remarksText.trim()).catch(
+            (emailError) => {
+              console.error("Error sending rejection email:", emailError);
+              setTimeout(() => {
+                showSnackbar(
+                  "Note: There was an issue sending the notification email.",
+                  "error"
+                );
+              }, 2000);
+            }
+          );
+        }
+      } else if (confirmationAction === "revoke") {
+        // API call to backend
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/revoke-access",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              instance_request_id: selectedRequest.instance_request_id,
+              remarks: remarksText.trim(),
+              updated_by: loggedInUserId,
+            }),
+          }
         );
 
-        setIsEmailSending(false);
-        closeRemarksModal();
-        setSelectedRequest(null);
-        setConfirmationAction(null);
-        setIsConfirmationOpen(false);
-        showSnackbar("Request rejected successfully!", "success");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to revoke access");
+        }
 
-        // Prepare email data
-        const timeDetails = getTimeDetailsForRequest(
-          selectedRequest.instance_request_id
-        );
-        const userDetails = users.find(
-          (u) => u.user_id === selectedRequest.user_id
-        );
+        const updateResult = await response.json();
 
-        const emailData = {
-          ...selectedRequest,
-          id: selectedRequest.instance_request_id,
-          admin,
-          loggedInUserName,
-          user: userDetails,
-          date_time: timeDetails.formatted,
-          userTypeName: getUserTypeName(selectedRequest.user_type_id),
-          customImageName: getCustomImageName(selectedRequest.image_id),
-          cpuName: getCpuName(selectedRequest.cpu_id),
-          ramName: getRamName(selectedRequest.ram_id),
-          gpuPartitionName: getGpuPartitionName(
-            selectedRequest.gpu_partition_id
-          ),
-          gpuVendorName: getGpuVendorName(selectedRequest.gpu_id),
-        };
+        if (updateResult && updateResult.success) {
+          // Update local state
+          setRequests((prevRequests) =>
+            prevRequests.map((req) =>
+              req.instance_request_id === selectedRequest.instance_request_id
+                ? {
+                    ...req,
+                    is_access_granted: false,
+                    remarks: remarksText.trim(),
+                    updated_by: loggedInUserId,
+                    updated_timestamp: new Date().toISOString(),
+                  }
+                : req
+            )
+          );
 
-        sendRejectionEmail(emailData, remarksText.trim()).catch(
-          (emailError) => {
-            console.error("Error sending rejection email:", emailError);
+          setFilteredRequests((prevFiltered) =>
+            prevFiltered.map((req) =>
+              req.instance_request_id === selectedRequest.instance_request_id
+                ? {
+                    ...req,
+                    is_access_granted: false,
+                    remarks: remarksText.trim(),
+                    updated_by: loggedInUserId,
+                    updated_timestamp: new Date().toISOString(),
+                  }
+                : req
+            )
+          );
+
+          setIsEmailSending(false);
+          closeRemarksModal();
+          setSelectedRequest(null);
+          setIsConfirmationOpen(false);
+          setConfirmationAction(null);
+          showSnackbar("Access revoked successfully!", "success");
+
+          // Prepare email data
+          const timeDetails = getTimeDetailsForRequest(
+            selectedRequest.instance_request_id
+          );
+          const userDetails = users.find(
+            (u) => u.user_id === selectedRequest.user_id
+          );
+
+          const emailData = {
+            ...selectedRequest,
+            id: selectedRequest.instance_request_id,
+            admin,
+            loggedInUserName,
+            user: userDetails,
+            date_time: timeDetails.formatted,
+            userTypeName: getUserTypeName(selectedRequest.user_type_id),
+            customImageName: getCustomImageName(selectedRequest.image_id),
+            cpuName: getCpuName(selectedRequest.cpu_id),
+            ramName: getRamName(selectedRequest.ram_id),
+            gpuPartitionName: getGpuPartitionName(
+              selectedRequest.gpu_partition_id
+            ),
+            gpuVendorName: getGpuVendorName(selectedRequest.gpu_id),
+          };
+
+          sendRevokeEmail(emailData, remarksText.trim()).catch((emailError) => {
+            console.error("Error sending revocation email:", emailError);
             setTimeout(() => {
               showSnackbar(
                 "Note: There was an issue sending the notification email.",
                 "error"
               );
             }, 2000);
-          }
-        );
-      }
-    } else if (confirmationAction === "revoke") {
-      console.log("🔄 Revoking access...");
-
-      // API call to backend
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/revoke-access",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            instance_request_id: selectedRequest.instance_request_id,
-            remarks: remarksText.trim(),
-            updated_by: loggedInUserId,
-          }),
+          });
         }
+      }
+    } catch (error: any) {
+      console.error(`❌ Error processing request:`, error);
+      showSnackbar(
+        error.message || "Error processing request. Please try again.",
+        "error"
       );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to revoke access");
-      }
-
-      const updateResult = await response.json();
-
-      console.log("✅ Access revoked:", updateResult);
-
-      if (updateResult && updateResult.success) {
-        // Update local state
-        setRequests((prevRequests) =>
-          prevRequests.map((req) =>
-            req.instance_request_id === selectedRequest.instance_request_id
-              ? {
-                  ...req,
-                  is_access_granted: false,
-                  remarks: remarksText.trim(),
-                  updated_by: loggedInUserId,
-                  updated_timestamp: new Date().toISOString(),
-                }
-              : req
-          )
-        );
-
-        setFilteredRequests((prevFiltered) =>
-          prevFiltered.map((req) =>
-            req.instance_request_id === selectedRequest.instance_request_id
-              ? {
-                  ...req,
-                  is_access_granted: false,
-                  remarks: remarksText.trim(),
-                  updated_by: loggedInUserId,
-                  updated_timestamp: new Date().toISOString(),
-                }
-              : req
-          )
-        );
-
-        setIsEmailSending(false);
-        closeRemarksModal();
-        setSelectedRequest(null);
-        setIsConfirmationOpen(false);
-        setConfirmationAction(null);
-        showSnackbar("Access revoked successfully!", "success");
-
-        // Prepare email data
-        const timeDetails = getTimeDetailsForRequest(
-          selectedRequest.instance_request_id
-        );
-        const userDetails = users.find(
-          (u) => u.user_id === selectedRequest.user_id
-        );
-
-        const emailData = {
-          ...selectedRequest,
-          id: selectedRequest.instance_request_id,
-          admin,
-          loggedInUserName,
-          user: userDetails,
-          date_time: timeDetails.formatted,
-          userTypeName: getUserTypeName(selectedRequest.user_type_id),
-          customImageName: getCustomImageName(selectedRequest.image_id),
-          cpuName: getCpuName(selectedRequest.cpu_id),
-          ramName: getRamName(selectedRequest.ram_id),
-          gpuPartitionName: getGpuPartitionName(
-            selectedRequest.gpu_partition_id
-          ),
-          gpuVendorName: getGpuVendorName(selectedRequest.gpu_id),
-        };
-
-        sendRevokeEmail(emailData, remarksText.trim()).catch((emailError) => {
-          console.error("Error sending revocation email:", emailError);
-          setTimeout(() => {
-            showSnackbar(
-              "Note: There was an issue sending the notification email.",
-              "error"
-            );
-          }, 2000);
-        });
-      }
+      setIsEmailSending(false);
     }
-  } catch (error: any) {
-    console.error(`❌ Error processing request:`, error);
-    showSnackbar(
-      error.message || "Error processing request. Please try again.",
-      "error"
-    );
-    setIsEmailSending(false);
-  }
-};
+  };
 
   // Get status name by ID
   const getStatusName = (statusId: number): string => {
@@ -1151,240 +1139,238 @@ const handleCredentialsSubmit = async (e?: { preventDefault: () => void }) => {
     return users.find((u) => u.user_id === userId);
   };
 
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/status", // direct URL
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
 
-useEffect(() => {
-  const fetchStatus = async () => {
-    try {
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/status", // direct URL
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
         }
-      );
 
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
+        const data = await response.json();
+
+        if (!data || data.length === 0) return;
+
+        // Add "All" option
+        const allOption = { status_id: "all", status_name: "All" };
+        const updatedStatusList = [allOption, ...data];
+
+        setStatus(updatedStatusList);
+        setSelectedStatus(allOption);
+      } catch (error) {
+        console.error("Error fetching status:", error);
       }
+    };
 
-      const data = await response.json();
-
-      console.log("Fetched status:", data);
-
-      if (!data || data.length === 0) return;
-
-      // Add "All" option
-      const allOption = { status_id: "all", status_name: "All" };
-      const updatedStatusList = [allOption, ...data];
-
-      setStatus(updatedStatusList);
-      setSelectedStatus(allOption);
-
-      console.log("Default status set: All (showing all statuses)");
-    } catch (error) {
-      console.error("Error fetching status:", error);
-    }
-  };
-
-  fetchStatus();
-}, []);
-
-
-useEffect(() => {
-  const fetchInstitutes = async () => {
-    try {
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin//user-institutes/" + loggedInUserId, // direct URL
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      if (!response.ok) throw new Error("Network response was not ok");
-
-      const data = await response.json();
-      console.log("Fetched institutes:", data);
-
-      if (!data || data.length === 0) return;
-
-      const allOption = { institute_id: "all", institute_name: "All" };
-      const updatedList = [allOption, ...data];
-
-      setUserInstitutes(updatedList);
-      setSelectedInstitute(allOption);
-    } catch (error) {
-      console.error("Error fetching institutes:", error);
-    }
-  };
-
-  fetchInstitutes();
-}, [loggedInUserId]);
-
-
- // Replace your existing fetchData function with this:
+    fetchStatus();
+  }, []);
 
   useEffect(() => {
+    const fetchInstitutes = async () => {
+      try {
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL +
+            "/technicaladmin//user-institutes/" +
+            loggedInUserId, // direct URL
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
 
-      fetchData();
-    
+        if (!response.ok) throw new Error("Network response was not ok");
+
+        const data = await response.json();
+
+        if (!data || data.length === 0) return;
+
+        const allOption = { institute_id: "all", institute_name: "All" };
+        const updatedList = [allOption, ...data];
+
+        setUserInstitutes(updatedList);
+        setSelectedInstitute(allOption);
+      } catch (error) {
+        console.error("Error fetching institutes:", error);
+      }
+    };
+
+    fetchInstitutes();
   }, [loggedInUserId]);
 
-const fetchData = async () => {
-  try {
-    setLoading(true);
+  // Replace your existing fetchData function with this:
 
-    const [userRes, assocRes, instRes] = await Promise.all([
-      fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/users"),
-      fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/associations"),
-      fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/institutes"),
-    ]);
+  useEffect(() => {
+    fetchData();
+  }, [loggedInUserId]);
 
-    const users = await userRes.json();
-    const associations = await assocRes.json();
-    const institutes = await instRes.json();
+  const fetchData = async () => {
+    try {
+      setLoading(true);
 
-    setUsers(users);
-    setUserInstituteAssociation(associations);
-    setInstitutes(institutes);
+      const [userRes, assocRes, instRes] = await Promise.all([
+        fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/users"),
+        fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/associations"
+        ),
+        fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/institutes"
+        ),
+      ]);
 
-    const body = {
-      logged_in_user_id: loggedInUserId,
-      from_date_param: null,
-      to_date_param: null,
-      status_id_param: null,
-      institute_id_param:
-        selectedInstitute?.institute_id === "all"
-          ? null
-          : selectedInstitute?.institute_id || null,
-    };
+      const users = await userRes.json();
+      const associations = await assocRes.json();
+      const institutes = await instRes.json();
 
-    const reqRes = await fetch(
-      process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/filtered-requests",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      }
-    );
+      setUsers(users);
+      setUserInstituteAssociation(associations);
+      setInstitutes(institutes);
 
-    const requests = await reqRes.json();
+      const body = {
+        logged_in_user_id: loggedInUserId,
+        from_date_param: null,
+        to_date_param: null,
+        status_id_param: null,
+        institute_id_param:
+          selectedInstitute?.institute_id === "all"
+            ? null
+            : selectedInstitute?.institute_id || null,
+      };
 
-     // ✅ Ensure it's always an array
-    const requestsArray = Array.isArray(requests) ? requests : [];
-    setRequests(requestsArray);
-    console.log("Fetched requests:", requestsArray);
-    setFilteredRequests(requestsArray); // ✅ Add this line
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    showSnackbar("Error fetching data.", "error");
-  } finally {
-    setLoading(false);
-  }
-};
+      const reqRes = await fetch(
+        process.env.NEXT_PUBLIC_DGX_API_URL +
+          "/technicaladmin/filtered-requests",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
 
+      const requests = await reqRes.json();
 
-// Replace your validateAndFilter function with this:
-const validateAndFilter = async () => {
-  if (!fromDate && !toDate && !selectedStatus && !selectedInstitute) {
-    setIsFilterValidationPopupOpen(true);
-    return;
-  }
+      // ✅ Ensure it's always an array
+      const requestsArray = Array.isArray(requests) ? requests : [];
+      setRequests(requestsArray);
 
-  if (!fromDate && toDate) {
-    setDateError("Please select From Date.");
-    return;
-  }
+      setFilteredRequests(requestsArray); // ✅ Add this line
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      showSnackbar("Error fetching data.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (fromDate && toDate && new Date(toDate) < new Date(fromDate)) {
-    setDateError("To Date cannot be earlier than From Date.");
-    return;
-  }
+  // Replace your validateAndFilter function with this:
+  const validateAndFilter = async () => {
+    if (!fromDate && !toDate && !selectedStatus && !selectedInstitute) {
+      setIsFilterValidationPopupOpen(true);
+      return;
+    }
 
-  setDateError("");
+    if (!fromDate && toDate) {
+      setDateError("Please select From Date.");
+      return;
+    }
 
-  try {
-    setLoading(true);
+    if (fromDate && toDate && new Date(toDate) < new Date(fromDate)) {
+      setDateError("To Date cannot be earlier than From Date.");
+      return;
+    }
 
-    const body = {
-      logged_in_user_id: loggedInUserId,
-      from_date_param: fromDate || null,
-      to_date_param: toDate || null,
-      status_id_param:
-        selectedStatus?.status_id === "all" ? null : selectedStatus?.status_id,
-      institute_id_param:
-        selectedInstitute?.institute_id === "all"
-          ? null
-          : selectedInstitute?.institute_id,
-    };
+    setDateError("");
 
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/filtered-requests",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      }
-    );
+    try {
+      setLoading(true);
 
-    const filtered = await response.json();
+      const body = {
+        logged_in_user_id: loggedInUserId,
+        from_date_param: fromDate || null,
+        to_date_param: toDate || null,
+        status_id_param:
+          selectedStatus?.status_id === "all"
+            ? null
+            : selectedStatus?.status_id,
+        institute_id_param:
+          selectedInstitute?.institute_id === "all"
+            ? null
+            : selectedInstitute?.institute_id,
+      };
 
-    // ✅ Ensure it's always an array
-    const filteredArray = Array.isArray(filtered) ? filtered : [];
-    setFilteredRequests(filteredArray);
-    setCurrentPage(1);
-    setCurrentFilteredInstitute(selectedInstitute);
-    setAreFiltersApplied(true);
-  } catch (error) {
-    console.error("❌ Error filtering data:", error);
-    showSnackbar("Error filtering data. Please try again.", "error");
-    setFilteredRequests([]);
-  } finally {
-    setLoading(false);
-  }
-};
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_DGX_API_URL +
+          "/technicaladmin/filtered-requests",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
 
+      const filtered = await response.json();
 
+      // ✅ Ensure it's always an array
+      const filteredArray = Array.isArray(filtered) ? filtered : [];
+      setFilteredRequests(filteredArray);
+      setCurrentPage(1);
+      setCurrentFilteredInstitute(selectedInstitute);
+      setAreFiltersApplied(true);
+    } catch (error) {
+      console.error("❌ Error filtering data:", error);
+      showSnackbar("Error filtering data. Please try again.", "error");
+      setFilteredRequests([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const reapplyCurrentFilters = async () => {
+    if (!areFiltersApplied) {
+      setFilteredRequests(requests);
+      return;
+    }
 
-const reapplyCurrentFilters = async () => {
-  if (!areFiltersApplied) {
-    setFilteredRequests(requests);
-    return;
-  }
+    try {
+      const body = {
+        logged_in_user_id: loggedInUserId,
+        from_date_param: fromDate || null,
+        to_date_param: toDate || null,
+        status_id_param:
+          selectedStatus?.status_id === "all"
+            ? null
+            : selectedStatus?.status_id,
+        institute_id_param:
+          selectedInstitute?.institute_id === "all"
+            ? null
+            : selectedInstitute?.institute_id,
+      };
 
-  try {
-    const body = {
-      logged_in_user_id: loggedInUserId,
-      from_date_param: fromDate || null,
-      to_date_param: toDate || null,
-      status_id_param:
-        selectedStatus?.status_id === "all" ? null : selectedStatus?.status_id,
-      institute_id_param:
-        selectedInstitute?.institute_id === "all"
-          ? null
-          : selectedInstitute?.institute_id,
-    };
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_DGX_API_URL +
+          "/technicaladmin/filtered-requests",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
 
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/filtered-requests",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      }
-    );
-
-    const filtered = await response.json();
-    // ✅ Ensure it's always an array
-    const filteredArray = Array.isArray(filtered) ? filtered : [];
-    setFilteredRequests(filteredArray);
-  } catch (error) {
-    console.error("❌ Error reapplying filters:", error);
-    setFilteredRequests([]);
-  }
-};
-
+      const filtered = await response.json();
+      // ✅ Ensure it's always an array
+      const filteredArray = Array.isArray(filtered) ? filtered : [];
+      setFilteredRequests(filteredArray);
+    } catch (error) {
+      console.error("❌ Error reapplying filters:", error);
+      setFilteredRequests([]);
+    }
+  };
 
   // Get Full User Name
   const getUserName = (userId: number): string => {
@@ -1468,7 +1454,7 @@ const reapplyCurrentFilters = async () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-     <Header/>
+      <Header />
 
       <div className="p-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-10 text-center">
@@ -1595,7 +1581,11 @@ const reapplyCurrentFilters = async () => {
                 <div className="relative">
                   <label
                     className={`absolute left-3 transition-all duration-200 pointer-events-none z-20
-          ${selectedStatus ? "text-xs -top-2 px-1" : "top-1/2 -translate-y-1/2 text-sm"}
+          ${
+            selectedStatus
+              ? "text-xs -top-2 px-1"
+              : "top-1/2 -translate-y-1/2 text-sm"
+          }
           ${selectedStatus ? "text-[#5A8F00] font-medium" : "text-gray-500"}
         `}
                     style={{
@@ -1645,7 +1635,11 @@ const reapplyCurrentFilters = async () => {
                 <div className="relative">
                   <label
                     className={`absolute left-3 transition-all duration-200 pointer-events-none z-20
-          ${selectedInstitute ? "text-xs -top-2 px-1" : "top-1/2 -translate-y-1/2 text-sm"}
+          ${
+            selectedInstitute
+              ? "text-xs -top-2 px-1"
+              : "top-1/2 -translate-y-1/2 text-sm"
+          }
           ${selectedInstitute ? "text-[#5A8F00] font-medium" : "text-gray-500"}
         `}
                     style={{
@@ -1663,7 +1657,9 @@ const reapplyCurrentFilters = async () => {
                    focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent truncate"
                   >
                     <span className="truncate mr-2">
-                      {selectedInstitute ? selectedInstitute.institute_name : ""}
+                      {selectedInstitute
+                        ? selectedInstitute.institute_name
+                        : ""}
                     </span>
 
                     <ChevronDown className="w-4 h-4 text-gray-700 flex-shrink-0 cursor-pointer" />
@@ -1755,7 +1751,9 @@ const reapplyCurrentFilters = async () => {
                   paginatedRequests.map((request, index) => (
                     <tr
                       key={request.instance_request_id}
-                      className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50 cursor-pointer`}
+                      className={`${
+                        index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      } hover:bg-blue-50 cursor-pointer`}
                       onClick={() => handleRowClick(request)}
                     >
                       {/* Request ID */}
@@ -2026,7 +2024,10 @@ const reapplyCurrentFilters = async () => {
                             <>
                               <span className="text-gray-700 truncate max-w-[150px]">
                                 {request.work_description.length > 30
-                                  ? `${request.work_description.substring(0, 30)}...`
+                                  ? `${request.work_description.substring(
+                                      0,
+                                      30
+                                    )}...`
                                   : request.work_description}
                               </span>
 
@@ -2064,12 +2065,12 @@ const reapplyCurrentFilters = async () => {
                         {getStatusName(request.status_id) === "Rejected"
                           ? ""
                           : request.is_access_granted
-                            ? "Access Granted"
-                            : getStatusName(request.status_id) ===
-                                  "Approved-Functional" ||
-                                getStatusName(request.status_id) === "Pending"
-                              ? ""
-                              : "Access Denied"}
+                          ? "Access Granted"
+                          : getStatusName(request.status_id) ===
+                              "Approved-Functional" ||
+                            getStatusName(request.status_id) === "Pending"
+                          ? ""
+                          : "Access Denied"}
                       </td>
 
                       {/* Remarks */}
@@ -2126,7 +2127,11 @@ const reapplyCurrentFilters = async () => {
                     currentPage > 1 && setCurrentPage((p) => p - 1)
                   }
                   className={`w-5 h-5 cursor-pointer 
-          ${currentPage === 1 ? "text-white opacity-50 cursor-not-allowed" : "text-white hover:text-gray-200"}`}
+          ${
+            currentPage === 1
+              ? "text-white opacity-50 cursor-not-allowed"
+              : "text-white hover:text-gray-200"
+          }`}
                 />
 
                 <ChevronRight
@@ -2134,7 +2139,11 @@ const reapplyCurrentFilters = async () => {
                     currentPage < totalPages && setCurrentPage((p) => p + 1)
                   }
                   className={`w-5 h-5 cursor-pointer 
-          ${currentPage === totalPages ? "text-white opacity-50 cursor-not-allowed" : "text-white hover:text-gray-200"}`}
+          ${
+            currentPage === totalPages
+              ? "text-white opacity-50 cursor-not-allowed"
+              : "text-white hover:text-gray-200"
+          }`}
                 />
               </div>
             </div>
@@ -2307,8 +2316,7 @@ const reapplyCurrentFilters = async () => {
                             ? [
                                 {
                                   label: "Additional Information",
-                                  value:
-                                    selectedRequest.additional_information,
+                                  value: selectedRequest.additional_information,
                                 },
                               ]
                             : []),
@@ -2370,7 +2378,9 @@ const reapplyCurrentFilters = async () => {
                     },
                     {
                       label: "Requested RAM in GB",
-                      value: `${parseInt(getRamName(selectedRequest.ram_id))} + 1 (${
+                      value: `${parseInt(
+                        getRamName(selectedRequest.ram_id)
+                      )} + 1 (${
                         parseInt(getRamName(selectedRequest.ram_id)) + 1
                       }) GB`,
                     },
@@ -2384,7 +2394,7 @@ const reapplyCurrentFilters = async () => {
                       label: "GPU Vendor",
                       value: getGpuVendorName(selectedRequest.gpu_id),
                     },
-                     {
+                    {
                       label: "Selected Date / Time",
                       value: (
                         <span className="whitespace-pre-wrap text-gray-900 text-left block break-words">
@@ -2408,13 +2418,13 @@ const reapplyCurrentFilters = async () => {
                           },
                         ]
                       : getStatusName(selectedRequest.status_id) === "Rejected"
-                        ? [
-                            {
-                              label: "Rejected By",
-                              value: getUserName(selectedRequest.updated_by),
-                            },
-                          ]
-                        : []),
+                      ? [
+                          {
+                            label: "Rejected By",
+                            value: getUserName(selectedRequest.updated_by),
+                          },
+                        ]
+                      : []),
                     ...(["Rejected"].includes(
                       getStatusName(selectedRequest.status_id)
                     )
@@ -2509,8 +2519,8 @@ const reapplyCurrentFilters = async () => {
                 {confirmationAction === "revoke"
                   ? "revoke access for"
                   : confirmationAction === "grant"
-                    ? "grant access for"
-                    : confirmationAction}{" "}
+                  ? "grant access for"
+                  : confirmationAction}{" "}
                 this request ID({selectedRequest?.instance_request_id})?
               </h3>
 
@@ -2553,13 +2563,17 @@ const reapplyCurrentFilters = async () => {
               <div className="relative w-full mb-4">
                 <label
                   className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
-              ${credentialsData.loginId || credentialsErrors.loginId ? "text-xs -top-2 px-1" : "top-3"}
+              ${
+                credentialsData.loginId || credentialsErrors.loginId
+                  ? "text-xs -top-2 px-1"
+                  : "top-3"
+              }
               ${
                 credentialsErrors.loginId
                   ? "text-red-500"
                   : credentialsData.loginId
-                    ? "text-[#5a8f00] font-medium"
-                    : "text-gray-500"
+                  ? "text-[#5a8f00] font-medium"
+                  : "text-gray-500"
               }
             `}
                   style={{
@@ -2604,13 +2618,17 @@ const reapplyCurrentFilters = async () => {
               <div className="relative w-full mb-4">
                 <label
                   className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
-              ${credentialsData.password || credentialsErrors.password ? "text-xs -top-2 px-1" : "top-3"}
+              ${
+                credentialsData.password || credentialsErrors.password
+                  ? "text-xs -top-2 px-1"
+                  : "top-3"
+              }
               ${
                 credentialsErrors.password
                   ? "text-red-500"
                   : credentialsData.password
-                    ? "text-[#5a8f00] font-medium"
-                    : "text-gray-500"
+                  ? "text-[#5a8f00] font-medium"
+                  : "text-gray-500"
               }
             `}
                   style={{
@@ -2655,13 +2673,18 @@ const reapplyCurrentFilters = async () => {
               <div className="relative w-full mb-1">
                 <label
                   className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
-              ${credentialsData.additionalInfo || credentialsErrors.additionalInfo ? "text-xs -top-2 px-1" : "top-3"}
+              ${
+                credentialsData.additionalInfo ||
+                credentialsErrors.additionalInfo
+                  ? "text-xs -top-2 px-1"
+                  : "top-3"
+              }
               ${
                 credentialsErrors.additionalInfo
                   ? "text-red-500"
                   : credentialsData.additionalInfo
-                    ? "text-[#5a8f00] font-medium"
-                    : "text-gray-500"
+                  ? "text-[#5a8f00] font-medium"
+                  : "text-gray-500"
               }
             `}
                   style={{
@@ -2672,8 +2695,7 @@ const reapplyCurrentFilters = async () => {
                         : "transparent",
                   }}
                 >
-                  {credentialsErrors.additionalInfo ||
-                    "Additional Information"}
+                  {credentialsErrors.additionalInfo || "Additional Information"}
                 </label>
 
                 <textarea
@@ -2714,7 +2736,7 @@ const reapplyCurrentFilters = async () => {
                   style={{
                     backgroundColor: isEmailSending ? "#9ca3af" : "#76B900",
                   }}
-                   onMouseEnter={(e) => {
+                  onMouseEnter={(e) => {
                     if (!isEmailSending) {
                       e.currentTarget.style.backgroundColor = "#5a8f00";
                       e.currentTarget.style.transform = "translateY(0px)";
@@ -2762,8 +2784,8 @@ const reapplyCurrentFilters = async () => {
                 remarksError
                   ? "text-red-500"
                   : remarksText
-                    ? "text-[#5a8f00] font-medium"
-                    : "text-gray-500"
+                  ? "text-[#5a8f00] font-medium"
+                  : "text-gray-500"
               }
             `}
                   style={{
@@ -2813,7 +2835,7 @@ const reapplyCurrentFilters = async () => {
                   style={{
                     backgroundColor: isEmailSending ? "#9ca3af" : "#76B900",
                   }}
-                    onMouseEnter={(e) => {
+                  onMouseEnter={(e) => {
                     if (!isEmailSending) {
                       e.currentTarget.style.backgroundColor = "#5a8f00";
                       e.currentTarget.style.transform = "translateY(0px)";

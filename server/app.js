@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 
 var createError = require("http-errors");
 var express = require("express");
@@ -8,13 +8,14 @@ var logger = require("morgan");
 var cors = require("cors");
 
 var indexRouter = require("./routes/index");
+var registerRouter = require("./routes/register");
+var loginRouter = require("./routes/login");
 var usersRouter = require("./routes/users");
 var instancerequestRouter = require("./routes/instancerequest");
 var userProfile = require("./routes/profile");
-var technicaladminRouter = require('./routes/technicaladmin');
-var functionaladminRouter = require('./routes/functionaladmin');
-var emailsRouter = require('./routes/emails');
-
+var technicaladminRouter = require("./routes/technicaladmin");
+var functionaladminRouter = require("./routes/functionaladmin");
+var emailsRouter = require("./routes/emails");
 
 var app = express();
 
@@ -30,16 +31,15 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-
-
-app.use('/', indexRouter);
+app.use("/", indexRouter);
+app.use("/register", registerRouter);
+app.use("/login", loginRouter);
 app.use("/profile", userProfile);
-app.use('/users', usersRouter);
-app.use('/instancerequest', instancerequestRouter);
-app.use('/technicaladmin', technicaladminRouter);
-app.use('/functionaladmin', functionaladminRouter);
-app.use('/emails', emailsRouter);
-
+app.use("/users", usersRouter);
+app.use("/instancerequest", instancerequestRouter);
+app.use("/technicaladmin", technicaladminRouter);
+app.use("/functionaladmin", functionaladminRouter);
+app.use("/emails", emailsRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

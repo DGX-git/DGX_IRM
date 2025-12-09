@@ -1,10 +1,20 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Home,Menu,X,User,UserCircle,LogOut} from "lucide-react";
+import { jwtDecode } from "jwt-decode";
+import {
+  ChevronDown,
+  Home,
+  Menu,
+  X,
+  User,
+  UserCircle,
+  LogOut,
+} from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Logo from "@/public/logo-2.png";
 import Image from "next/image";
+import { JwtPayload } from "jwt-decode";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,9 +27,21 @@ export default function Header() {
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
-
+  interface MyJwtPayload extends JwtPayload {
+    email: string;
+    user_id: number;
+    userName: string;
+    roleName: string;
+  }
   // paths where Home & Account should be hidden
-  const restrictedPaths = ["/", "/login", "/register", "/login-code", "/check-email", "/auth/callback"];
+  const restrictedPaths = [
+    "/",
+    "/login",
+    "/register",
+    "/login-code",
+    "/check-email",
+    "/auth/callback",
+  ];
 
   // show Home & Account only if current path is NOT in restrictedPaths
   const shouldShowNav = !restrictedPaths.includes(pathname);
@@ -57,87 +79,32 @@ export default function Header() {
   };
 
   const fetchUserFromAuth = async () => {
-    try {
-      // 1️⃣ Get Supabase Auth User
-      const { data } = await supabase.auth.getUser();
+    const JWT_Token = localStorage.getItem("JWT_Token");
 
-      if (!data.user) return;
-
-      const user = data.user;
-
-
-      // 2️⃣ Basic info from Auth
-      setUserEmail(user.email || "");
-
-      // const fullName = `${user.user_metadata?.first_name ?? ""} ${
-      //   user.user_metadata?.last_name ?? ""
-      // }`.trim();
-
-      // const fullName = `${user.user_metadata?.formData?.firstName ?? ""} ${
-      //   user.user_metadata?.formData?.lastName ?? ""
-      // }`.trim();
-
-      // setUserName(fullName);
-     const meta = user.user_metadata || {};
-
-// Prefer direct metadata → fallback to formData
-const firstName =
-  meta?.first_name ?? meta?.formData?.firstName ?? "";
-
-const lastName =
-  meta?.last_name ?? meta?.formData?.lastName ?? "";
-
-const fullName = `${firstName} ${lastName}`.trim();
-
-setUserName(fullName);
-
-
-      setUserRoleName(user.user_metadata?.role);
-
-      // -------------------------------
-      // 3️⃣ Fetch DB user BY EMAIL
-      // -------------------------------
-      const { data: dbUser, error: dbErr } = await supabase
-        .from("dgx_user")
-        .select("user_id, role:role_id ( role_name )")
-        .eq("email_id", user.email)
-        .single();
-
-      if (dbErr) {
-        console.warn("User not found in DB, using Auth ID instead");
-        if (shouldMonitorAuth) {
-          handleApiError(dbErr, "fetching user data from DB");
-        }
-        // setUserId(user.id); // fallback to auth ID
-      } else {
-      
-        setUserId(dbUser.user_id); // set DB user ID
-        // Supabase returns related rows as an array; handle both array and object shapes
-        const dbUserAny = dbUser as any;
-        const roleName = Array.isArray(dbUserAny?.role)
-          ? dbUserAny.role[0]?.role_name
-          : dbUserAny?.role?.role_name;
-        if (roleName) {
-        
-          setUserRoleName(roleName);
-        }
-      }
-
-      const finalUserId = dbUser?.user_id;
-
-      // -------------------------------
-      // 4️⃣ Update URL with REAL userId
-      // -------------------------------
-      const params = new URLSearchParams(window.location.search);
-
-      params.set("userId", String(finalUserId));
-      params.set("userName", encodeURIComponent(fullName));
-
-      window.history.pushState({}, "", `?${params.toString()}`);
-    } catch (err) {
-      console.error("Error fetching user from auth:", err);
-      handleApiError(err, "fetchUserFromAuth");
+    if (!JWT_Token) {
+      console.log("No token stored");
+      return;
     }
+
+    // const decoded = jwtDecode(JWT_Token);
+    const decoded = jwtDecode<MyJwtPayload>(JWT_Token);
+
+    console.log(decoded.userName);
+    // 2️⃣ Basic info from Auth
+    setUserEmail(decoded.email);
+
+    setUserName(decoded.userName);
+
+    setUserRoleName(decoded.roleName);
+    console.log("role", decoded.roleName);
+
+    const params = new URLSearchParams(window.location.search);
+
+    params.set("userId", String(decoded.user_id));
+    params.set("userName", encodeURIComponent(decoded.userName));
+    params.set("userEmail", encodeURIComponent(decoded.email));
+
+    window.history.pushState({}, "", `?${params.toString()}`);
   };
 
   useEffect(() => {
@@ -146,7 +113,8 @@ setUserName(fullName);
     }
   }, [pathname]);
 
- 
+  console.log("userRole", userRoleName);
+
   const getDashboardRoute = () => {
     let baseRoute = "";
     switch (userRoleName) {
@@ -185,20 +153,43 @@ setUserName(fullName);
     };
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      setUserEmail("");
-      setUserName("");
-      setIsProfileDropdownOpen(false);
-      setIsMenuOpen(false);
-      router.push("/");
-      console.log("User signed out successfully");
-    } catch (error) {
-      console.error("Sign out failed:", error);
-    }
+  // const handleLogout = async () => {
+  //   try {
+  //     await supabase.auth.signOut();
+  //     setUserEmail("");
+  //     setUserName("");
+  //     setIsProfileDropdownOpen(false);
+  //     setIsMenuOpen(false);
+  //     router.push("/");
+  //     console.log("User signed out successfully");
+  //   } catch (error) {
+  //     console.error("Sign out failed:", error);
+  //   }
+  // };
+
+  const handleLogout = () => {
+    signOut();
+    localStorage.clear(); // Clear the session
+    router.push("/");
+
+    // navigate("/signin"); // Redirect to sign-in
   };
 
+  const signOut = async () => {
+    fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/login/sign-out", {
+      method: "POST",
+      headers: { "Content-type": "application/json" },
+      body: JSON.stringify({
+        // academic_year_id: academicYearId,
+      }),
+    })
+      .then((response) => response.json())
+      // .then(() => {
+      //   // setFeesSlab(response);
+      //   window.location.replace(process.env.NEXT_PUBLIC_DGX_API_URL + "/login");
+      // })
+      .catch((error) => console.error("Error fetching fees slab:", error));
+  };
   return (
     <>
       {/* Modern Header with Link-style Navigation */}
@@ -206,7 +197,7 @@ setUserName(fullName);
         className="flex-shrink-0 shadow-lg border-b-2"
         style={{
           backgroundColor: "#76B900",
-          borderBottomColor: "#5a8f00",  
+          borderBottomColor: "#5a8f00",
         }}
       >
         <div className="container mx-auto px-0">

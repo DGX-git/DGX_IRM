@@ -1,5 +1,7 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+
 import {
   Edit3,
   User,
@@ -22,7 +24,7 @@ interface InstituteAssociation {
   departmentName?: string;
 }
 
-export default function ProfilePage() {
+function ProfilePage() {
   const [profileData, setProfileData] = useState({
     id: "",
     firstname: "",
@@ -60,51 +62,22 @@ export default function ProfilePage() {
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState(""); // dynamic message
-  // In your profile page component
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+  const searchParams = useSearchParams();
+  const userEmail = decodeURIComponent(searchParams.get("userEmail") || "");
 
-    if (params.get("email_updated") === "1") {
-      // setSuccess("Email updated successfully! Please sign in again.");
-      // Optionally refresh user data
-      fetchUserProfile();
-    }
-
-    if (params.get("error")) {
-      setError("Email verification failed. Please try again.");
-    }
-  }, []);
   // Function to show snackbar with a message
   const showSnackbar = (message: string) => {
     setSnackbarMessage(message);
     setShowSuccessSnackbar(true);
   };
-  console.log("INST Association:", instituteAssociations);
+
   const router = useRouter();
-
-  // -------------------------------------------
-  // 1️⃣ Get Auth User (Custom Backend)
-  // -------------------------------------------
-  // const authResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/user`, {
-  //   method: 'GET',
-  //   headers: {
-  //     'Content-Type': 'application/json',
-  //     'Authorization': `Bearer ${localStorage.getItem('token')}` // or however you store auth token
-  //   },
-  // });
-
-  // if (!authResponse.ok) {
-  //   throw new Error("User not logged in");
-  // }
-
-  // const authUser = await authResponse.json();
-
-  // const email = authUser.email;
 
   const fetchUserProfile = useCallback(async () => {
     try {
       setLoading(true);
-      const email = "simranjamal7@gmail.com";
+      // const email = "simranjamal7@gmail.com";
+      const email = userEmail;
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_DGX_API_URL}/profile/getUserProfile?email=${email}`,
@@ -139,10 +112,12 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userEmail]);
 
   useEffect(() => {
-    fetchUserProfile();
+    if (userEmail) {
+      fetchUserProfile();
+    }
   }, [fetchUserProfile]);
 
   const validateField = (field: string, value: any): string => {
@@ -237,7 +212,6 @@ export default function ProfilePage() {
 
     try {
       setSaving(true);
-      console.log("Edit Data to be saved:", editData);
       // Compare old vs new values — same logic as AWS version
       const userFieldsChanged =
         editData.firstname !== profileData.firstname ||
@@ -272,27 +246,6 @@ export default function ProfilePage() {
           const errorData = await updateUserResponse.json();
           throw new Error(errorData.error || "Failed to update user");
         }
-
-        // 👉 ALSO update Auth metadata
-        // const updateAuthResponse = await fetch(
-        //   `${process.env.NEXT_PUBLIC_DGX_API_URL}/profile/update-user`,
-        //   {
-        //     method: 'PUT',
-        //     headers: {
-        //       'Content-Type': 'application/json',
-        //       'Authorization': `Bearer ${localStorage.getItem('token')}`
-        //     },
-        //     body: JSON.stringify({
-        //       first_name: editData.firstname,
-        //       last_name: editData.lastname,
-        //     })
-        //   }
-        // );
-
-        // if (!updateAuthResponse.ok) {
-        //   const errorData = await updateAuthResponse.json();
-        //   throw new Error(errorData.error || 'Failed to update auth user');
-        // }
       }
 
       // ------------------------------------
@@ -302,8 +255,6 @@ export default function ProfilePage() {
       const originalRegisteredAssoc = instituteAssociations.find(
         (a) => a.is_reg_institute
       );
-      console.log("Registered Assoc:", registeredAssoc);
-      console.log("Original Registered Assoc:", originalRegisteredAssoc);
 
       if (registeredAssoc && originalRegisteredAssoc) {
         const changed =
@@ -312,16 +263,12 @@ export default function ProfilePage() {
           registeredAssoc.department_id !==
             originalRegisteredAssoc.department_id;
 
-        console.log("Association changed?", changed);
-
         if (changed) {
           const existingAssoc = instituteAssociations.find(
             (a) =>
               !a.is_reg_institute &&
               Number(a.institute_id) === Number(registeredAssoc.institute_id)
           );
-
-          console.log("Existing Assoc to swap:", existingAssoc);
 
           if (existingAssoc) {
             // Swap flags - Update original to false
@@ -444,8 +391,6 @@ export default function ProfilePage() {
       setShowLogoutConfirm(false);
     }
   };
-
-  // Loading state
 
   return (
     // <div className="bg-gradient-to-br from-slate-50 via-green-50 min-h-screen py-0 ">
@@ -1058,5 +1003,14 @@ export default function ProfilePage() {
         </div>
       )}
     </div>
+  );
+}
+
+// Export with Suspense Wrapper
+export default function Profile() {
+  return (
+    <Suspense fallback={<div></div>}>
+      <ProfilePage />
+    </Suspense>
   );
 }
