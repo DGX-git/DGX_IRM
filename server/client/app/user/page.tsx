@@ -19,6 +19,7 @@ import { Listbox } from "@headlessui/react";
 import { useRouter } from "next/navigation";
 import Header from "../navbar/page";
 import { useSearchParams } from "next/navigation";
+import { checkAuth } from "@/utils/auth";
 
 // Define proper types for the data
 type InstanceRequest = {
@@ -135,7 +136,18 @@ function DGXDashboard() {
   const currentUserId = Number(searchParams.get("userId") || "");
 
   // const currentUserId = 8; // <---- HARD-CODED
+    useEffect(() => {
+      const verifyUser = async () => {
+        const result = await checkAuth(["User"]); // ✅ Only allow 'User' role here
+        if (!result.authorized) {
+          router.replace(result.redirect || "/login");
+        } else {
+          setAuthLoading(false);
+        }
+      };
 
+      verifyUser();
+    }, [router]);
   // Fetch time data
   const fetchTimeData = async () => {
     try {
@@ -833,6 +845,18 @@ function DGXDashboard() {
     }
   };
 
+    if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
+
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -1297,7 +1321,7 @@ function DGXDashboard() {
                           {request.work_description && (
                             <>
                               <span className="text-gray-700 truncate max-w-[150px]">
-                                {request.work_description.length > 30
+                                {request.work_description.length > 10
                                   ? `${request.work_description.substring(
                                       0,
                                       30
@@ -1305,7 +1329,7 @@ function DGXDashboard() {
                                   : request.work_description}
                               </span>
 
-                              {request.work_description.length > 30 && (
+                              {request.work_description.length > 10 && (
                                 <div className="relative group flex-shrink-0">
                                   <Info className="w-4 h-4 text-[#76B900] cursor-pointer hover:opacity-80" />
                                   <div className="absolute left-5 top-1/2 -translate-y-1/2 hidden group-hover:block bg-white border border-lime-500 rounded-lg shadow-lg z-[100] min-w-max">

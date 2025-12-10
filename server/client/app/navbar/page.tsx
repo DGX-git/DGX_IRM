@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode, JwtPayload } from "jwt-decode";
 import {
   ChevronDown,
   Home,
@@ -14,7 +14,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Logo from "@/public/logo-2.png";
 import Image from "next/image";
-import { JwtPayload } from "jwt-decode";
+import { useAuthMonitor } from "@/utils/useAuthMonitor";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -51,25 +51,9 @@ export default function Header() {
 
   const shouldMonitorAuth = !restrictedPaths.includes(pathname);
 
-  // if (shouldMonitorAuth) {
-  //   useAuthMonitor();
-  // }
-
-  // ADD ERROR HANDLING FOR API CALLS
-  const handleApiError = (error: any, operation: string) => {
-    // Check if it's an authentication error
-    if (
-      error.name === "NotAuthorizedException" ||
-      error.message?.includes("not authenticated") ||
-      error.message?.includes("token")
-    ) {
-      console.log("Authentication error detected - redirecting to login");
-      router.push("/login");
-      return;
-    }
-
-    console.log(`Error: ${operation} failed`, "error");
-  };
+  if (shouldMonitorAuth) {
+    useAuthMonitor();
+  }
 
   const handleLogoutClick = () => {
     setShowLogoutConfirm(true);
@@ -153,26 +137,11 @@ export default function Header() {
     };
   }, []);
 
-  // const handleLogout = async () => {
-  //   try {
-  //     await supabase.auth.signOut();
-  //     setUserEmail("");
-  //     setUserName("");
-  //     setIsProfileDropdownOpen(false);
-  //     setIsMenuOpen(false);
-  //     router.push("/");
-  //     console.log("User signed out successfully");
-  //   } catch (error) {
-  //     console.error("Sign out failed:", error);
-  //   }
-  // };
 
   const handleLogout = () => {
     signOut();
     localStorage.clear(); // Clear the session
     router.push("/");
-
-    // navigate("/signin"); // Redirect to sign-in
   };
 
   const signOut = async () => {
@@ -184,10 +153,6 @@ export default function Header() {
       }),
     })
       .then((response) => response.json())
-      // .then(() => {
-      //   // setFeesSlab(response);
-      //   window.location.replace(process.env.NEXT_PUBLIC_DGX_API_URL + "/login");
-      // })
       .catch((error) => console.error("Error fetching fees slab:", error));
   };
   return (

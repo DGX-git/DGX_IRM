@@ -1,9 +1,6 @@
 const dgx_user = require("../model/dgx_user.model");
-const Role = require("../model/role.model");
-const Department = require("../model/department.model");
-const Institute = require("../model/institute.model");
 const UserInstituteAssociation = require("../model/user_institute_association.model");
-const sequelize = require('../config/sequelize.config');
+const sequelize = require("../config/sequelize.config");
 
 // const jwt = require('jsonwebtoken');
 
@@ -31,86 +28,9 @@ const getUserProfile = async (req, res) => {
     }
 
     return res.status(200).json(data);
-
   } catch (error) {
     console.error("❌ Error:", error);
     return res.status(500).json({ error: "Internal server error" });
-  }
-}
-const getRoleById = async (req, res) => {
-  try {
-    const { roleId } = req.params;
-
-    const role = await Role.findOne({
-      where: { role_id: roleId },
-    });
-
-    if (!role) {
-      return res.status(404).json({ error: "Role not found" });
-    }
-
-    res.status(200).json(role);
-  } catch (error) {
-    console.error("Error fetching role:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-const getDepartments = async (req, res) => {
-  try {
-    const departments = await Department.findAll();
-    res.status(200).json(departments);
-  } catch (error) {
-    console.error("Error fetching departments:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-const getDepartmentById = async (req, res) => {
-  try {
-    const { departmentId } = req.params;
-
-    const department = await Department.findOne({
-      where: { department_id: departmentId },
-    });
-
-    if (!department) {
-      return res.status(404).json({ error: "Department not found" });
-    }
-
-    res.status(200).json(department);
-  } catch (error) {
-    console.error("Error fetching department:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-const getInstitutes = async (req, res) => {
-  try {
-    const institutes = await Institute.findAll();
-    res.status(200).json(institutes);
-  } catch (error) {
-    console.error("Error fetching institutes:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-const getInstituteById = async (req, res) => {
-  try {
-    const { instituteId } = req.params;
-
-    const institute = await Institute.findOne({
-      where: { institute_id: instituteId },
-    });
-
-    if (!institute) {
-      return res.status(404).json({ error: "Institute not found" });
-    }
-
-    res.status(200).json(institute);
-  } catch (error) {
-    console.error("Error fetching institute:", error);
-    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -121,21 +41,6 @@ const getAuthUser = async (req, res) => {
     res.status(200).json(user);
   } catch (error) {
     console.error("Error getting auth user:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-const getUserAssociations = async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    const associations = await UserInstituteAssociation.findAll({
-      where: { user_id: userId },
-    });
-
-    res.status(200).json(associations);
-  } catch (error) {
-    console.error("Error fetching associations:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -253,13 +158,7 @@ const updateAssociation = async (req, res) => {
 };
 module.exports = {
   getUserProfile,
-  getRoleById,
-  getDepartments,
-  getDepartmentById,
-  getInstitutes,
-  getInstituteById,
   getAuthUser,
-  getUserAssociations,
   updateProfile,
   updateAuthUser,
   updateAssociation,

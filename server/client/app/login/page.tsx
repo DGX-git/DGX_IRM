@@ -1,19 +1,16 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import Header from "../navbar/page";
-// import { useSearchParams } from "next/navigation";
-// import { supabase } from "@/lib/supabaseClient";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [focusedField, setFocusedField] = useState("");
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const router = useRouter();
-  // const searchParams = useSearchParams();
-  // const userEmail = searchParams.get("email");
 
   const validateEmail = (value: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -53,8 +50,47 @@ export default function Login() {
       router.push(`/login-code?email=${email}`);
     } catch (error) {
       console.error("Error sending OTP:", error);
+    } finally {
+      setIsLoading(false);
     }
   }, [email, setError, validateEmail, setIsLoading, router]);
+
+  const fetchUserFromAuth = async () => {
+    const JWT_Token = localStorage.getItem("JWT_Token");
+
+    if (!JWT_Token) {
+      console.log("No token stored");
+      setIsCheckingAuth(false);
+      return;
+    }
+  };
+
+  useEffect(() => {
+    fetchUserFromAuth();
+  }, [fetchUserFromAuth]);
+
+  if (isCheckingAuth) {
+    return (
+      <div className="h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="relative w-16 h-16 mx-auto mb-4">
+              <div className="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
+              <div
+                className="absolute inset-0 border-4 border-transparent rounded-full animate-spin"
+                style={{
+                  borderTopColor: "#76B900",
+                  borderRightColor: "#76B900",
+                }}
+              ></div>
+            </div>
+            <p className="text-gray-600 font-medium">Verifying access...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col overflow-hidden">
