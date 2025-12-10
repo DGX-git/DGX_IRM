@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const technicalAdminController = require('../controller/technicalAdminController');
+const technicalAdminController = require('../controller/technicaladmincontroller');
 var cors = require('cors');
 
 router.use(cors());
