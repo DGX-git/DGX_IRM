@@ -1,23 +1,36 @@
-const sequelize = require('../config/sequelize.config');// backend/services/emailService.js
-const nodemailer = require('nodemailer');
+const sequelize = require("../config/sequelize.config"); // backend/services/emailService.js
+const nodemailer = require("nodemailer");
 
 // Configure Zoho transporter
+// const transporter = nodemailer.createTransport({
+//   host: 'smtp.zoho.in',
+//   port: 465,
+//   secure: true,
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_APP_PASSWORD,
+//   },
+// });
+
 const transporter = nodemailer.createTransport({
-  host: 'smtp.zoho.in',
-  port: 465,
-  secure: true,
+  host: "smtp.zoho.in",
+  port: 587, // TLS port (works on Render)
+  secure: false, // MUST be false for port 587
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_APP_PASSWORD,
+  },
+  tls: {
+    rejectUnauthorized: false, // Zoho sometimes requires this on cloud hosts
   },
 });
 
 // Verify transporter configuration
 transporter.verify((error, success) => {
   if (error) {
-    console.error('Email transporter verification failed:', error);
+    console.error("Email transporter verification failed:", error);
   } else {
-    console.log('Email transporter is ready to send emails');
+    console.log("Email transporter is ready to send emails");
   }
 });
 
@@ -28,76 +41,76 @@ function formatRequestDetails(requestData, type) {
       label: "User Type",
       value: String(
         requestData.userTypeName ||
-        requestData.user_type ||
-        requestData.userType ||
-        ""
+          requestData.user_type ||
+          requestData.userType ||
+          ""
       ),
     },
     {
       label: "Selected Date / Time",
       value: String(
         requestData.date_time ||
-        requestData.selectedDateTime ||
-        requestData.dateTime ||
-        ""
+          requestData.selectedDateTime ||
+          requestData.dateTime ||
+          ""
       ),
     },
     {
       label: "Image",
       value: String(
         requestData.customImageName ||
-        requestData.custom_image ||
-        requestData.customImage ||
-        ""
+          requestData.custom_image ||
+          requestData.customImage ||
+          ""
       ),
     },
     {
       label: "Requested CPUs",
       value: String(
         requestData.cpuName ||
-        requestData.cpu ||
-        requestData.cpus ||
-        requestData.requested_cpu ||
-        ""
+          requestData.cpu ||
+          requestData.cpus ||
+          requestData.requested_cpu ||
+          ""
       ),
     },
     {
       label: "Requested RAM in GB",
       value: String(
         requestData.ramName ||
-        requestData.ram ||
-        requestData.memory ||
-        requestData.requested_ram ||
-        ""
+          requestData.ram ||
+          requestData.memory ||
+          requestData.requested_ram ||
+          ""
       ),
     },
     {
       label: "Number of GPU",
       value: String(
         requestData.gpuPartitionName ||
-        requestData.gpu ||
-        requestData.gpus ||
-        requestData.gpu_count ||
-        requestData.number_of_gpu ||
-        ""
+          requestData.gpu ||
+          requestData.gpus ||
+          requestData.gpu_count ||
+          requestData.number_of_gpu ||
+          ""
       ),
     },
     {
       label: "GPU Vendor",
       value: String(
         requestData.gpuVendorName ||
-        requestData.gpuVendor ||
-        requestData.gpu_vendor_id ||
-        ""
+          requestData.gpuVendor ||
+          requestData.gpu_vendor_id ||
+          ""
       ),
     },
     {
       label: "Work Description",
       value: String(
         requestData.work_description ||
-        requestData.workDescription ||
-        requestData.description ||
-        ""
+          requestData.workDescription ||
+          requestData.description ||
+          ""
       ),
     },
   ];
@@ -116,11 +129,11 @@ function formatRequestDetails(requestData, type) {
   }
 
   // Format for plain text
-  const maxLabelLength = Math.max(...fields.map(field => field.label.length));
+  const maxLabelLength = Math.max(...fields.map((field) => field.label.length));
   const colonPosition = maxLabelLength + 3;
 
   return fields
-    .map(field => {
+    .map((field) => {
       const spacesNeeded = colonPosition - field.label.length;
       const spaces = " ".repeat(spacesNeeded);
       return `${field.label}${spaces}: ${field.value}`;
@@ -135,76 +148,76 @@ function formatRequestDetailsHtml(requestData, type) {
       label: "User Type",
       value: String(
         requestData.userTypeName ||
-        requestData.user_type ||
-        requestData.userType ||
-        ""
+          requestData.user_type ||
+          requestData.userType ||
+          ""
       ),
     },
     {
       label: "Selected Date / Time",
       value: String(
         requestData.date_time ||
-        requestData.selectedDateTime ||
-        requestData.dateTime ||
-        ""
+          requestData.selectedDateTime ||
+          requestData.dateTime ||
+          ""
       ),
     },
     {
       label: "Image",
       value: String(
         requestData.customImageName ||
-        requestData.custom_image ||
-        requestData.customImage ||
-        ""
+          requestData.custom_image ||
+          requestData.customImage ||
+          ""
       ),
     },
     {
       label: "Requested CPUs",
       value: String(
         requestData.cpuName ||
-        requestData.cpu ||
-        requestData.cpus ||
-        requestData.requested_cpu ||
-        ""
+          requestData.cpu ||
+          requestData.cpus ||
+          requestData.requested_cpu ||
+          ""
       ),
     },
     {
       label: "Requested RAM in GB",
       value: String(
         requestData.ramName ||
-        requestData.ram ||
-        requestData.memory ||
-        requestData.requested_ram ||
-        ""
+          requestData.ram ||
+          requestData.memory ||
+          requestData.requested_ram ||
+          ""
       ),
     },
     {
       label: "Number of GPU",
       value: String(
         requestData.gpuPartitionName ||
-        requestData.gpu ||
-        requestData.gpus ||
-        requestData.gpu_count ||
-        requestData.number_of_gpu ||
-        ""
+          requestData.gpu ||
+          requestData.gpus ||
+          requestData.gpu_count ||
+          requestData.number_of_gpu ||
+          ""
       ),
     },
     {
       label: "GPU Vendor",
       value: String(
         requestData.gpuVendorName ||
-        requestData.gpuVendor ||
-        requestData.gpu_vendor_id ||
-        ""
+          requestData.gpuVendor ||
+          requestData.gpu_vendor_id ||
+          ""
       ),
     },
     {
       label: "Work Description",
       value: String(
         requestData.work_description ||
-        requestData.workDescription ||
-        requestData.description ||
-        ""
+          requestData.workDescription ||
+          requestData.description ||
+          ""
       ),
     },
   ];
@@ -224,7 +237,7 @@ function formatRequestDetailsHtml(requestData, type) {
 
   const tableRows = fields
     .map(
-      field =>
+      (field) =>
         `<tr>
       <td style="padding: 4px 0; font-weight: bold; width: 200px; vertical-align: top; font-family: Arial, sans-serif;">${field.label}</td>
       <td style="padding: 1px 1px; vertical-align: top; font-family: Arial, sans-serif;">:</td>
@@ -242,12 +255,15 @@ function formatRequestDetailsHtml(requestData, type) {
 // Email template generators
 function generateApprovalEmailText(requestData, credentials) {
   const userName =
-    `${requestData.user?.firstname || ""} ${requestData.user?.lastname || ""}`.trim() ||
-    "User";
+    `${requestData.user?.firstname || ""} ${
+      requestData.user?.lastname || ""
+    }`.trim() || "User";
 
   return `Dear ${userName},
 
-This is to acknowledge the successful technical approval of your DGX H200 instance request Id ${requestData.instance_request_id}. The details of your request are as follows:
+This is to acknowledge the successful technical approval of your DGX H200 instance request Id ${
+    requestData.instance_request_id
+  }. The details of your request are as follows:
 
 ${formatRequestDetails(requestData, "approval")}
 
@@ -257,23 +273,30 @@ Link: 45.120.59.148:32243
 User ID: ${credentials.loginId}
 Password: ${credentials.password}
  
-${credentials.additionalInfo ? `Additional Information:
+${
+  credentials.additionalInfo
+    ? `Additional Information:
 ${credentials.additionalInfo}
-` : ""}Best regards,
+`
+    : ""
+}Best regards,
 DGX Administration Team`;
 }
 
 function generateApprovalEmailHtml(requestData, credentials) {
   const userName =
-    `${requestData.user?.firstname || ""} ${requestData.user?.lastname || ""}`.trim() ||
-    "User";
+    `${requestData.user?.firstname || ""} ${
+      requestData.user?.lastname || ""
+    }`.trim() || "User";
 
   return `
   <html>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
       <p>Dear <strong>${userName}</strong>,</p>
       
-      <p>This is to acknowledge the successful technical approval of your DGX H200 instance request Id <strong>${requestData.instance_request_id}</strong>. The details of your request are as follows:</p>
+      <p>This is to acknowledge the successful technical approval of your DGX H200 instance request Id <strong>${
+        requestData.instance_request_id
+      }</strong>. The details of your request are as follows:</p>
 
       ${formatRequestDetailsHtml(requestData, "approval")}
 
@@ -282,7 +305,11 @@ function generateApprovalEmailHtml(requestData, credentials) {
         <p><strong>Link: 45.120.59.148:32243</strong></p>
         <p><strong>User ID:</strong> ${credentials.loginId}</p>
         <p><strong>Password:</strong> ${credentials.password}</p>
-        ${credentials.additionalInfo ? `<p><strong>Additional Information:</strong><br>${credentials.additionalInfo}</p>` : ""}
+        ${
+          credentials.additionalInfo
+            ? `<p><strong>Additional Information:</strong><br>${credentials.additionalInfo}</p>`
+            : ""
+        }
       
       <p>Best regards,<br>
       <strong>DGX Administration Team</strong></p>
@@ -292,26 +319,29 @@ function generateApprovalEmailHtml(requestData, credentials) {
 
 function generateRejectionEmailText(requestData, remarks, type) {
   const userName =
-    `${requestData.user?.firstname || ""} ${requestData.user?.lastname || ""}`.trim() ||
-    "User";
+    `${requestData.user?.firstname || ""} ${
+      requestData.user?.lastname || ""
+    }`.trim() || "User";
   const isRevoke = type === "revoke";
   const admin = requestData.admin || "Administrator";
 
   return `Dear ${userName},
 
-${isRevoke
+${
+  isRevoke
     ? `This is to inform you that your technical access to the DGX H200 instance has been revoked for request Id ${requestData.instance_request_id}. The details of your request are as follows:`
     : `This is to inform you that your request for a DGX H200 instance (Request Id ${requestData.instance_request_id}) could not be approved at this time by the ${admin} Admin. The details of your request are as follows:`
-  }
+}
 
 ${formatRequestDetails(requestData, type)}
 
-${isRevoke
+${
+  isRevoke
     ? `Unfortunately, due to ${remarks}, your access has been revoked.`
     : `Unfortunately, due to ${remarks}, we are unable to accommodate your request at the moment.
 
 You may consider resubmitting the request for a different time slot or adjusting the resource requirements. For further assistance, feel free to contact the system administrator or the resource allocation team.`
-  }
+}
 
 Best regards,
 DGX Administration Team`;
@@ -319,8 +349,9 @@ DGX Administration Team`;
 
 function generateRejectionEmailHtml(requestData, remarks, type) {
   const userName =
-    `${requestData.user?.firstname || ""} ${requestData.user?.lastname || ""}`.trim() ||
-    "User";
+    `${requestData.user?.firstname || ""} ${
+      requestData.user?.lastname || ""
+    }`.trim() || "User";
   const isRevoke = type === "revoke";
   const admin = requestData.admin || "Administrator";
 
@@ -329,20 +360,27 @@ function generateRejectionEmailHtml(requestData, remarks, type) {
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
       <p>Dear <strong>${userName}</strong>,</p>
       
-      <p>${isRevoke
-      ? `This is to inform you that your technical access to the DGX H200 instance has been revoked for request Id ${requestData.instance_request_id}. The details of your request are as follows:`
-      : `This is to inform you that your request for a DGX H200 instance request Id ${requestData.instance_request_id} could not be approved at this time by the ${admin} Admin. The details of your request are as follows:`
-    }</p>
+      <p>${
+        isRevoke
+          ? `This is to inform you that your technical access to the DGX H200 instance has been revoked for request Id ${requestData.instance_request_id}. The details of your request are as follows:`
+          : `This is to inform you that your request for a DGX H200 instance request Id ${requestData.instance_request_id} could not be approved at this time by the ${admin} Admin. The details of your request are as follows:`
+      }</p>
 
-      ${formatRequestDetailsHtml(requestData, isRevoke ? "revoke" : "rejection")} 
+      ${formatRequestDetailsHtml(
+        requestData,
+        isRevoke ? "revoke" : "rejection"
+      )} 
 
-      <p><strong>${isRevoke ? "Reason for Revocation:" : "Reason for Rejection:"}</strong></p>
+      <p><strong>${
+        isRevoke ? "Reason for Revocation:" : "Reason for Rejection:"
+      }</strong></p>
       <p>${remarks}</p>
 
-      ${!isRevoke
-      ? `<p>You may consider resubmitting the request for a different time slot or adjusting the resource requirements. For further assistance, feel free to contact the system administrator or the resource allocation team.</p>`
-      : ""
-    }
+      ${
+        !isRevoke
+          ? `<p>You may consider resubmitting the request for a different time slot or adjusting the resource requirements. For further assistance, feel free to contact the system administrator or the resource allocation team.</p>`
+          : ""
+      }
       
       <p>Best regards,<br>
       <strong>DGX Administration Team</strong></p>
@@ -352,12 +390,15 @@ function generateRejectionEmailHtml(requestData, remarks, type) {
 
 function generateGrantAccessEmailText(requestData) {
   const userName =
-    `${requestData.user?.firstname || ""} ${requestData.user?.lastname || ""}`.trim() ||
-    "User";
+    `${requestData.user?.firstname || ""} ${
+      requestData.user?.lastname || ""
+    }`.trim() || "User";
 
   return `Dear ${userName},
 
-This is to inform you that technical access has been granted for your DGX H200 instance request Id ${requestData.instance_request_id}. The details of your request are as follows:
+This is to inform you that technical access has been granted for your DGX H200 instance request Id ${
+    requestData.instance_request_id
+  }. The details of your request are as follows:
 
 ${formatRequestDetails(requestData, "grantAccess")}
 
@@ -369,15 +410,18 @@ DGX Administration Team`;
 
 function generateGrantAccessEmailHtml(requestData) {
   const userName =
-    `${requestData.user?.firstname || ""} ${requestData.user?.lastname || ""}`.trim() ||
-    "User";
+    `${requestData.user?.firstname || ""} ${
+      requestData.user?.lastname || ""
+    }`.trim() || "User";
 
   return `
   <html>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
       <p>Dear <strong>${userName}</strong>,</p>
       
-      <p>This is to inform you that technical access has been granted for your DGX H200 instance request Id <strong>${requestData.instance_request_id}</strong>. The details of your request are as follows:</p>
+      <p>This is to inform you that technical access has been granted for your DGX H200 instance request Id <strong>${
+        requestData.instance_request_id
+      }</strong>. The details of your request are as follows:</p>
       
       ${formatRequestDetailsHtml(requestData, "grantAccess")}
       
@@ -398,7 +442,8 @@ const sendApprovalEmail = async (request, response) => {
     if (!requestData || !credentials) {
       return response.status(400).json({
         success: false,
-        message: 'Missing required fields: requestData and credentials are required'
+        message:
+          "Missing required fields: requestData and credentials are required",
       });
     }
 
@@ -408,25 +453,27 @@ const sendApprovalEmail = async (request, response) => {
         address: process.env.EMAIL_USER,
       },
       to: requestData.user?.email_id,
-      subject: `DGX Instance Request Approved (${requestData.admin || "Administrator"})`,
+      subject: `DGX Instance Request Approved (${
+        requestData.admin || "Administrator"
+      })`,
       text: generateApprovalEmailText(requestData, credentials),
       html: generateApprovalEmailHtml(requestData, credentials),
     };
 
     const result = await transporter.sendMail(mailOptions);
     console.log("Approval email sent successfully:", result.messageId);
-    
+
     return response.json({
       success: true,
-      message: 'Approval email sent successfully',
-      data: { messageId: result.messageId }
+      message: "Approval email sent successfully",
+      data: { messageId: result.messageId },
     });
   } catch (error) {
     console.error("Error sending approval email:", error);
     return response.status(500).json({
       success: false,
-      message: 'Failed to send approval email',
-      error: error.message
+      message: "Failed to send approval email",
+      error: error.message,
     });
   }
 };
@@ -438,7 +485,8 @@ const sendRejectionEmail = async (request, response) => {
     if (!requestData || !remarks) {
       return response.status(400).json({
         success: false,
-        message: 'Missing required fields: requestData and remarks are required'
+        message:
+          "Missing required fields: requestData and remarks are required",
       });
     }
 
@@ -448,25 +496,27 @@ const sendRejectionEmail = async (request, response) => {
         address: process.env.EMAIL_USER,
       },
       to: requestData.user?.email_id,
-      subject: `DGX Instance Request Rejected (${requestData.admin || "Administrator"})`,
+      subject: `DGX Instance Request Rejected (${
+        requestData.admin || "Administrator"
+      })`,
       text: generateRejectionEmailText(requestData, remarks, "rejection"),
       html: generateRejectionEmailHtml(requestData, remarks, "rejection"),
     };
 
     const result = await transporter.sendMail(mailOptions);
     console.log("Rejection email sent successfully:", result.messageId);
-    
+
     return response.json({
       success: true,
-      message: 'Rejection email sent successfully',
-      data: { messageId: result.messageId }
+      message: "Rejection email sent successfully",
+      data: { messageId: result.messageId },
     });
   } catch (error) {
     console.error("Error sending rejection email:", error);
     return response.status(500).json({
       success: false,
-      message: 'Failed to send rejection email',
-      error: error.message
+      message: "Failed to send rejection email",
+      error: error.message,
     });
   }
 };
@@ -478,7 +528,8 @@ const sendRevokeEmail = async (request, response) => {
     if (!requestData || !remarks) {
       return response.status(400).json({
         success: false,
-        message: 'Missing required fields: requestData and remarks are required'
+        message:
+          "Missing required fields: requestData and remarks are required",
       });
     }
 
@@ -488,25 +539,27 @@ const sendRevokeEmail = async (request, response) => {
         address: process.env.EMAIL_USER,
       },
       to: requestData.user?.email_id,
-      subject: `DGX Instance Request Revoked (${requestData.admin || "Administrator"})`,
+      subject: `DGX Instance Request Revoked (${
+        requestData.admin || "Administrator"
+      })`,
       text: generateRejectionEmailText(requestData, remarks, "revoke"),
       html: generateRejectionEmailHtml(requestData, remarks, "revoke"),
     };
 
     const result = await transporter.sendMail(mailOptions);
     console.log("Revoke email sent successfully:", result.messageId);
-    
+
     return response.json({
       success: true,
-      message: 'Revoke email sent successfully',
-      data: { messageId: result.messageId }
+      message: "Revoke email sent successfully",
+      data: { messageId: result.messageId },
     });
   } catch (error) {
     console.error("Error sending revoke email:", error);
     return response.status(500).json({
       success: false,
-      message: 'Failed to send revoke email',
-      error: error.message
+      message: "Failed to send revoke email",
+      error: error.message,
     });
   }
 };
@@ -518,7 +571,7 @@ const sendGrantAccessEmail = async (request, response) => {
     if (!requestData) {
       return response.status(400).json({
         success: false,
-        message: 'Missing required field: requestData is required'
+        message: "Missing required field: requestData is required",
       });
     }
 
@@ -528,25 +581,27 @@ const sendGrantAccessEmail = async (request, response) => {
         address: process.env.EMAIL_USER,
       },
       to: requestData.user?.email_id,
-      subject: `DGX Instance Access Granted (${requestData.admin || "Administrator"})`,
+      subject: `DGX Instance Access Granted (${
+        requestData.admin || "Administrator"
+      })`,
       text: generateGrantAccessEmailText(requestData),
       html: generateGrantAccessEmailHtml(requestData),
     };
 
     const result = await transporter.sendMail(mailOptions);
     console.log("Grant access email sent successfully:", result.messageId);
-    
+
     return response.json({
       success: true,
-      message: 'Grant access email sent successfully',
-      data: { messageId: result.messageId }
+      message: "Grant access email sent successfully",
+      data: { messageId: result.messageId },
     });
   } catch (error) {
     console.error("Error sending grant access email:", error);
     return response.status(500).json({
       success: false,
-      message: 'Failed to send grant access email',
-      error: error.message
+      message: "Failed to send grant access email",
+      error: error.message,
     });
   }
 };

@@ -30,17 +30,21 @@ const generateOtp = () => {
 };
 
 // Function to send the OTP via email (placeholder implementation)
-const sendOtpEmail = async (email, otp) => {
-  const transporter = nodemailer.createTransport({
-    // service: 'gmail',
-    host: "smtp.zoho.in", // or 'smtp.zoho.com' if using .com domain
-    port: 465, // use 465 for SSL
-    secure: true,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_APP_PASSWORD,
-    },
-  });
+// 
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.zoho.in",
+  port: 587, // TLS port (works on Render)
+  secure: false, // MUST be false for port 587
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_APP_PASSWORD,
+  },
+  tls: {
+    rejectUnauthorized: false, // Zoho sometimes requires this on cloud hosts
+  },
+});
+
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
