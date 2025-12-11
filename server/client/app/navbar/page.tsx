@@ -39,8 +39,8 @@ export default function Header() {
     "/login",
     "/register",
     "/login-code",
-    "/check-email",
-    "/auth/callback",
+    // "/check-email",
+    // "/auth/callback",
   ];
 
   // show Home & Account only if current path is NOT in restrictedPaths
