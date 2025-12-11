@@ -4,7 +4,8 @@ const DGX_USER = require("../model/dgx_user.model");
 const USER_OTP = require("../model/otp.model");
 const ROLE = require("../model/role.model");
 const { Op } = require("sequelize");
-const sgMail = require("@sendgrid/mail"); 
+const sgMail = require("@sendgrid/mail");
+
 
 const checkEmail = async (req, res) => {
   try {
@@ -45,7 +46,7 @@ const generateOtp = () => {
 
 //   const transporter = nodemailer.createTransport({
 //     host: "smtp.zoho.in",
-//     port: 2525, // TLS port (works on Render)
+//     port: 587, // TLS port (works on Render)
 //     secure: false, // MUST be false for port 587
 //     auth: {
 //       user: process.env.EMAIL_USER,
@@ -76,13 +77,15 @@ const generateOtp = () => {
 //   // Send the email
 //   return transporter.sendMail(mailOptions);
 // };
-// ✅ REPLACE sendOtpEmail function with this:
+
+
+// SendGrid only - simple and clean
 const sendOtpEmail = async (email, otp) => {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
   const msg = {
     to: email,
-    from: process.env.SENDGRID_VERIFIED_EMAIL, // Must be verified in SendGrid
+    from: process.env.SENDGRID_VERIFIED_EMAIL,
     subject: `${otp} - OTP for DGX Portal Login Request`,
     text: `Dear User,
 
