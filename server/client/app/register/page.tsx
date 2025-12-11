@@ -1301,7 +1301,7 @@ export default function RegisterForm() {
             }
             {/* Already have account link */}
             <div
-              className="text-center mt-3 pt-3"
+              className="text-center mt-2 pt-2"
               style={{ borderTop: "1px solid #e8f5d0" }}
             >
               <p className="text-sm text-[#5a8f00]">
