@@ -2047,7 +2047,7 @@ function DGXDashboard() {
                           {request.work_description && (
                             <>
                               <span className="text-gray-700 truncate max-w-[150px]">
-                                {request.work_description.length > 10
+                                {request.work_description.length > 20
                                   ? `${request.work_description.substring(
                                       0,
                                       30
@@ -2055,7 +2055,7 @@ function DGXDashboard() {
                                   : request.work_description}
                               </span>
 
-                              {request.work_description.length > 10 && (
+                              {request.work_description.length > 20 && (
                                 <div className="relative group flex-shrink-0">
                                   <Info className="w-4 h-4 text-[#76B900] cursor-pointer hover:opacity-80" />
                                   <div className="absolute left-5 top-1/2 -translate-y-1/2 hidden group-hover:block bg-white border border-lime-500 rounded-lg shadow-lg z-[100] min-w-max">

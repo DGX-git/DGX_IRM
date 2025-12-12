@@ -233,39 +233,37 @@ function DGXDashboard() {
     verifyUser();
   }, [router]);
 
-  // Fetch user's institutes from Supabase
-  useEffect(() => {
-    const fetchInstitutes = async () => {
-      try {
-        const response = await fetch(
-          process.env.NEXT_PUBLIC_DGX_API_URL +
-            "/technicaladmin//user-institutes/" +
-            loggedInUserId, // direct URL
-          {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-
-        if (!response.ok) throw new Error("Network response was not ok");
-
-        const data = await response.json();
-        console.log("Fetched institutes:", data);
-
-        if (!data || data.length === 0) return;
-
-        const allOption = { institute_id: "all", institute_name: "All" };
-        const updatedList = [allOption, ...data];
-
-        setUserInstitutes(updatedList);
-        setSelectedInstitute(allOption);
-      } catch (error) {
-        console.error("Error fetching institutes:", error);
-      }
-    };
-
-    fetchInstitutes();
-  }, [loggedInUserId]);
+  // Fetch user's institutes
+ useEffect(() => {
+   const fetchInstitutes = async () => {
+     try {
+       const response = await fetch(
+         process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin//user-institutes/" + loggedInUserId, // direct URL
+         {
+           method: "GET",
+           headers: { "Content-Type": "application/json" },
+         }
+       );
+ 
+       if (!response.ok) throw new Error("Network response was not ok");
+ 
+       const data = await response.json();
+       console.log("Fetched institutes:", data);
+ 
+       if (!data || data.length === 0) return;
+ 
+       const allOption = { institute_id: "all", institute_name: "All" };
+       const updatedList = [allOption, ...data];
+ 
+       setUserInstitutes(updatedList);
+       setSelectedInstitute(allOption);
+     } catch (error) {
+       console.error("Error fetching institutes:", error);
+     }
+   };
+ 
+   fetchInstitutes();
+ }, [loggedInUserId]);
 
   // Update this useEffect to reapply filters when requests change
   useEffect(() => {
@@ -1756,7 +1754,7 @@ function DGXDashboard() {
                           {request.work_description && (
                             <>
                               <span className="text-gray-700 truncate max-w-[150px]">
-                                {request.work_description.length > 10
+                                {request.work_description.length > 20
                                   ? `${request.work_description.substring(
                                       0,
                                       30
@@ -1764,7 +1762,7 @@ function DGXDashboard() {
                                   : request.work_description}
                               </span>
 
-                              {request.work_description.length > 10 && (
+                              {request.work_description.length > 20 && (
                                 <div className="relative group flex-shrink-0">
                                   <Info className="w-4 h-4 text-[#76B900] cursor-pointer hover:opacity-80" />
                                   <div className="absolute left-5 top-1/2 -translate-y-1/2 hidden group-hover:block bg-white border border-lime-500 rounded-lg shadow-lg z-[100] min-w-max">
