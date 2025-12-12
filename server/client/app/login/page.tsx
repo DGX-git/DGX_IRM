@@ -3,6 +3,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import Header from "../navbar/page";
+import { jwtDecode } from "jwt-decode";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -55,15 +56,49 @@ export default function Login() {
     }
   }, [email, setError, validateEmail, setIsLoading, router]);
 
-  const fetchUserFromAuth = async () => {
-    const JWT_Token = localStorage.getItem("JWT_Token");
+const fetchUserFromAuth = async () => {
+  const JWT_Token = localStorage.getItem("JWT_Token");
+  console.log("Checking for stored JWT_Token:", JWT_Token);
 
-    if (!JWT_Token) {
-      console.log("No token stored");
+  // ------------------------------
+  // 1️⃣ NO TOKEN FOUND
+  // ------------------------------
+  if (!JWT_Token) {
+    console.log("No token stored");
+    setIsCheckingAuth(false);
+    return;
+  }
+
+  try {
+    // Decode JWT → get exp time
+    const decoded = jwtDecode(JWT_Token);
+    const expiry = decoded.exp; // in seconds
+
+    const now = Math.floor(Date.now() / 1000);
+
+    // ------------------------------
+    // 2️⃣ TOKEN EXPIRED
+    // ------------------------------
+    if  (!expiry || expiry < now) {
+      console.log("Token expired — clearing token");
       setIsCheckingAuth(false);
       return;
     }
-  };
+
+    // ------------------------------
+    // 3️⃣ TOKEN VALID
+    // ------------------------------
+    console.log("Token is valid");
+    setIsCheckingAuth(false);
+    return;
+
+  } catch (error) {
+    console.log("Error decoding token:", error);
+    // If decoding fails, treat as invalid
+    localStorage.removeItem("JWT_Token");
+    setIsCheckingAuth(false);
+  }
+};
 
   useEffect(() => {
     fetchUserFromAuth();

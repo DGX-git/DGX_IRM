@@ -40,21 +40,21 @@ export async function checkAuth(
       return { authorized: false, redirect: "/login" };
     }
 
-    const now = Math.floor(Date.now() / 1000);
+    // const now = Math.floor(Date.now() / 1000);
 
     // -------------------------------------
     // 3️⃣ Token expired → attempt refresh
     // -------------------------------------
-    if (decoded.exp <= now) {
-      const refreshed = await attemptRefresh(refreshToken);
-      if (!refreshed) {
-        return { authorized: false, redirect: "/login" };
-      }
+    // if (decoded.exp <= now) {
+    //   const refreshed = await attemptRefresh(refreshToken);
+    //   if (!refreshed) {
+    //     return { authorized: false, redirect: "/login" };
+    //   }
 
-      // decode the new token
-      const newToken = localStorage.getItem("JWT_Token");
-      decoded = jwtDecode<MyJwtPayload>(newToken!);
-    }
+    //   // decode the new token
+    //   const newToken = localStorage.getItem("JWT_Token");
+    //   decoded = jwtDecode<MyJwtPayload>(newToken!);
+    // }
 
     const roleName = decoded.role;
     const email = decoded.email;

@@ -1,8 +1,9 @@
 const dgx_user = require("../model/dgx_user.model");
 const UserInstituteAssociation = require("../model/user_institute_association.model");
 const sequelize = require("../config/sequelize.config");
+const jwt = require("jsonwebtoken");
+const dgx_role = require("../model/role.model");  
 
-// const jwt = require('jsonwebtoken');
 
 const getUserProfile = async (req, res) => {
   try {
@@ -57,12 +58,13 @@ const updateProfile = async (req, res) => {
       updated_timestamp,
     } = req.body;
 
+     const jwtSecretKey = process.env.JWT_SECRET_KEY;
     // Check if user exists
     const user = await dgx_user.findByPk(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-
+const oldEmail = user.email_id;
     // Update user
     await user.update({
       first_name,
@@ -73,40 +75,39 @@ const updateProfile = async (req, res) => {
       updated_timestamp: updated_timestamp || new Date(),
     });
 
+     let newToken = null;
+      // ---------------------------------------------
+    //  Generate NEW JWT ONLY if email was changed
+    // ---------------------------------------------
+    if (email_id && email_id !== oldEmail) {
+        // Fetch role details
+  const role = await dgx_role.findOne({
+    where: { role_id: user.role_id },
+    attributes: ["role_name"],
+  });
+
+  // Safety check
+  const roleName = role ? role.role_name : null;
+
+      newToken = jwt.sign(
+        {
+          user_id: user.user_id,
+          email: email_id,
+          userName: `${user.first_name} ${user.last_name}`,
+          roleName: roleName, // or join with role table if needed
+        },
+        jwtSecretKey,
+        { expiresIn: "1h" }
+      );
+    }
+
     res.status(200).json({
       message: "User updated successfully",
       user,
+      newToken,
     });
   } catch (error) {
     console.error("Error updating user:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-const updateAuthUser = async (req, res) => {
-  try {
-    const { first_name, last_name } = req.body;
-
-    // Get current user from token
-    // const userId = req.user.user_id;
-
-    // Create updated token with new metadata
-    const updatedToken = jwt.sign(
-      {
-        ...req.user,
-        first_name,
-        last_name,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "24h" }
-    );
-
-    res.status(200).json({
-      message: "Auth user updated successfully",
-      token: updatedToken,
-    });
-  } catch (error) {
-    console.error("Error updating auth user:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -160,6 +161,5 @@ module.exports = {
   getUserProfile,
   getAuthUser,
   updateProfile,
-  updateAuthUser,
   updateAssociation,
 };

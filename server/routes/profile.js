@@ -11,7 +11,6 @@ router.get("/getUserProfile", profile.profile);
 router.put("/:userId/updateProfile", profile.updateProfile);
 // Update association
 router.put("/:associationId/updateAssociation", profile.updateAssociation);
-// Update auth user metadata
-router.put("/update-user", profile.updateAuthUser);
+
 
 module.exports = router;

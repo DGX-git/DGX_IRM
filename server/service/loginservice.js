@@ -101,6 +101,7 @@ DGX Administration Team`,
 
   return sgMail.send(msg);
 };
+
 // Sign-in function: generates OTP, sends it via email, and stores it in the OTP table
 const signin = async (req, res) => {
   try {
@@ -199,14 +200,14 @@ const verifyOtp = async (req, res) => {
       },
       jwtSecretKey,
       {
-        expiresIn: "20m",
+        expiresIn: "60m",
       }
     ); // 20 minutes timeout
 
     const accessToken = jwt.sign(
       { email: email, user_id: user.user_id },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "20m" }
+      { expiresIn: "60m" }
     );
 
     res.cookie("access-token", accessToken, {
@@ -219,7 +220,7 @@ const verifyOtp = async (req, res) => {
     const refreshToken = jwt.sign(
       { user_id: user.user_id },
       process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: "20m" }
+      { expiresIn: "60m" }
     );
 
     res.cookie("refresh-token", refreshToken, {

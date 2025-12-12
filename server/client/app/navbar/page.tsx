@@ -73,14 +73,16 @@ export default function Header() {
     // const decoded = jwtDecode(JWT_Token);
     const decoded = jwtDecode<MyJwtPayload>(JWT_Token);
 
-    console.log(decoded.userName);
+   
     // 2️⃣ Basic info from Auth
     setUserEmail(decoded.email);
 
     setUserName(decoded.userName);
+    setUserId(String(decoded.user_id));
+    
 
     setUserRoleName(decoded.roleName);
-    console.log("role", decoded.roleName);
+    
 
     const params = new URLSearchParams(window.location.search);
 
@@ -97,7 +99,6 @@ export default function Header() {
     }
   }, [pathname]);
 
-  console.log("userRole", userRoleName);
 
   const getDashboardRoute = () => {
     let baseRoute = "";

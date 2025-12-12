@@ -115,10 +115,15 @@ function ProfilePage() {
   }, [userEmail]);
 
   useEffect(() => {
-    if (userEmail) {
+  if (userEmail) {
+    const timer = setTimeout(() => {
       fetchUserProfile();
-    }
-  }, [fetchUserProfile]);
+    }, 300); // delay 300ms
+
+    return () => clearTimeout(timer); // cleanup
+  }
+}, [userEmail]);
+
 
   const validateField = (field: string, value: any): string => {
     const str = value === null || value === undefined ? "" : String(value);
@@ -229,7 +234,7 @@ function ProfilePage() {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              Authorization: `Bearer ${localStorage.getItem("JWT_Token")}`,
             },
             body: JSON.stringify({
               first_name: editData.firstname,
@@ -242,10 +247,17 @@ function ProfilePage() {
           }
         );
 
-        if (!updateUserResponse.ok) {
-          const errorData = await updateUserResponse.json();
-          throw new Error(errorData.error || "Failed to update user");
-        }
+        // if (!updateUserResponse.ok) {
+        //   const errorData = await updateUserResponse.json();
+        //   throw new Error(errorData.error || "Failed to update user");
+        // }
+        const updateUserData = await updateUserResponse.json();
+
+// If backend sends a new token (because email changed), update localStorage
+if (emailChanged && updateUserData.newToken) {
+  localStorage.setItem("JWT_Token", updateUserData.newToken);
+}
+
       }
 
       // ------------------------------------
@@ -278,7 +290,7 @@ function ProfilePage() {
                 method: "PUT",
                 headers: {
                   "Content-Type": "application/json",
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                  Authorization: `Bearer ${localStorage.getItem("JWT_Token")}`,
                 },
                 body: JSON.stringify({
                   is_reg_institute: false,
@@ -299,7 +311,7 @@ function ProfilePage() {
                 method: "PUT",
                 headers: {
                   "Content-Type": "application/json",
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                  Authorization: `Bearer ${localStorage.getItem("JWT_Token")}`,
                 },
                 body: JSON.stringify({
                   is_reg_institute: true,
@@ -321,7 +333,7 @@ function ProfilePage() {
                 method: "PUT",
                 headers: {
                   "Content-Type": "application/json",
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                  Authorization: `Bearer ${localStorage.getItem("JWT_Token")}`,
                 },
                 body: JSON.stringify({
                   institute_id: registeredAssoc.institute_id,
@@ -391,6 +403,25 @@ function ProfilePage() {
       setShowLogoutConfirm(false);
     }
   };
+
+    // Loading state
+  if (loading) {
+    return (
+      <div className="bg-gradient-to-br from-slate-50 via-green-50 min-h-screen py-0">
+        <Header />
+        <div className="max-w-md mx-auto mt-8">
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+            <div className="px-4 py-8">
+              <div className="flex justify-center items-center">
+                <Loader2 className="w-8 h-8 animate-spin text-lime-600" />
+                <span className="ml-2 text-gray-600">Loading profile...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     // <div className="bg-gradient-to-br from-slate-50 via-green-50 min-h-screen py-0 ">

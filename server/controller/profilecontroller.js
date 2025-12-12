@@ -8,10 +8,6 @@ const updateProfile = async (request, response) => {
   profileservice.updateProfile(request, response);
 };
 
-const updateAuthUser = async (request, response) => {
-  profileservice.updateAuthUser(request, response);
-};
-
 const updateAssociation = async (request, response) => {
   profileservice.updateAssociation(request, response);
 };
@@ -19,6 +15,5 @@ const updateAssociation = async (request, response) => {
 module.exports = {
   profile,
   updateProfile,
-  updateAuthUser,
   updateAssociation,
 };

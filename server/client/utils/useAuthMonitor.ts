@@ -1,6 +1,7 @@
 // utils/useAuthMonitor.ts
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { jwtDecode, JwtPayload } from "jwt-decode";
 
 export const useAuthMonitor = () => {
   const router = useRouter();
@@ -8,12 +9,17 @@ export const useAuthMonitor = () => {
   useEffect(() => {
     // 1. Function to check access token validity
     const checkAuth = async () => {
-      const accessToken = localStorage.getItem("accessToken");
+      const accessToken = localStorage.getItem("JWT_Token");
       const expiresAt = localStorage.getItem("accessTokenExpiresAt");
       const refreshToken = localStorage.getItem("refreshToken");
+      const tokenExpiry = localStorage.getItem("JWT_Expiry");
 
-      if (!accessToken || !expiresAt) {
+      if (!accessToken || accessToken === null || Date.now() > Number(tokenExpiry)) {
         console.log("No token found, redirecting to login");
+          // Clear everything related to auth
+  localStorage.removeItem("JWT_Token");
+  localStorage.removeItem("JWT_Expiry");
+  localStorage.removeItem("userRole");
         router.push("/login");
         return;
       }
@@ -22,15 +28,15 @@ export const useAuthMonitor = () => {
       const expiry = Number(expiresAt);
 
       // 2. Token expired -> try refresh
-      if (now >= expiry) {
-        console.log("Access token expired. Attempting refresh...");
-        const success = await attemptRefresh(refreshToken);
+      // if (now >= expiry) {
+      //   console.log("Access token expired. Attempting refresh...");
+      //   const success = await attemptRefresh(refreshToken);
 
-        if (!success) {
-          console.log("Refresh failed. Redirecting to login.");
-          router.push("/login");
-        }
-      }
+      //   if (!success) {
+      //     console.log("Refresh failed. Redirecting to login.");
+      //     router.push("/login");
+      //   }
+      // }
     };
 
     // 3. Function to hit backend refresh API

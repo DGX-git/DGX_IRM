@@ -87,6 +87,7 @@ function LoginCodeContent() {
 
       localStorage.setItem("userRole", data.roleName);
       localStorage.setItem("JWT_Token", data.jwt_token);
+      localStorage.setItem("JWT_Expiry", (Date.now() + 60 * 60 * 1000).toString()); // 60 minutes
       // localStorage.setItem("userRole", data.roleName);
 
       switch (data.roleName) {

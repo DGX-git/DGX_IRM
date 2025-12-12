@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -19,6 +20,44 @@ export default function Home() {
       router.push("/login");
     }
   };
+  const fetchUserFromAuth = async () => {
+    const token = localStorage.getItem("JWT_Token");
+    const userRole = localStorage.getItem("userRole");
+
+    if (!token || !userRole) {
+      return; // No redirect, token missing → stay on login
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+
+      // Check if token is expired
+      if (!decoded.exp || decoded.exp * 1000 > Date.now()) {
+        // Token NOT expired → redirect based on role
+        switch (userRole) {
+          case "User":
+            router.push("/user");
+            break;
+          case "Technical Admin":
+            router.push("/technicaladmin");
+            break;
+          case "Functional Admin":
+            router.push("/functionaladmin");
+            break;
+          default:
+            router.push("/");
+        }
+      } else {
+        console.log("Token expired — do nothing");
+      }
+    } catch (err) {
+      console.log("Invalid token");
+    }
+  };
+
+  useEffect(() => {
+    fetchUserFromAuth();
+  }, [fetchUserFromAuth]);
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-900 via-green-900/15 to-black">
@@ -128,7 +167,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
     </div>
   );
 }
