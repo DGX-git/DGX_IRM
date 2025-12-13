@@ -69,6 +69,7 @@ function LoginCodeContent() {
     }
 
     try {
+      setIsVerifying(true);
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_DGX_API_URL}/login/verify-otp`,
         {
@@ -106,6 +107,9 @@ function LoginCodeContent() {
     } catch (err) {
       console.error("Error verifying OTP:", err);
       setError("Something went wrong. Try again.");
+    }
+    finally {
+      setIsVerifying(false);
     }
   };
 

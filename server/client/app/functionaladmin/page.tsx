@@ -807,7 +807,7 @@ function DGXDashboard() {
             : req
         )
       );
-
+      fetchTimeData();
       setIsEmailSending(false);
       closeRemarksModal();
       setSelectedRequest(null);
