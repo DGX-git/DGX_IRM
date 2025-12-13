@@ -32,11 +32,11 @@ const User_Time_Slot = sequelize.define('User_Time_Slot', {
         allowNull: true
     },
     created_timestamp: {
-        type: DataTypes.TIMESTAMP,
+        type: DataTypes.DATE,
         allowNull: true
     },
     updated_timestamp: {
-        type: DataTypes.TIMESTAMP,
+        type: DataTypes.DATE,
         allowNull: true
     },
     created_by: {

@@ -110,7 +110,7 @@ const Instance_Request = sequelize.define('Instance_Request', {
         allowNull: false,
         defaultValue: false
     },
-    additional_inforamation: {
+    additional_information: {
         type: DataTypes.STRING,
         allowNull: true,
     },
@@ -138,8 +138,8 @@ const Instance_Request = sequelize.define('Instance_Request', {
             key: 'user_id'
         }
     },
-    time_slot: {
-        type: DataTypes.STRING,
+    selected_date: {
+        type: DataTypes.DATE,
         allowNull: true,
     },
 }, {
