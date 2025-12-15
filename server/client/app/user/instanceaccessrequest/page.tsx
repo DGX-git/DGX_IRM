@@ -15,6 +15,12 @@ function DGXInstanceRequestFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   let instance_id: any = searchParams.get('id');
+
+
+  // const searchParams = useSearchParams();
+    const loggedInUserId:any = searchParams.get("userId");
+    console.log("Logged in User ID=", loggedInUserId);
+    
   let user_time_slot_id_id: any = null;
 
 
@@ -193,8 +199,12 @@ function DGXInstanceRequestFormContent() {
   const [gpuSlot, setGpuSlot] = useState<gpuSlot[]>([]);
 
 
+
+  setUserId(loggedInUserId);
+
+
 // API Base URL
-  const API_BASE_URL = 'http://localhost:5000/instancerequest';
+  const API_BASE_URL = process.env.NEXT_PUBLIC_DGX_API_URL + '/instancerequest';
 
   const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
     try {
@@ -415,90 +425,193 @@ function DGXInstanceRequestFormContent() {
       }
     };
   
+    // const saveInstanceRequest = async () => {
+    //   try {
+    //     for (const date of formData.selectedDates) {
+    //       const dateSlots = formData.dateTimeSlots[date]?.selectedSlots || [];
+    //       if (dateSlots.length === 0) {
+    //         throw new Error(`Please select time slots for ${new Date(date).toLocaleDateString()}`);
+    //       }
+    //     }
+  
+    //     const today = new Date();
+    //     const formattedDate = today.toISOString().split('T')[0];
+  
+    //     const response = await fetchAPI('/instanceRequests', {
+    //       method: 'POST',
+    //       body: JSON.stringify({
+    //         user_id: 1,
+    //         remarks: "",
+    //         image_id: formData.customImageId,
+    //         cpu_id: formData.cpuId,
+    //         selected_date: formattedDate,
+    //         gpu_partition_id: formData.gpuPartitionId,
+    //         ram_id: formData.ramId,
+    //         gpu_vendor_id: formData.gpuSlotId,
+    //         work_description: formData.workDescription,
+    //         status_id: formData.statusId || status.find(s => s.status_name === "Pending")?.status_id,
+    //         storage_volume: parseInt(formData.storageVolume || '10'),
+    //         user_type_id: formData.userTypeId,
+    //         login_id: "",
+    //         password: "",
+    //         access_link: "",
+    //         is_access_granted: false,
+    //         additional_information: "",
+    //       }),
+    //     });
+  
+    //     if (response.id) {
+    //       await saveUserTimeSlots(response.id);
+    //       showSuccessSnackbar();
+    //       handleReset();
+    //     }
+    //   } catch (error: any) {
+    //     console.error("Error creating instance request:", error);
+    //     showErrorSnackbarFunc(error.message || 'Error submitting request. Please try again later.');
+    //   }
+    // };
+
+
+
     const saveInstanceRequest = async () => {
-      try {
-        for (const date of formData.selectedDates) {
-          const dateSlots = formData.dateTimeSlots[date]?.selectedSlots || [];
-          if (dateSlots.length === 0) {
-            throw new Error(`Please select time slots for ${new Date(date).toLocaleDateString()}`);
-          }
-        }
-  
-        const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0];
-  
-        const response = await fetchAPI('/instanceRequests', {
-          method: 'POST',
-          body: JSON.stringify({
-            user_id: userId,
-            remarks: "",
-            image_id: formData.customImageId,
-            cpu_id: formData.cpuId,
-            selected_date: formattedDate,
-            gpu_partition_id: formData.gpuPartitionId,
-            ram_id: formData.ramId,
-            gpu_vendor_id: formData.gpuSlotId,
-            work_description: formData.workDescription,
-            status_id: formData.statusId || status.find(s => s.status_name === "Pending")?.status_id,
-            storage_volume: parseInt(formData.storageVolume || '10'),
-            user_type_id: formData.userTypeId,
-            login_id: "",
-            password: "",
-            access_link: "",
-            is_access_granted: false,
-            additional_information: "",
-          }),
-        });
-  
-        if (response.id) {
-          await saveUserTimeSlots(response.id);
-          showSuccessSnackbar();
-          handleReset();
-        }
-      } catch (error: any) {
-        console.error("Error creating instance request:", error);
-        showErrorSnackbarFunc(error.message || 'Error submitting request. Please try again later.');
+  try {
+    for (const date of formData.selectedDates) {
+      const dateSlots = formData.dateTimeSlots[date]?.selectedSlots || [];
+      if (dateSlots.length === 0) {
+        throw new Error(`Please select time slots for ${new Date(date).toLocaleDateString()}`);
       }
-    };
+    }
+
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+
+    const response = await fetchAPI('/instanceRequests', {
+      method: 'POST',
+      body: JSON.stringify({
+        user_id: userId, // Use userId from auth or default to 1
+        remarks: "",
+        image_id: formData.customImageId,
+        cpu_id: formData.cpuId,
+        selected_date: formData.selectedDates && formData.selectedDates.length > 0 ? formData.selectedDates[0] : new Date().toISOString().split('T')[0],
+        gpu_partition_id: formData.gpuPartitionId,
+        ram_id: formData.ramId,
+        gpu_vendor_id: formData.gpuSlotId,
+        gpu_id: 1, // Add required field with default
+        work_description: formData.workDescription,
+        status_id: formData.statusId || 1,
+        storage_volume: parseInt(formData.storageVolume || '10'),
+        user_type_id: formData.userTypeId,
+        login_id: "pending", // Changed from empty string to "pending"
+        password: "pending", // Changed from empty string to "pending"
+        access_link: "",
+        is_access_granted: false,
+        additional_information: "",
+      }),
+    });
+
+    console.log("Save response:", response);
+    
+    if (response && response.instance_request_id) {
+      console.log("Instance created with ID:", response.instance_request_id);
+      await saveUserTimeSlots(response.instance_request_id);
+      showSuccessSnackbar();
+      handleReset();
+    } else {
+      throw new Error('No instance ID returned from server');
+    }
+  } catch (error: any) {
+    console.error("Error creating instance request:", error);
+    showErrorSnackbarFunc(error.message || 'Error submitting request. Please try again later.');
+  }
+};
   
+    // const updateInstanceRequest = async () => {
+    //   try {
+    //     for (const date of formData.selectedDates) {
+    //       const dateSlots = formData.dateTimeSlots[date]?.selectedSlots || [];
+    //       if (dateSlots.length === 0) {
+    //         throw new Error(`Please select time slots for ${new Date(date).toLocaleDateString()}`);
+    //       }
+    //     }
+  
+    //     const response = await fetchAPI(`/instanceRequests/${instance_id}`, {
+    //       method: 'PUT',
+    //       body: JSON.stringify({
+    //         user_id: 1,
+    //         remarks: "",
+    //         image_id: formData.customImageId,
+    //         cpu_id: formData.cpuId,
+    //         selected_date: new Date().toISOString().split('T')[0],
+    //         gpu_partition_id: formData.gpuPartitionId,
+    //         ram_id: formData.ramId,
+    //         gpu_vendor_id: formData.gpuSlotId,
+    //         work_description: formData.workDescription,
+    //         status_id: formData.statusId,
+    //         storage_volume: parseInt(formData.storageVolume || '10'),
+    //         user_type_id: formData.userTypeId,
+    //       }),
+    //     });
+  
+    //     if (response.id) {
+    //       await deleteUserTimeSlots(instance_id);
+    //       await saveUserTimeSlots(instance_id);
+    //       showSuccessSnackbar();
+    //       router.push('/user');
+    //     }
+    //   } catch (error: any) {
+    //     console.error("Error updating instance request:", error);
+    //     showErrorSnackbarFunc(error.message || 'Error updating request. Please try again later.');
+    //   }
+    // };
+
     const updateInstanceRequest = async () => {
-      try {
-        for (const date of formData.selectedDates) {
-          const dateSlots = formData.dateTimeSlots[date]?.selectedSlots || [];
-          if (dateSlots.length === 0) {
-            throw new Error(`Please select time slots for ${new Date(date).toLocaleDateString()}`);
-          }
-        }
-  
-        const response = await fetchAPI(`/instanceRequests/${instance_id}`, {
-          method: 'PUT',
-          body: JSON.stringify({
-            user_id: userId,
-            remarks: "",
-            image_id: formData.customImageId,
-            cpu_id: formData.cpuId,
-            selected_date: new Date().toISOString().split('T')[0],
-            gpu_partition_id: formData.gpuPartitionId,
-            ram_id: formData.ramId,
-            gpu_vendor_id: formData.gpuSlotId,
-            work_description: formData.workDescription,
-            status_id: formData.statusId,
-            storage_volume: parseInt(formData.storageVolume || '10'),
-            user_type_id: formData.userTypeId,
-          }),
-        });
-  
-        if (response.id) {
-          await deleteUserTimeSlots(instance_id);
-          await saveUserTimeSlots(instance_id);
-          showSuccessSnackbar();
-          router.push('/user');
-        }
-      } catch (error: any) {
-        console.error("Error updating instance request:", error);
-        showErrorSnackbarFunc(error.message || 'Error updating request. Please try again later.');
+  try {
+    for (const date of formData.selectedDates) {
+      const dateSlots = formData.dateTimeSlots[date]?.selectedSlots || [];
+      if (dateSlots.length === 0) {
+        throw new Error(`Please select time slots for ${new Date(date).toLocaleDateString()}`);
       }
-    };
+    }
+
+    const response = await fetchAPI(`/instanceRequests/${instance_id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        user_id: userId,
+        remarks: "",
+        image_id: formData.customImageId,
+        cpu_id: formData.cpuId,
+        selected_date: formData.selectedDates && formData.selectedDates.length > 0 ? formData.selectedDates[0] : new Date().toISOString().split('T')[0],
+        gpu_partition_id: formData.gpuPartitionId,
+        ram_id: formData.ramId,
+        gpu_vendor_id: formData.gpuSlotId,
+        gpu_id: 1, // Add required field
+        work_description: formData.workDescription,
+        status_id: formData.statusId || 1,
+        storage_volume: parseInt(formData.storageVolume || '10'),
+        user_type_id: formData.userTypeId,
+        login_id: "pending",
+        password: "pending",
+        access_link: "",
+        is_access_granted: false,
+        additional_information: "",
+      }),
+    });
+
+    console.log("Update response:", response);
+    
+    if (response && response.instance_request_id) {
+      console.log("Instance updated with ID:", response.instance_request_id);
+      await deleteUserTimeSlots(instance_id);
+      await saveUserTimeSlots(instance_id);
+      showSuccessSnackbar();
+    } else {
+      throw new Error('No instance ID returned from server');
+    }
+  } catch (error: any) {
+    console.error("Error updating instance request:", error);
+    showErrorSnackbarFunc(error.message || 'Error updating request. Please try again later.');
+  }
+};
   
     const saveUserTimeSlots = async (instanceRequestId: string) => {
       try {
@@ -874,82 +987,166 @@ function DGXInstanceRequestFormContent() {
   };
 
 
+  // const validateForm = () => {
+  //   const newErrors: ErrorsType = {};
+  //   let isValid = true;
+
+  //   // First validate non-time-slot fields
+  //   (Object.keys(formData) as Array<keyof FormData>).forEach(field => {
+  //     if (field !== 'selectedSlots' && field !== 'selectedRanges') {
+  //       const error = validateField(field, formData[field]);
+  //       if (error) {
+  //         newErrors[field] = error;
+  //         isValid = false;
+  //       }
+  //     }
+  //   });
+
+  //   // Then validate time slots for each selected date
+  //   if (formData.selectedDates.length === 0) {
+  //     newErrors.selectedDates = ' ';
+  //     isValid = false;
+  //   } else {
+  //     for (const date of formData.selectedDates) {
+  //       const dateSlots = formData.dateTimeSlots[date]?.selectedSlots || [];
+  //       if (dateSlots.length === 0) {
+  //         newErrors.selectedSlots = `Please select time slots for ${new Date(date).toLocaleDateString()}`;
+  //         isValid = false;
+  //         break;
+  //       }
+
+  //       // Validate consecutive slots requirement for each date
+  //       const indices = dateSlots
+  //         .map(id => getSlotIndex(id))
+  //         .sort((a, b) => a - b);
+
+  //       const ranges: TimeSlotRange[] = [];
+  //       if (indices.length > 0) {
+  //         let rangeStart = indices[0];
+  //         let rangeEnd = indices[0];
+
+  //         for (let i = 1; i < indices.length; i++) {
+  //           if (indices[i] === rangeEnd + 1) {
+  //             rangeEnd = indices[i];
+  //           } else {
+  //             ranges.push({ start: rangeStart, end: rangeEnd });
+  //             rangeStart = indices[i];
+  //             rangeEnd = indices[i];
+  //           }
+  //         }
+  //         ranges.push({ start: rangeStart, end: rangeEnd });
+  //       }
+
+  //       const hasSingleSlotRange = ranges.some(range => range.start === range.end);
+  //       if (hasSingleSlotRange) {
+  //         newErrors.selectedSlots = `Time slots for ${new Date(date).toLocaleDateString()} must be consecutive`;
+  //         isValid = false;
+  //         break;
+  //       }
+  //     }
+  //   }
+
+  //   setErrors(newErrors);
+  //   setTouched(
+  //     (Object.keys(formData) as Array<keyof FormData>)
+  //       .reduce((acc, key) => ({ ...acc, [key]: true }), {} as Record<keyof FormData, boolean>)
+  //   );
+
+  //   return isValid;
+  // };
+
+
+
+
   const validateForm = () => {
-    const newErrors: ErrorsType = {};
-    let isValid = true;
+  const newErrors: ErrorsType = {};
+  let isValid = true;
 
-    // First validate non-time-slot fields
-    (Object.keys(formData) as Array<keyof FormData>).forEach(field => {
-      if (field !== 'selectedSlots' && field !== 'selectedRanges') {
-        const error = validateField(field, formData[field]);
-        if (error) {
-          newErrors[field] = error;
-          isValid = false;
-        }
-      }
-    });
-
-    // Then validate time slots for each selected date
-    if (formData.selectedDates.length === 0) {
-      newErrors.selectedDates = ' ';
-      isValid = false;
-    } else {
-      for (const date of formData.selectedDates) {
-        const dateSlots = formData.dateTimeSlots[date]?.selectedSlots || [];
-        if (dateSlots.length === 0) {
-          newErrors.selectedSlots = `Please select time slots for ${new Date(date).toLocaleDateString()}`;
-          isValid = false;
-          break;
-        }
-
-        // Validate consecutive slots requirement for each date
-        const indices = dateSlots
-          .map(id => getSlotIndex(id))
-          .sort((a, b) => a - b);
-
-        const ranges: TimeSlotRange[] = [];
-        if (indices.length > 0) {
-          let rangeStart = indices[0];
-          let rangeEnd = indices[0];
-
-          for (let i = 1; i < indices.length; i++) {
-            if (indices[i] === rangeEnd + 1) {
-              rangeEnd = indices[i];
-            } else {
-              ranges.push({ start: rangeStart, end: rangeEnd });
-              rangeStart = indices[i];
-              rangeEnd = indices[i];
-            }
-          }
-          ranges.push({ start: rangeStart, end: rangeEnd });
-        }
-
-        const hasSingleSlotRange = ranges.some(range => range.start === range.end);
-        if (hasSingleSlotRange) {
-          newErrors.selectedSlots = `Time slots for ${new Date(date).toLocaleDateString()} must be consecutive`;
-          isValid = false;
-          break;
-        }
+  // First validate non-time-slot fields
+  (Object.keys(formData) as Array<keyof FormData>).forEach(field => {
+    if (field !== 'selectedSlots' && field !== 'selectedRanges') {
+      const error = validateField(field, formData[field]);
+      if (error) {
+        newErrors[field] = error;
+        isValid = false;
       }
     }
+  });
 
-    setErrors(newErrors);
-    setTouched(
-      (Object.keys(formData) as Array<keyof FormData>)
-        .reduce((acc, key) => ({ ...acc, [key]: true }), {} as Record<keyof FormData, boolean>)
-    );
+  // Then validate time slots for each selected date
+  if (formData.selectedDates.length === 0) {
+    newErrors.selectedDates = ' ';
+    isValid = false;
+  } else {
+    for (const date of formData.selectedDates) {
+      const dateSlots = formData.dateTimeSlots[date]?.selectedSlots || [];
+      if (dateSlots.length === 0) {
+        newErrors.selectedSlots = `Please select time slots for ${new Date(date).toLocaleDateString()}`;
+        isValid = false;
+        break;
+      }
 
-    return isValid;
-  };
+      // Validate that slots are consecutive (no gaps)
+      const indices = dateSlots
+        .map(id => getSlotIndex(id))
+        .filter(index => index !== -1) // Filter out invalid indices
+        .sort((a, b) => a - b);
+
+      // Check for gaps in the selected slots
+      let hasGap = false;
+      for (let i = 1; i < indices.length; i++) {
+        if (indices[i] !== indices[i - 1] + 1) {
+          hasGap = true;
+          break;
+        }
+      }
+
+      if (hasGap) {
+        newErrors.selectedSlots = `Time slots for ${new Date(date).toLocaleDateString()} must be consecutive without gaps`;
+        isValid = false;
+        break;
+      }
+    }
+  }
+
+  setErrors(newErrors);
+  setTouched(
+    (Object.keys(formData) as Array<keyof FormData>)
+      .reduce((acc, key) => ({ ...acc, [key]: true }), {} as Record<keyof FormData, boolean>)
+  );
+
+  return isValid;
+};
 
   // Success and Error Snackbar functions
-  const showSuccessSnackbar = () => {
-    setShowSnackbar(true);
-    setTimeout(() => {
-      setShowSnackbar(false);
-      router.push('/user');
-    }, 3000);
-  };
+  // const showSuccessSnackbar = () => {
+  //   setShowSnackbar(true);
+  //   setTimeout(() => {
+  //     setShowSnackbar(false);
+  //     router.push('/user');
+  //   }, 3000);
+  // };
+
+//   const showSuccessSnackbar = () => {
+//   setShowSnackbar(true);
+//   setTimeout(() => {
+//     setShowSnackbar(false);
+//   }, 2500); // Keep visible for 2.5 seconds
+//   setTimeout(() => {
+//     router.push('/user');
+//   }, 4000); // Wait 4 seconds before redirect (includes fade-out time)
+// };
+
+
+const showSuccessSnackbar = () => {
+  setShowSnackbar(true);
+  setTimeout(() => {
+    setShowSnackbar(false);
+  }, 2500); // Keep visible for 2.5 seconds
+  setTimeout(() => {
+    router.push('/user');
+  }, 4000); // Redirect after 4 seconds total
+};
 
   useEffect(() => {
     getInstanceRequests();
