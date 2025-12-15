@@ -132,7 +132,7 @@ const Instance_Request = sequelize.define('Instance_Request', {
     },
     updated_by: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references: {
             model: DGX_USER,
             key: 'user_id'
