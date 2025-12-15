@@ -1,9 +1,15 @@
 const userservice = require('../service/userservice')
 
-const user = async(request, response) => {
-    userservice.user(request, response);
+
+const getUser = async(request, response) => {
+    userservice.getUser(request, response);
+}
+
+const deleteUser = async(request, response) => {
+    userservice.deleteUser(request, response);
 }
 
 
 
-module.exports =  {user};
+
+module.exports =  {getUser, deleteUser} ;

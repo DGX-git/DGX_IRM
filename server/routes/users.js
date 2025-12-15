@@ -5,7 +5,8 @@ var cors = require('cors');
 
 router.use(cors());
 
-router.post('/user', user.user);
-
+router.get('/get-user', user.getUser);
+    
+router.delete('/delete/:id', user.deleteUser);
 
 module.exports = router;

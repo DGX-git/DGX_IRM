@@ -5,8 +5,9 @@ var cors = require('cors');
 
 router.use(cors());
 
-router.post('/functionaladmin', functionaladmin.functionaladmin);
+router.post('/approve-functional', functionaladmin.approveFunctional);
 
+router.post('/reject-request', functionaladmin.rejectRequest);
 
 
 module.exports = router;
