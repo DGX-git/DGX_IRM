@@ -204,7 +204,7 @@ function DGXInstanceRequestFormContent() {
 
 
 // API Base URL
-  const API_BASE_URL = process.env.NEXT_PUBLIC_DGX_API_URL + '/instancerequest';
+  const API_BASE_URL = `${process.env.NEXT_PUBLIC_DGX_API_URL} + /instancerequest`;
 
   const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
     try {
