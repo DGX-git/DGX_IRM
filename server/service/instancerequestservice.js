@@ -787,7 +787,7 @@ const saveInstanceRequest = async(request, response) => {
             created_timestamp: new Date(),
             updated_timestamp: new Date(),
             created_by: request.body.created_by,
-            updated_by: request.body.updated_by,
+            // updated_by: request.body.updated_by,
             time_slot: request.body.selected_date
         });
 
