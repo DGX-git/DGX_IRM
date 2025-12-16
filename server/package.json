@@ -17,6 +17,7 @@
     "jade": "~1.11.0",
     "jsonwebtoken": "^9.0.3",
     "morgan": "~1.9.1",
+    "next": "^16.0.10",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.11",
     "pg": "^8.16.3",
