@@ -245,94 +245,94 @@ function DGXInstanceRequestFormContent() {
     }
   }, []);
 
-  const getUserTimeSlots = async () => {
-    try {
-      const data = await fetchAPI(
-        `/userTimeSlots?selectedDate=${selectedDate}${
-          instance_id ? `&excludeInstanceId=${instance_id}` : ""
-        }`
-      );
-      setUserTimeSlot(data);
-      console.log("User Time Slot=", data);
-    } catch (error) {
-      console.error("Error fetching user time slots:", error);
-    }
-  };
+  // const getUserTimeSlots = async () => {
+  //   try {
+  //     const data = await fetchAPI(
+  //       `/userTimeSlots?selectedDate=${selectedDate}${
+  //         instance_id ? `&excludeInstanceId=${instance_id}` : ""
+  //       }`
+  //     );
+  //     setUserTimeSlot(data);
+  //     console.log("User Time Slot=", data);
+  //   } catch (error) {
+  //     console.error("Error fetching user time slots:", error);
+  //   }
+  // };
 
-  const getInstanceRequestByUserId = async () => {
-    try {
-      const data = await fetchAPI(`/instanceRequests/${instance_id}`);
+  // const getInstanceRequestByUserId = async () => {
+  //   try {
+  //     const data = await fetchAPI(`/instanceRequests/${instance_id}`);
 
-      const timeSlotData = await fetchAPI(
-        `/userTimeSlots?instanceRequestId=${instance_id}`
-      );
+  //     const timeSlotData = await fetchAPI(
+  //       `/userTimeSlots?instanceRequestId=${instance_id}`
+  //     );
 
-      const timeSlotsByDate: DateTimeSlots = {};
-      const uniqueDates: string[] = [];
+  //     const timeSlotsByDate: DateTimeSlots = {};
+  //     const uniqueDates: string[] = [];
 
-      timeSlotData.forEach((slot: any) => {
-        const date = slot.selected_date;
-        if (date) {
-          if (!timeSlotsByDate[date]) {
-            timeSlotsByDate[date] = {
-              selectedSlots: [],
-              selectedRanges: [],
-            };
-            uniqueDates.push(date);
-          }
-          timeSlotsByDate[date].selectedSlots.push(slot.time_slot_id + "");
-        }
-      });
+  //     timeSlotData.forEach((slot: any) => {
+  //       const date = slot.selected_date;
+  //       if (date) {
+  //         if (!timeSlotsByDate[date]) {
+  //           timeSlotsByDate[date] = {
+  //             selectedSlots: [],
+  //             selectedRanges: [],
+  //           };
+  //           uniqueDates.push(date);
+  //         }
+  //         timeSlotsByDate[date].selectedSlots.push(slot.time_slot_id + "");
+  //       }
+  //     });
 
-      Object.keys(timeSlotsByDate).forEach((date) => {
-        const slots = timeSlotsByDate[date].selectedSlots;
-        const indices = slots
-          .map((id) => getSlotIndex(id))
-          .sort((a, b) => a - b);
-        const ranges: TimeSlotRange[] = [];
+  //     Object.keys(timeSlotsByDate).forEach((date) => {
+  //       const slots = timeSlotsByDate[date].selectedSlots;
+  //       const indices = slots
+  //         .map((id) => getSlotIndex(id))
+  //         .sort((a, b) => a - b);
+  //       const ranges: TimeSlotRange[] = [];
 
-        if (indices.length > 0) {
-          let rangeStart = indices[0];
-          let rangeEnd = indices[0];
+  //       if (indices.length > 0) {
+  //         let rangeStart = indices[0];
+  //         let rangeEnd = indices[0];
 
-          for (let i = 1; i < indices.length; i++) {
-            if (indices[i] === rangeEnd + 1) {
-              rangeEnd = indices[i];
-            } else {
-              ranges.push({ start: rangeStart, end: rangeEnd });
-              rangeStart = indices[i];
-              rangeEnd = indices[i];
-            }
-          }
-          ranges.push({ start: rangeStart, end: rangeEnd });
-        }
+  //         for (let i = 1; i < indices.length; i++) {
+  //           if (indices[i] === rangeEnd + 1) {
+  //             rangeEnd = indices[i];
+  //           } else {
+  //             ranges.push({ start: rangeStart, end: rangeEnd });
+  //             rangeStart = indices[i];
+  //             rangeEnd = indices[i];
+  //           }
+  //         }
+  //         ranges.push({ start: rangeStart, end: rangeEnd });
+  //       }
 
-        timeSlotsByDate[date].selectedRanges = ranges;
-      });
+  //       timeSlotsByDate[date].selectedRanges = ranges;
+  //     });
 
-      setFormData({
-        userTypeId: data.user_type_id || "",
-        selectedDate: uniqueDates[0] || "",
-        selectedDates: uniqueDates,
-        selectedRanges: [],
-        customImageId: data.image_id || "",
-        cpuId: data.cpu_id || "",
-        statusId: data.status_id || "",
-        gpuPartitionId: data.gpu_partition_id || "",
-        storageVolume: data.storage_volume?.toString() || "10",
-        ramId: data.ram_id || "",
-        gpuSlotId: data.gpu_vendor_id || "",
-        workDescription: data.work_description || "",
-        dateTimeSlots: timeSlotsByDate,
-        selectedSlots: timeSlotsByDate[uniqueDates[0]]?.selectedSlots || [],
-      });
+  //     setFormData({
+  //       userTypeId: data.user_type_id || "",
+  //       selectedDate: uniqueDates[0] || "",
+  //       selectedDates: uniqueDates,
+  //       selectedRanges: [],
+  //       customImageId: data.image_id || "",
+  //       cpuId: data.cpu_id || "",
+  //       statusId: data.status_id || "",
+  //       gpuPartitionId: data.gpu_partition_id || "",
+  //       storageVolume: data.storage_volume?.toString() || "10",
+  //       ramId: data.ram_id || "",
+  //       gpuSlotId: data.gpu_vendor_id || "",
+  //       workDescription: data.work_description || "",
+  //       dateTimeSlots: timeSlotsByDate,
+  //       selectedSlots: timeSlotsByDate[uniqueDates[0]]?.selectedSlots || [],
+  //     });
 
-      setSelectedDate(uniqueDates[0] || "");
-    } catch (error) {
-      console.error("Error fetching instance request:", error);
-      showErrorSnackbarFunc("Failed to load instance request data");
-    }
-  };
+  //     setSelectedDate(uniqueDates[0] || "");
+  //   } catch (error) {
+  //     console.error("Error fetching instance request:", error);
+  //     showErrorSnackbarFunc("Failed to load instance request data");
+  //   }
+  // };
 
   // const saveInstanceRequest = async () => {
   //   try {
@@ -435,10 +435,15 @@ function DGXInstanceRequestFormContent() {
     console.log("Instance Request Payload:", payload);
 
     /* -------------------- API CALL -------------------- */
-    const response = await fetchAPI("/saveInstanceRequest", {
+    // const response = await fetchAPI("/saveInstanceRequest", {
+    //   method: "POST",
+    //   body: JSON.stringify(payload),
+    // });
+
+    const response = await fetchAPI("/instanceRequests", {  // Changed from "/saveInstanceRequest"
       method: "POST",
       body: JSON.stringify(payload),
-    });
+      });
 
     console.log("Save response:", response);
 
@@ -497,121 +502,121 @@ function DGXInstanceRequestFormContent() {
   //   }
   // };
 
-  const updateInstanceRequest = async () => {
-    try {
-      for (const date of formData.selectedDates) {
-        const dateSlots = formData.dateTimeSlots[date]?.selectedSlots || [];
-        if (dateSlots.length === 0) {
-          throw new Error(
-            `Please select time slots for ${new Date(
-              date
-            ).toLocaleDateString()}`
-          );
-        }
-      }
+  // const updateInstanceRequest = async () => {
+  //   try {
+  //     for (const date of formData.selectedDates) {
+  //       const dateSlots = formData.dateTimeSlots[date]?.selectedSlots || [];
+  //       if (dateSlots.length === 0) {
+  //         throw new Error(
+  //           `Please select time slots for ${new Date(
+  //             date
+  //           ).toLocaleDateString()}`
+  //         );
+  //       }
+  //     }
 
-      const response = await fetchAPI(`/instanceRequests/${instance_id}`, {
-        method: "PUT",
-        body: JSON.stringify({
-          user_id: userId,
-          remarks: "",
-          image_id: formData.customImageId,
-          cpu_id: formData.cpuId,
-          selected_date:
-            formData.selectedDates && formData.selectedDates.length > 0
-              ? formData.selectedDates[0]
-              : new Date().toISOString().split("T")[0],
-          gpu_partition_id: formData.gpuPartitionId,
-          ram_id: formData.ramId,
-          gpu_vendor_id: formData.gpuSlotId,
-          gpu_id: 1, // Add required field
-          work_description: formData.workDescription,
-          status_id: formData.statusId || 1,
-          storage_volume: parseInt(formData.storageVolume || "10"),
-          user_type_id: formData.userTypeId,
-          login_id: "",
-          password: "",
-          access_link: "",
-          is_access_granted: false,
-          additional_information: "",
-          updated_by: loggedInUserId,
-        }),
-      });
+  //     const response = await fetchAPI(`/instanceRequests/${instance_id}`, {
+  //       method: "PUT",
+  //       body: JSON.stringify({
+  //         user_id: userId,
+  //         remarks: "",
+  //         image_id: formData.customImageId,
+  //         cpu_id: formData.cpuId,
+  //         selected_date:
+  //           formData.selectedDates && formData.selectedDates.length > 0
+  //             ? formData.selectedDates[0]
+  //             : new Date().toISOString().split("T")[0],
+  //         gpu_partition_id: formData.gpuPartitionId,
+  //         ram_id: formData.ramId,
+  //         gpu_vendor_id: formData.gpuSlotId,
+  //         gpu_id: 1, // Add required field
+  //         work_description: formData.workDescription,
+  //         status_id: formData.statusId || 1,
+  //         storage_volume: parseInt(formData.storageVolume || "10"),
+  //         user_type_id: formData.userTypeId,
+  //         login_id: "",
+  //         password: "",
+  //         access_link: "",
+  //         is_access_granted: false,
+  //         additional_information: "",
+  //         updated_by: loggedInUserId,
+  //       }),
+  //     });
 
-      console.log("Update response:", response);
+  //     console.log("Update response:", response);
 
-      if (response && response.instance_request_id) {
-        console.log("Instance updated with ID:", response.instance_request_id);
-        await deleteUserTimeSlots(instance_id);
-        await saveUserTimeSlots(instance_id);
-        showSuccessSnackbar();
-      } else {
-        throw new Error("No instance ID returned from server");
-      }
-    } catch (error: any) {
-      console.error("Error updating instance request:", error);
-      showErrorSnackbarFunc(
-        error.message || "Error updating request. Please try again later."
-      );
-    }
-  };
+  //     if (response && response.instance_request_id) {
+  //       console.log("Instance updated with ID:", response.instance_request_id);
+  //       await deleteUserTimeSlots(instance_id);
+  //       await saveUserTimeSlots(instance_id);
+  //       showSuccessSnackbar();
+  //     } else {
+  //       throw new Error("No instance ID returned from server");
+  //     }
+  //   } catch (error: any) {
+  //     console.error("Error updating instance request:", error);
+  //     showErrorSnackbarFunc(
+  //       error.message || "Error updating request. Please try again later."
+  //     );
+  //   }
+  // };
 
-  const saveUserTimeSlots = async (instanceRequestId: string) => {
-    try {
-      const timeSlots: any[] = [];
+  // const saveUserTimeSlots = async (instanceRequestId: string) => {
+  //   try {
+  //     const timeSlots: any[] = [];
 
-      Object.entries(formData.dateTimeSlots).forEach(
-        ([date, { selectedSlots }]) => {
-          if (selectedSlots && selectedSlots.length > 0) {
-            selectedSlots.forEach((slotId) => {
-              timeSlots.push({
-                instance_request_id: instanceRequestId,
-                time_slot_id: slotId,
-                selected_date: date,
-              });
-            });
-          }
-        }
-      );
+  //     Object.entries(formData.dateTimeSlots).forEach(
+  //       ([date, { selectedSlots }]) => {
+  //         if (selectedSlots && selectedSlots.length > 0) {
+  //           selectedSlots.forEach((slotId) => {
+  //             timeSlots.push({
+  //               instance_request_id: instanceRequestId,
+  //               time_slot_id: slotId,
+  //               selected_date: date,
+  //             });
+  //           });
+  //         }
+  //       }
+  //     );
 
-      await fetchAPI("/userTimeSlots/bulk", {
-        method: "POST",
-        body: JSON.stringify({ timeSlots }),
-      });
+  //     await fetchAPI("/userTimeSlots/bulk", {
+  //       method: "POST",
+  //       body: JSON.stringify({ timeSlots }),
+  //     });
 
-      console.log("Time slots saved successfully");
-    } catch (error) {
-      console.error("Error saving time slots:", error);
-      throw error;
-    }
-  };
+  //     console.log("Time slots saved successfully");
+  //   } catch (error) {
+  //     console.error("Error saving time slots:", error);
+  //     throw error;
+  //   }
+  // };
 
-  const deleteUserTimeSlots = async (instanceRequestId: string) => {
-    try {
-      await fetchAPI(`/userTimeSlots?instanceRequestId=${instanceRequestId}`, {
-        method: "DELETE",
-      });
-      console.log("Time slots deleted successfully");
-    } catch (error) {
-      console.error("Error deleting time slots:", error);
-      throw error;
-    }
-  };
+  // const deleteUserTimeSlots = async (instanceRequestId: string) => {
+  //   try {
+  //     await fetchAPI(`/userTimeSlots?instanceRequestId=${instanceRequestId}`, {
+  //       method: "DELETE",
+  //     });
+  //     console.log("Time slots deleted successfully");
+  //   } catch (error) {
+  //     console.error("Error deleting time slots:", error);
+  //     throw error;
+  //   }
+  // };
 
-  const checkTimeSlotConflicts = async (date: string, slotIds: string[]) => {
-    try {
-      const data = await fetchAPI(
-        `/userTimeSlots/conflicts?date=${date}&instanceId=${instance_id || ""}`
-      );
-      const conflicts = slotIds.filter((slotId) =>
-        data.some((existing: any) => existing.time_slot_id === slotId)
-      );
-      return conflicts;
-    } catch (error) {
-      console.error("Error checking time slot conflicts:", error);
-      return [];
-    }
-  };
+  // const checkTimeSlotConflicts = async (date: string, slotIds: string[]) => {
+  //   try {
+  //     const data = await fetchAPI(
+  //       `/userTimeSlots/conflicts?date=${date}&instanceId=${instance_id || ""}`
+  //     );
+  //     const conflicts = slotIds.filter((slotId) =>
+  //       data.some((existing: any) => existing.time_slot_id === slotId)
+  //     );
+  //     return conflicts;
+  //   } catch (error) {
+  //     console.error("Error checking time slot conflicts:", error);
+  //     return [];
+  //   }
+  // };
 
   const floatCondition = (name: keyof FormData, value: any) =>
     value || (errors[name] && focusedField === name);
@@ -1428,21 +1433,36 @@ function DGXInstanceRequestFormContent() {
     }
 
     // Initialize empty time slots for the new date
-    const updatedDateTimeSlots = {
-      ...formData.dateTimeSlots,
-      [dateValue]: {
-        selectedSlots: [],
-        selectedRanges: [],
-      },
-    };
+    // const updatedDateTimeSlots = {
+    //   ...formData.dateTimeSlots,
+    //   [dateValue]: {
+    //     selectedSlots: [],
+    //     selectedRanges: [],
+    //   },
+    // };
 
-    setFormData((prev) => ({
-      ...prev,
-      selectedDates: [...currentDates, dateValue].sort(),
-      dateTimeSlots: updatedDateTimeSlots,
-      selectedSlots: [], // Clear current working slots
-      selectedRanges: [], // Clear current working ranges
-    }));
+    // setFormData((prev) => ({
+    //   ...prev,
+    //   selectedDates: [...currentDates, dateValue].sort(),
+    //   dateTimeSlots: updatedDateTimeSlots,
+    //   selectedSlots: [], // Clear current working slots
+    //   selectedRanges: [], // Clear current working ranges
+    // }));
+    const updatedDateTimeSlots = {
+    ...formData.dateTimeSlots,
+    [dateValue]: {
+      selectedSlots: [],
+      selectedRanges: []
+    }
+  };
+
+  setFormData(prev => ({
+    ...prev,
+    selectedDates: [...currentDates, dateValue].sort(),
+    dateTimeSlots: updatedDateTimeSlots,  // Make sure this is set
+    selectedSlots: [],
+    selectedRanges: []
+  }));
 
     setErrors((prev) => ({ ...prev, selectedDates: "" }));
     setSelectedDate(dateValue); // Set as current working date
@@ -2387,6 +2407,470 @@ function DGXInstanceRequestFormContent() {
       setErrorMessage("");
     }, 8000);
   };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // ============== CORRECTED API CALLS ==============
+
+// 1. getUserTimeSlots - FIX: Use query parameter 'selectedDate' not 'selectedDate'
+const getUserTimeSlots = async () => {
+  try {
+    const params = new URLSearchParams();
+    if (selectedDate) params.append('selectedDate', selectedDate);
+    if (instance_id) params.append('excludeInstanceId', instance_id);
+    
+    const data = await fetchAPI(`/userTimeSlots?${params.toString()}`);
+    setUserTimeSlot(data);
+  } catch (error) {
+    console.error('Error fetching user time slots:', error);
+    showErrorSnackbarFunc('Failed to load time slots');
+  }
+};
+
+// 2. saveUserTimeSlots - CORRECTED ENDPOINT
+// const saveUserTimeSlots = async (instanceRequestId: string) => {
+//   try {
+//     const timeSlots: any[] = [];
+
+//     Object.entries(formData.dateTimeSlots).forEach(
+//       ([date, { selectedSlots }]) => {
+//         if (selectedSlots && selectedSlots.length > 0) {
+//           selectedSlots.forEach((slotId) => {
+//             timeSlots.push({
+//               instance_request_id: instanceRequestId,
+//               time_slot_id: slotId,
+//               selected_date: date,
+//               created_by: userId || 1,
+//               updated_by: userId || 1
+//             });
+//           });
+//         }
+//       }
+//     );
+
+//     await fetchAPI('/userTimeSlots/bulk', {
+//       method: 'POST',
+//       body: JSON.stringify({ timeSlots }),
+//     });
+
+//     console.log('Time slots saved successfully');
+//   } catch (error) {
+//     console.error('Error saving time slots:', error);
+//     throw error;
+//   }
+// };
+
+
+
+
+
+// const saveUserTimeSlots = async (instanceRequestId: string) => {
+//   try {
+//     const timeSlots: any[] = [];
+
+//     Object.entries(formData.dateTimeSlots).forEach(
+//       ([date, { selectedSlots }]) => {
+//         if (selectedSlots && selectedSlots.length > 0) {
+//           selectedSlots.forEach((slotId) => {
+//             timeSlots.push({
+//               instance_request_id: instanceRequestId,
+//               time_slot_id: slotId,
+//               selected_date: date,
+//             });
+//           });
+//         }
+//       }
+//     );
+
+//     await fetchAPI('/userTimeSlots/bulk', {
+//       method: 'POST',
+//       body: JSON.stringify({ 
+//         timeSlots,
+//         userId: userId || loggedInUserId  // Add actual user ID
+//       }),
+//     });
+
+//     console.log('Time slots saved successfully');
+//   } catch (error) {
+//     console.error('Error saving time slots:', error);
+//     throw error;
+//   }
+// };
+
+
+
+// Also ensure selected_date is being sent with dates in time slots
+const saveUserTimeSlots = async (instanceRequestId: string) => {
+  try {
+    const timeSlots: any[] = [];
+
+    Object.entries(formData.dateTimeSlots).forEach(
+      ([date, { selectedSlots }]) => {
+        if (selectedSlots && selectedSlots.length > 0) {
+          selectedSlots.forEach((slotId) => {
+            timeSlots.push({
+              instance_request_id: instanceRequestId,
+              time_slot_id: slotId,
+              selected_date: date,  // This is correct - each slot has its own date
+            });
+          });
+        }
+      }
+    );
+
+    // Ensure timeSlots is not empty
+    if (timeSlots.length === 0) {
+      throw new Error('No time slots to save');
+    }
+
+    await fetchAPI('/userTimeSlots/bulk', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        timeSlots,
+        userId: userId || loggedInUserId  // Pass actual user ID
+      }),
+    });
+
+    console.log('Time slots saved successfully:', timeSlots);
+  } catch (error) {
+    console.error('Error saving time slots:', error);
+    throw error;
+  }
+};
+
+// 3. deleteUserTimeSlots - CORRECTED PARAM NAME
+const deleteUserTimeSlots = async (instanceRequestId: string) => {
+  try {
+    await fetchAPI(`/userTimeSlots?instanceRequestId=${instanceRequestId}`, {
+      method: 'DELETE',
+    });
+    console.log('Time slots deleted successfully');
+  } catch (error) {
+    console.error('Error deleting time slots:', error);
+    throw error;
+  }
+};
+
+// 4. checkTimeSlotConflicts - CORRECTED PARAM NAMES
+const checkTimeSlotConflicts = async (date: string, slotIds: string[]) => {
+  try {
+    const params = new URLSearchParams();
+    params.append('date', date);
+    if (instance_id) params.append('instanceId', instance_id);
+    
+    const data = await fetchAPI(`/userTimeSlots/conflicts?${params.toString()}`);
+    
+    const conflicts = slotIds.filter((slotId) =>
+      data.some((existing: any) => existing.time_slot_id === slotId)
+    );
+    return conflicts;
+  } catch (error) {
+    console.error('Error checking time slot conflicts:', error);
+    return [];
+  }
+};
+
+// 5. getInstanceRequestByUserId - Should use POST with body
+const getInstanceRequestByUserId = async () => {
+  try {
+    const data = await fetchAPI(`/instanceRequests/${instance_id}`);
+    // or for old endpoint:
+    // const data = await fetchAPI('/getInstanceRequestByUserId', {
+    //   method: 'POST',
+    //   body: JSON.stringify({ userId: loggedInUserId })
+    // });
+    return data;
+  } catch (error) {
+    console.error('Error fetching instance request:', error);
+    showErrorSnackbarFunc('Failed to load instance request');
+  }
+};
+
+// 6. saveInstanceRequest - CORRECTED PAYLOAD & ENDPOINT
+const createInstanceRequest = async () => {
+  try {
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+
+    const payload = {
+      user_id: userId || loggedInUserId,
+      cpu_id: formData.cpuId,
+      gpu_id: 1, // Required field, use default if not provided
+      ram_id: formData.ramId,
+      gpu_vendor_id: formData.gpuSlotId || null,
+      gpu_partition_id: formData.gpuPartitionId || null,
+      image_id: formData.customImageId,
+      status_id: 1, // Pending status
+      work_description: formData.workDescription,
+      storage_volume: parseInt(formData.storageVolume || '10'),
+      user_type_id: formData.userTypeId,
+      login_id: 'pending',
+      password: 'pending',
+      access_link: '',
+      is_access_granted: false,
+      additional_information: '',
+      remarks: '',
+      selected_date: formData.selectedDates && formData.selectedDates.length > 0 
+        ? formData.selectedDates[0] 
+        : new Date().toISOString().split('T')[0],
+      created_by: userId || loggedInUserId || 1,
+      updated_by: userId || loggedInUserId || 1
+    };
+
+    // Use new RESTful endpoint
+    const response = await fetchAPI('/instanceRequests', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    console.log('Create response:', response);
+
+    if (!response?.id) {
+      throw new Error('Instance request ID not returned from server');
+    }
+
+    await saveUserTimeSlots(response.id);
+    showSuccessSnackbar();
+    handleReset();
+  } catch (error: any) {
+    console.error('Create Instance Request Error:', error);
+    showErrorSnackbarFunc(
+      error.message || 'Failed to submit instance request'
+    );
+  }
+};
+
+// 7. updateInstanceRequest - CORRECTED ENDPOINT & PAYLOAD
+const updateInstanceRequest = async () => {
+  try {
+    for (const date of formData.selectedDates) {
+      const dateSlots = formData.dateTimeSlots[date]?.selectedSlots || [];
+      if (dateSlots.length === 0) {
+        throw new Error(
+          `Please select time slots for ${new Date(date).toLocaleDateString()}`
+        );
+      }
+    }
+
+    const payload = {
+      user_id: userId || loggedInUserId,
+      cpu_id: formData.cpuId,
+      gpu_id: 1, // Required field
+      ram_id: formData.ramId,
+      gpu_vendor_id: formData.gpuSlotId || null,
+      gpu_partition_id: formData.gpuPartitionId || null,
+      image_id: formData.customImageId,
+      status_id: 1,
+      work_description: formData.workDescription,
+      storage_volume: parseInt(formData.storageVolume || '10'),
+      user_type_id: formData.userTypeId,
+      login_id: '',
+      password: '',
+      access_link: '',
+      is_access_granted: false,
+      additional_information: '',
+      remarks: '',
+      selected_date: formData.selectedDates && formData.selectedDates.length > 0
+        ? formData.selectedDates[0]
+        : new Date().toISOString().split('T')[0],
+      updated_by: loggedInUserId || userId || 1
+    };
+
+    const response = await fetchAPI(`/instanceRequests/${instance_id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+
+    console.log('Update response:', response);
+
+    if (response && response.id) {
+      console.log('Instance updated with ID:', response.id);
+      await deleteUserTimeSlots(instance_id);
+      await saveUserTimeSlots(instance_id);
+      showSuccessSnackbar();
+    } else {
+      throw new Error('No instance ID returned from server');
+    }
+  } catch (error: any) {
+    console.error('Error updating instance request:', error);
+    showErrorSnackbarFunc(
+      error.message || 'Error updating request. Please try again later.'
+    );
+  }
+};
+
+// 8. deleteInstanceRequest - CORRECTED ENDPOINT
+const deleteInstanceRequest = async () => {
+  try {
+    // Delete time slots first
+    await deleteUserTimeSlots(instance_id);
+    
+    // Then delete instance
+    await fetchAPI(`/instanceRequests/${instance_id}`, {
+      method: 'DELETE'
+    });
+    
+    showSuccessSnackbar();
+    router.push('/user');
+  } catch (error: any) {
+    console.error('Error deleting instance request:', error);
+    showErrorSnackbarFunc(
+      error.message || 'Failed to delete instance request'
+    );
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
