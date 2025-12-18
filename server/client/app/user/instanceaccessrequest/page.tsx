@@ -6,6 +6,7 @@ import Header from "@/app/navbar/page";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { ArrowRightIcon } from "lucide-react";
+import { checkAuth } from "@/utils/auth";
 
 function DGXInstanceRequestFormContent() {
   const router = useRouter();
@@ -54,27 +55,6 @@ function DGXInstanceRequestFormContent() {
   const [showErrorSnackbar, setShowErrorSnackbar] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Backend data states
-  // const [userType, setUserType] = useState<Array<Schema["userType"]["type"]>>([]);
-  // const [customImage, setCustomImage] = useState<Array<Schema["image"]["type"]>>([]);
-  // const [timeSlot, setTimeSlot] = useState<Array<Schema["timeSlot"]["type"]>>([]);
-  // const [userTimeSlot, setUserTimeSlot] = useState<Array<Schema["userTimeSlot"]["type"]>>([]);
-  // const [cpu, setCpu] = useState<Array<Schema["cpu"]["type"]>>([]);
-  // const [status, setStatus] = useState<Array<Schema["status"]["type"]>>([]);
-  // const [gpuPartition, setGpuPartition] = useState<Array<Schema["gpuPartition"]["type"]>>([]);
-  // const [ram, setRam] = useState<Array<Schema["ram"]["type"]>>([]);
-  // const [gpuSlot, setGpuSlot] = useState<Array<Schema["gpuVendor"]["type"]>>([]);
-
-  // const [userType, setUserType] = useState<userType[]>([]);
-  // const [customImage, setCustomImage] = useState<customImage[]>([]);
-  // const [timeSlot, setTimeSlot] = useState<timeSlot[]>([]);
-  // const [userTimeSlot, setUserTimeSlot] = useState<any[]>([]);
-  // const [cpu, setCpu] = useState<cpu[]>([]);
-  // const [status, setStatus] = useState<status[]>([]);
-  // const [gpuPartition, setGpuPartition] = useState<gpuPartition[]>([]);
-  // const [ram, setRam] = useState<ram[]>([]);
-  // const [gpuSlot, setGpuSlot] = useState<gpuSlot[]>([]);
-
   const [userId, setUserId] = useState("" as string);
   const [selectedDate, setSelectedDate] = useState("" as string);
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -111,6 +91,20 @@ function DGXInstanceRequestFormContent() {
   const [gpuSlot, setGpuSlot] = useState<gpuSlot[]>([]);
 
   // setUserId(loggedInUserId);
+ 
+
+   useEffect(() => {
+        const verifyUser = async () => {
+          const result = await checkAuth(["User"]); // ✅ Only allow 'User' role here
+          if (!result.authorized) {
+            router.replace(result.redirect || "/login");
+          } else {
+            setAuthLoading(false);
+          }
+        };
+  
+        verifyUser();
+      }, [router]);
 
   // API Base URL
   // const API_BASE_URL = `${process.env.NEXT_PUBLIC_DGX_API_URL} + /instancerequest`;
@@ -746,9 +740,13 @@ function DGXInstanceRequestFormContent() {
           error = "Please select time slot";
         } else {
           // Reconstruct ranges from the current value being validated
+          // const indices = value
+          //   .map((id: string) => getSlotIndex(id))
+          //   .sort((a: number, b: number) => a - b);
           const indices = value
-            .map((id: string) => getSlotIndex(id))
-            .sort((a: number, b: number) => a - b);
+  .map((id: string) => getSlotIndex(id))
+  .filter((index: number) => index !== -1)
+  .sort((a: number, b: number) => a - b);
           const ranges: TimeSlotRange[] = [];
           if (indices.length > 0) {
             let rangeStart = indices[0];
@@ -913,27 +911,62 @@ function DGXInstanceRequestFormContent() {
         }
 
         // Validate that slots are consecutive (no gaps)
+        // const indices = dateSlots
+        //   .map((id) => getSlotIndex(id))
+        //   .filter((index) => index !== -1) // Filter out invalid indices
+        //   .sort((a, b) => a - b);
+
+        // // Check for gaps in the selected slots
+        // let hasGap = false;
+        // for (let i = 1; i < indices.length; i++) {
+        //   if (indices[i] !== indices[i - 1] + 1) {
+        //     hasGap = true;
+        //     break;
+        //   }
+        // }
+
+
+                // Validate that slots form consecutive ranges (each range is consecutive, but multiple ranges are allowed)
         const indices = dateSlots
           .map((id) => getSlotIndex(id))
           .filter((index) => index !== -1) // Filter out invalid indices
           .sort((a, b) => a - b);
 
-        // Check for gaps in the selected slots
-        let hasGap = false;
-        for (let i = 1; i < indices.length; i++) {
-          if (indices[i] !== indices[i - 1] + 1) {
-            hasGap = true;
-            break;
+        // Build ranges from indices
+        const ranges: TimeSlotRange[] = [];
+        if (indices.length > 0) {
+          let rangeStart = indices[0];
+          let rangeEnd = indices[0];
+
+          for (let i = 1; i < indices.length; i++) {
+            if (indices[i] === rangeEnd + 1) {
+              rangeEnd = indices[i];
+            } else {
+              ranges.push({ start: rangeStart, end: rangeEnd });
+              rangeStart = indices[i];
+              rangeEnd = indices[i];
+            }
           }
+          ranges.push({ start: rangeStart, end: rangeEnd });
         }
 
-        if (hasGap) {
+        // Check if any range has only a single slot (not allowed)
+        const hasSingleSlotRange = ranges.some(range => range.start === range.end);
+        if (hasSingleSlotRange) {
           newErrors.selectedSlots = `Time slots for ${new Date(
             date
-          ).toLocaleDateString()} must be consecutive without gaps`;
+          ).toLocaleDateString()} must have at least 2 consecutive slots in each range`;
           isValid = false;
           break;
         }
+
+        // if (hasGap) {
+        //   newErrors.selectedSlots = `Time slots for ${new Date(
+        //     date
+        //   ).toLocaleDateString()} must be consecutive without gaps`;
+        //   isValid = false;
+        //   break;
+        // }
       }
     }
 
@@ -989,13 +1022,13 @@ function DGXInstanceRequestFormContent() {
     getGPUSlots();
   }, []);
 
-  useEffect(() => {
-    console.log("Selected Date Changed=", selectedDate);
-    errors.selectedSlots = "";
-    if (selectedDate !== "") {
-      getUserTimeSlots();
-    }
-  }, [selectedDate]);
+  // useEffect(() => {
+  //   console.log("Selected Date Changed=", selectedDate);
+  //   errors.selectedSlots = "";
+  //   if (selectedDate !== "") {
+  //     getUserTimeSlots();
+  //   }
+  // }, [selectedDate]);
 
   // const getInstanceRequests = async () => {
   //   const { data: instanceRequest, errors } = await client.models.instanceRequest.list();
@@ -1206,15 +1239,99 @@ function DGXInstanceRequestFormContent() {
   //   setUserTimeSlot(userTimeSlot);
   // }
 
+  // Update FormData interface:
+  interface FormData {
+    userTypeId: string;
+    selectedDate: string;
+    customImageId: string;
+    cpuId: string;
+    statusId: string;
+    gpuPartitionId: string;
+    storageVolume: string;
+    ramId: string;
+    gpuSlotId: string;
+    workDescription: string;
+    selectedSlots: string[]; // Keep as array of slot IDs
+    selectedRanges: TimeSlotRange[]; // Add this for tracking ranges
+  }
+
+
+  // Update initial form state:
+  const [formData, setFormData] = useState<FormData>({
+    userTypeId: "",
+    selectedDate: "",
+    selectedDates: [],
+    customImageId: "",
+    cpuId: "",
+    dateTimeSlots: {},
+    statusId: "",
+    gpuPartitionId: "",
+    storageVolume: "10",
+    ramId: "",
+    gpuSlotId: "",
+    workDescription: "",
+    selectedSlots: [],
+    selectedRanges: [],
+  });
+
   // 3. Update the selectedDate useEffect to handle edit mode properly
+  // useEffect(() => {
+  //   console.log("Selected Date Changed=", selectedDate);
+  //   if (selectedDate !== "") {
+  //     // Always call getUserTimeSlots when date changes
+  //     // It will now properly filter out the current instance's slots
+  //     getUserTimeSlots();
+  //   }
+  // }, [selectedDate]);
+
+
+  // Add this useEffect right after the existing selectedDate useEffect (around line 1218)
+// useEffect(() => {
+//   // When selectedDate changes, update selectedSlots to show slots for the new date
+//   if (selectedDate && formData.dateTimeSlots[selectedDate]) {
+//     setFormData(prev => ({
+//       ...prev,
+//       selectedSlots: formData.dateTimeSlots[selectedDate].selectedSlots,
+//       selectedRanges: formData.dateTimeSlots[selectedDate].selectedRanges
+//     }));
+//   }
+// }, [selectedDate, formData.dateTimeSlots]);
+
+
+  // Update selectedSlots and selectedRanges when selectedDate changes
+  // useEffect(() => {
+  //   if (selectedDate && formData.dateTimeSlots && formData.dateTimeSlots[selectedDate]) {
+  //     const dateSlots = formData.dateTimeSlots[selectedDate];
+  //     console.log(`Syncing slots for date ${selectedDate}:`, dateSlots);
+      
+  //     setFormData(prev => ({
+  //       ...prev,
+  //       selectedSlots: dateSlots.selectedSlots || [],
+  //       selectedRanges: dateSlots.selectedRanges || []
+  //     }));
+  //   }
+  // }, [selectedDate, formData.dateTimeSlots]);
+
+
+    // Update selectedSlots and selectedRanges when selectedDate changes
   useEffect(() => {
-    console.log("Selected Date Changed=", selectedDate);
-    if (selectedDate !== "") {
-      // Always call getUserTimeSlots when date changes
-      // It will now properly filter out the current instance's slots
-      getUserTimeSlots();
+    console.log(`📅 selectedDate changed to: ${selectedDate}`);
+    console.log(`📅 formData.dateTimeSlots:`, formData.dateTimeSlots);
+    
+    if (selectedDate && formData.dateTimeSlots && Object.keys(formData.dateTimeSlots).length > 0) {
+      const dateSlots = formData.dateTimeSlots[selectedDate];
+      if (dateSlots) {
+        console.log(`✅ Syncing slots for ${selectedDate}:`, dateSlots);
+        setFormData(prev => ({
+          ...prev,
+          selectedSlots: dateSlots.selectedSlots || [],
+          selectedRanges: dateSlots.selectedRanges || []
+        }));
+      } else {
+        console.warn(`⚠️ No slots found for date ${selectedDate}`);
+      }
     }
-  }, [selectedDate]);
+  }, [selectedDate, formData.dateTimeSlots]);
 
   // Success Snackbar Component
   const SuccessSnackbar = () => (
@@ -1259,16 +1376,25 @@ function DGXInstanceRequestFormContent() {
   }, [isDragging]);
 
   // Helper functions (add these before your existing functions)
+  // const getSlotIndex = (slotId: any) => {
+  //   return timeSlot.findIndex((slot) => slot.time_slot_id === slotId);
+  // };
+
   const getSlotIndex = (slotId: any) => {
-    return timeSlot.findIndex((slot) => slot.time_slot_id === slotId);
+  return timeSlot.findIndex((slot) => String(slot.time_slot_id) === String(slotId));
   };
 
   const areSlotsConsecutive = (slots: any) => {
     if (slots.length <= 1) return true;
 
+    // const indices = slots
+    //   .map((slotId: any) => getSlotIndex(slotId))
+    //   .sort((a: number, b: number) => a - b);
+
     const indices = slots
-      .map((slotId: any) => getSlotIndex(slotId))
-      .sort((a: number, b: number) => a - b);
+  .map((slotId: any) => getSlotIndex(slotId))
+  .filter((index: number) => index !== -1)
+  .sort((a: number, b: number) => a - b);
 
     for (let i = 1; i < indices.length; i++) {
       if (indices[i] !== indices[i - 1] + 1) {
@@ -1300,39 +1426,9 @@ function DGXInstanceRequestFormContent() {
     end: number;
   }
 
-  // Update FormData interface:
-  interface FormData {
-    userTypeId: string;
-    selectedDate: string;
-    customImageId: string;
-    cpuId: string;
-    statusId: string;
-    gpuPartitionId: string;
-    storageVolume: string;
-    ramId: string;
-    gpuSlotId: string;
-    workDescription: string;
-    selectedSlots: string[]; // Keep as array of slot IDs
-    selectedRanges: TimeSlotRange[]; // Add this for tracking ranges
-  }
+  
 
-  // Update initial form state:
-  const [formData, setFormData] = useState<FormData>({
-    userTypeId: "",
-    selectedDate: "",
-    selectedDates: [],
-    customImageId: "",
-    cpuId: "",
-    dateTimeSlots: {},
-    statusId: "",
-    gpuPartitionId: "",
-    storageVolume: "10",
-    ramId: "",
-    gpuSlotId: "",
-    workDescription: "",
-    selectedSlots: [],
-    selectedRanges: [],
-  });
+  
 
   // Helper function to convert ranges to slot IDs
   const rangesToSlotIds = (ranges: TimeSlotRange[]): string[] => {
@@ -1577,22 +1673,22 @@ function DGXInstanceRequestFormContent() {
   // };
 
   // Add this effect to update displayed slots when changing dates
-  useEffect(() => {
-    if (selectedDate && formData.dateTimeSlots[selectedDate]) {
-      const dateSlots = formData.dateTimeSlots[selectedDate];
-      setFormData((prev) => ({
-        ...prev,
-        selectedSlots: dateSlots.selectedSlots,
-        selectedRanges: dateSlots.selectedRanges,
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        selectedSlots: [],
-        selectedRanges: [],
-      }));
-    }
-  }, [selectedDate]);
+  // useEffect(() => {
+  //   if (selectedDate && formData.dateTimeSlots[selectedDate]) {
+  //     const dateSlots = formData.dateTimeSlots[selectedDate];
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       selectedSlots: dateSlots.selectedSlots,
+  //       selectedRanges: dateSlots.selectedRanges,
+  //     }));
+  //   } else {
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       selectedSlots: [],
+  //       selectedRanges: [],
+  //     }));
+  //   }
+  // }, [selectedDate]);
 
   // Update the saveUserTimeSlots function
   // const saveUserTimeSlots = async (instanceRequestId: string) => {
@@ -1693,20 +1789,104 @@ function DGXInstanceRequestFormContent() {
   };
 
   // Update the useEffect to handle date changes
-  useEffect(() => {
-    if (selectedDate) {
-      // Load existing slots for the selected date
-      const dateSlots = formData.dateTimeSlots[selectedDate];
-      setFormData((prev) => ({
-        ...prev,
-        selectedSlots: dateSlots?.selectedSlots || [],
-        selectedRanges: dateSlots?.selectedRanges || [],
-      }));
+  // useEffect(() => {
+  //   if (selectedDate) {
+  //     // Load existing slots for the selected date
+  //     const dateSlots = formData.dateTimeSlots[selectedDate];
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       selectedSlots: dateSlots?.selectedSlots || [],
+  //       selectedRanges: dateSlots?.selectedRanges || [],
+  //     }));
 
-      // Also load booked slots for this date
-      getUserTimeSlots();
+  //     // Also load booked slots for this date
+  //     getUserTimeSlots();
+  //   }
+  // }, [selectedDate]);
+
+
+
+  // Update the useEffect to handle date changes
+// useEffect(() => {
+//   if (selectedDate && formData.dateTimeSlots[selectedDate]) {
+//     // Load existing slots for the selected date
+//     const dateSlots = formData.dateTimeSlots[selectedDate];
+//     console.log("📅 Switching to date:", selectedDate);
+//     console.log("📌 Slots for this date:", dateSlots?.selectedSlots);
+    
+//     setFormData((prev) => ({
+//       ...prev,
+//       selectedSlots: dateSlots?.selectedSlots || [],
+//       selectedRanges: dateSlots?.selectedRanges || [],
+//     }));
+
+//     // Also load booked slots for this date
+//     getUserTimeSlots();
+//   }
+// }, [selectedDate, instance_id]); // Add instance_id as dependency
+
+
+
+
+
+
+  // Update the useEffect to handle date changes - with proper dependency handling
+  // useEffect(() => {
+  //   if (selectedDate) {
+  //     // Load existing slots for the selected date from dateTimeSlots
+  //     const dateSlots = formData.dateTimeSlots[selectedDate];
+      
+  //     if (dateSlots) {
+  //       console.log("📅 Date changed to:", selectedDate);
+  //       console.log("📌 Loading slots for this date:", dateSlots.selectedSlots);
+        
+  //       setFormData((prev) => ({
+  //         ...prev,
+  //         selectedSlots: dateSlots.selectedSlots || [],
+  //         selectedRanges: dateSlots.selectedRanges || [],
+  //       }));
+  //     }
+
+  //     // Fetch booked slots for this date (slots booked by other users)
+  //     getUserTimeSlotsForDate(selectedDate);
+  //   }
+  // }, [selectedDate, instance_id]);
+
+  useEffect(() => {
+  if (selectedDate) {
+    // Load existing slots for the selected date
+    const dateSlots = formData.dateTimeSlots[selectedDate];
+    console.log(`📅 Date switched to ${selectedDate}, loading slots:`, dateSlots?.selectedSlots);
+    
+    setFormData((prev) => ({
+      ...prev,
+      selectedSlots: dateSlots?.selectedSlots || [],
+      selectedRanges: dateSlots?.selectedRanges || [],
+    }));
+
+    // Also load booked slots for this date
+    getUserTimeSlots();
+  }
+}, [selectedDate, instance_id]);
+
+  // New function to fetch user time slots with proper date parameter
+  const getUserTimeSlotsForDate = async (date: string) => {
+    try {
+      const params = new URLSearchParams();
+      if (date) params.append('selectedDate', date);
+      if (instance_id) params.append('excludeInstanceId', instance_id);
+      
+      const data = await fetchAPI(`/userTimeSlots?${params.toString()}`);
+      setUserTimeSlot(data);
+      console.log("📋 Booked slots for", date, ":", data);
+    } catch (error) {
+      console.error('Error fetching user time slots:', error);
+      showErrorSnackbarFunc('Failed to load time slots');
     }
-  }, [selectedDate]);
+  };
+
+
+
 
   // Update getInstanceRequestByUserId function to handle multiple dates
   // const getInstanceRequestByUserId = async () => {
@@ -1873,9 +2053,19 @@ function DGXInstanceRequestFormContent() {
       }
 
       // Calculate new ranges
+      // const indices = updatedSlots
+      //   .map((id) => getSlotIndex(id))
+      //   .sort((a, b) => a - b);
+
+
+
       const indices = updatedSlots
-        .map((id) => getSlotIndex(id))
-        .sort((a, b) => a - b);
+  .map((id) => getSlotIndex(id))
+  .filter((index) => index !== -1)
+  .sort((a, b) => a - b);
+
+
+
       const ranges: TimeSlotRange[] = [];
 
       if (indices.length > 0) {
@@ -2326,26 +2516,60 @@ function DGXInstanceRequestFormContent() {
     }
 
     // Calculate new ranges
-    const indices = newSelectedSlots
-      .map((id) => getSlotIndex(id))
-      .sort((a, b) => a - b);
-    const ranges: TimeSlotRange[] = [];
+    // const indices = newSelectedSlots
+    //   .map((id) => getSlotIndex(id))
+    //   .sort((a, b) => a - b);
+    // const ranges: TimeSlotRange[] = [];
 
-    if (indices.length > 0) {
-      let rangeStart = indices[0];
-      let rangeEnd = indices[0];
+    // if (indices.length > 0) {
+    //   let rangeStart = indices[0];
+    //   let rangeEnd = indices[0];
 
-      for (let i = 1; i < indices.length; i++) {
-        if (indices[i] === rangeEnd + 1) {
-          rangeEnd = indices[i];
-        } else {
-          ranges.push({ start: rangeStart, end: rangeEnd });
-          rangeStart = indices[i];
-          rangeEnd = indices[i];
-        }
-      }
+    //   for (let i = 1; i < indices.length; i++) {
+    //     if (indices[i] === rangeEnd + 1) {
+    //       rangeEnd = indices[i];
+    //     } else {
+    //       ranges.push({ start: rangeStart, end: rangeEnd });
+    //       rangeStart = indices[i];
+    //       rangeEnd = indices[i];
+    //     }
+    //   }
+    //   ranges.push({ start: rangeStart, end: rangeEnd });
+    // }
+
+
+    // NEW - filters out invalid indices (-1)
+// const indices = newSelectedSlots
+//   .map((id) => getSlotIndex(id))
+//   .filter((index) => index !== -1) // Filter out invalid indices
+//   .sort((a, b) => a - b);
+
+
+
+      const indices = newSelectedSlots
+  .map((id) => getSlotIndex(id))
+  .filter((index) => index !== -1)
+  .sort((a, b) => a - b);
+
+
+
+const ranges: TimeSlotRange[] = [];
+
+if (indices.length > 0) {
+  let rangeStart = indices[0];
+  let rangeEnd = indices[0];
+
+  for (let i = 1; i < indices.length; i++) {
+    if (indices[i] === rangeEnd + 1) {
+      rangeEnd = indices[i];
+    } else {
       ranges.push({ start: rangeStart, end: rangeEnd });
+      rangeStart = indices[i];
+      rangeEnd = indices[i];
     }
+  }
+  ranges.push({ start: rangeStart, end: rangeEnd });
+}
 
     // Update form data with new selections
     setFormData((prev) => ({
@@ -2642,18 +2866,202 @@ const checkTimeSlotConflicts = async (date: string, slotIds: string[]) => {
 };
 
 // 5. getInstanceRequestByUserId - Should use POST with body
+// const getInstanceRequestByUserId = async () => {
+//   try {
+//     const data = await fetchAPI(`/instanceRequests/${instance_id}`);
+//     // or for old endpoint:
+//     // const data = await fetchAPI('/getInstanceRequestByUserId', {
+//     //   method: 'POST',
+//     //   body: JSON.stringify({ userId: loggedInUserId })
+//     // });
+//     return data;
+//   } catch (error) {
+//     console.error('Error fetching instance request:', error);
+//     showErrorSnackbarFunc('Failed to load instance request');
+//   }
+// };
+
+
+// const getInstanceRequestByUserId = async () => {
+//   try {
+//     const data = await fetchAPI(`/instanceRequests/${instance_id}`);
+    
+//     // Fetch time slots for this instance
+//     const timeSlotData = await fetchAPI(
+//       `/userTimeSlots?instanceRequestId=${instance_id}`
+//     );
+
+//     // Build dateTimeSlots structure
+//     const timeSlotsByDate: DateTimeSlots = {};
+//     const uniqueDates: string[] = [];
+
+//     timeSlotData.forEach((slot: any) => {
+//       const date = slot.selected_date;
+//       if (date) {
+//         if (!timeSlotsByDate[date]) {
+//           timeSlotsByDate[date] = {
+//             selectedSlots: [],
+//             selectedRanges: []
+//           };
+//           uniqueDates.push(date);
+//         }
+//         // Convert to string to match slot IDs
+//         timeSlotsByDate[date].selectedSlots.push(String(slot.time_slot_id));
+//       }
+//     });
+
+//     // Calculate ranges for each date
+//     Object.keys(timeSlotsByDate).forEach(date => {
+//       const slots = timeSlotsByDate[date].selectedSlots;
+//       const indices = slots
+//         .map(id => getSlotIndex(id))
+//         .sort((a, b) => a - b);
+
+//       const ranges: TimeSlotRange[] = [];
+//       if (indices.length > 0) {
+//         let rangeStart = indices[0];
+//         let rangeEnd = indices[0];
+
+//         for (let i = 1; i < indices.length; i++) {
+//           if (indices[i] === rangeEnd + 1) {
+//             rangeEnd = indices[i];
+//           } else {
+//             ranges.push({ start: rangeStart, end: rangeEnd });
+//             rangeStart = indices[i];
+//             rangeEnd = indices[i];
+//           }
+//         }
+//         ranges.push({ start: rangeStart, end: rangeEnd });
+//       }
+
+//       timeSlotsByDate[date].selectedRanges = ranges;
+//     });
+
+//     // Populate form data
+//     const firstDate = uniqueDates.length > 0 ? uniqueDates[0] : '';
+//     setFormData({
+//       userTypeId: String(data.user_type_id || ''),
+//       selectedDate: firstDate,
+//       selectedDates: uniqueDates.sort(),
+//       customImageId: String(data.image_id || ''),
+//       cpuId: String(data.cpu_id || ''),
+//       statusId: String(data.status_id || ''),
+//       gpuPartitionId: String(data.gpu_partition_id || ''),
+//       storageVolume: String(data.storage_volume || '10'),
+//       ramId: String(data.ram_id || ''),
+//       gpuSlotId: String(data.gpu_vendor_id || ''),
+//       workDescription: data.work_description || '',
+//       dateTimeSlots: timeSlotsByDate,
+//       selectedSlots: timeSlotsByDate[firstDate]?.selectedSlots || [],
+//       selectedRanges: timeSlotsByDate[firstDate]?.selectedRanges || []
+//     });
+
+//     setSelectedDate(firstDate);
+//   } catch (error) {
+//     console.error('Error fetching instance request:', error);
+//     showErrorSnackbarFunc('Failed to load instance request');
+//   }
+// };
+
+
+
 const getInstanceRequestByUserId = async () => {
   try {
     const data = await fetchAPI(`/instanceRequests/${instance_id}`);
-    // or for old endpoint:
-    // const data = await fetchAPI('/getInstanceRequestByUserId', {
-    //   method: 'POST',
-    //   body: JSON.stringify({ userId: loggedInUserId })
-    // });
-    return data;
+    
+    // Fetch time slots for this instance
+    const timeSlotData = await fetchAPI(
+      `/userTimeSlots?instanceRequestId=${instance_id}`
+    );
+
+    console.log("🔍 Loaded instance data:", data);
+    console.log("🔍 Loaded time slots:", timeSlotData);
+
+    // Build dateTimeSlots structure
+    const timeSlotsByDate: DateTimeSlots = {};
+    const uniqueDates: string[] = [];
+
+    timeSlotData.forEach((slot: any) => {
+      const date = slot.selected_date;
+      if (date) {
+        if (!timeSlotsByDate[date]) {
+          timeSlotsByDate[date] = {
+            selectedSlots: [],
+            selectedRanges: []
+          };
+          uniqueDates.push(date);
+        }
+        // Convert to string to match slot IDs
+        timeSlotsByDate[date].selectedSlots.push(String(slot.time_slot_id));
+      }
+    });
+
+    // Calculate ranges for each date
+    Object.keys(timeSlotsByDate).forEach(date => {
+      const slots = timeSlotsByDate[date].selectedSlots;
+      // const indices = slots
+      //   .map(id => getSlotIndex(id))
+      //   .sort((a, b) => a - b);
+
+
+      const indices = slots
+  .map(id => getSlotIndex(id))
+  .filter((index) => index !== -1)
+  .sort((a, b) => a - b);
+
+      
+
+
+
+
+      const ranges: TimeSlotRange[] = [];
+      if (indices.length > 0) {
+        let rangeStart = indices[0];
+        let rangeEnd = indices[0];
+
+        for (let i = 1; i < indices.length; i++) {
+          if (indices[i] === rangeEnd + 1) {
+            rangeEnd = indices[i];
+          } else {
+            ranges.push({ start: rangeStart, end: rangeEnd });
+            rangeStart = indices[i];
+            rangeEnd = indices[i];
+          }
+        }
+        ranges.push({ start: rangeStart, end: rangeEnd });
+      }
+
+      timeSlotsByDate[date].selectedRanges = ranges;
+    });
+
+    console.log("🔍 Built dateTimeSlots:", timeSlotsByDate);
+    console.log("🔍 Unique dates:", uniqueDates);
+
+    // Populate form data
+    const firstDate = uniqueDates.length > 0 ? uniqueDates[0] : '';
+    const newFormData = {
+      userTypeId: String(data.user_type_id || ''),
+      selectedDate: firstDate,
+      selectedDates: uniqueDates.sort(),
+      customImageId: String(data.image_id || ''),
+      cpuId: String(data.cpu_id || ''),
+      statusId: String(data.status_id || ''),
+      gpuPartitionId: String(data.gpu_partition_id || ''),
+      storageVolume: String(data.storage_volume || '10'),
+      ramId: String(data.ram_id || ''),
+      gpuSlotId: String(data.gpu_vendor_id || ''),
+      workDescription: data.work_description || '',
+      dateTimeSlots: timeSlotsByDate,
+      selectedSlots: timeSlotsByDate[firstDate]?.selectedSlots || [],
+      selectedRanges: timeSlotsByDate[firstDate]?.selectedRanges || []
+    };
+
+    console.log("🔍 Setting formData:", newFormData);
+    setFormData(newFormData);
+    setSelectedDate(firstDate);
   } catch (error) {
     console.error('Error fetching instance request:', error);
-    showErrorSnackbarFunc('Failed to load instance request');
+    showErrorSnackbarFunc('Failed to load instance request data');
   }
 };
 
@@ -3866,7 +4274,8 @@ const deleteInstanceRequest = async () => {
                     }}
                   >
                     {timeSlot.map((slot, index) => {
-                      const slotId: any = slot.time_slot_id || "";
+                      // const slotId: any = slot.time_slot_id || "";
+                      const slotId: any = String(slot.time_slot_id || "");
                       const isBooked = isSlotBooked(slotId);
                       const isSelected = isSlotSelected(slotId);
                       const isDragPreview =
@@ -3923,6 +4332,17 @@ const deleteInstanceRequest = async () => {
                             </span>
                           )}
                         </button>
+                        //                         >
+                        //   {slot.time_slot}
+                        //   {isSelected && !isInSingleSlotRange && (
+                        //     <CheckCircle className="absolute -top-1 -right-1 w-4 h-4 text-green-600 fill-current" />
+                        //   )}
+                        //   {isInSingleSlotRange && (
+                        //     <span className="absolute -top-1 -right-1 text-orange-500">
+                        //       ⚠️
+                        //     </span>
+                        //   )}
+                        // </button>
                       );
                     })}
                   </div>
