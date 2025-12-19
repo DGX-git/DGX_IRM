@@ -578,10 +578,10 @@ export default function RegisterForm() {
       {/* Terms Modal */}
       {showTermsModal && <TermsModal />}
 
-      <div className="flex-1 flex items-center justify-center p-2">
+      <div className="flex-1 flex items-center justify-center p-2 max-h-[90vh] overflow-y-auto">
         <div className="w-full max-w-lg">
           <div
-            className="rounded-xl p-4"
+            className="rounded-xl p-4 "
             style={{
               backgroundColor: "#fff",
               boxShadow:
@@ -1253,7 +1253,7 @@ export default function RegisterForm() {
                       type="button"
                       onClick={handleSubmit}
                       disabled={isSubmitting}
-                      className="flex-1 cursor-pointer text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 focus:outline-none shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 cursor-pointer text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 focus:outline-none shadow-lg hover:shadow-xl disabled:opacity-50"
                       style={{
                         backgroundColor: isSubmitting ? "#9ca3af" : "#76B900",
                       }}
@@ -1276,7 +1276,7 @@ export default function RegisterForm() {
                       type="button"
                       onClick={handleCancel}
                       disabled={isSubmitting}
-                      className="flex-1 cursor-pointer text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 focus:outline-none shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 cursor-pointer text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 focus:outline-none shadow-lg hover:shadow-xl disabled:opacity-50"
                       style={{
                         backgroundColor: isSubmitting ? "#9ca3af" : "#76B900",
                       }}

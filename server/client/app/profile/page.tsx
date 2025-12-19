@@ -430,7 +430,7 @@ if (emailChanged && updateUserData.newToken) {
       {/* Error Snackbar */}
 
       {/* <div className="max-w-lg mx-auto mt-4"> */}
-      <div className="flex-1 flex items-center justify-center p-4">
+      <div className="flex-1 flex items-center justify-center p-4 max-h-[93vh] overflow-y-auto">
         <div
           className="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 overflow-hidden"
           style={{

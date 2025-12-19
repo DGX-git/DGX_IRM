@@ -52,7 +52,7 @@ export default function Login() {
     } catch (error) {
       console.error("Error sending OTP:", error);
     } finally {
-      setIsLoading(false);
+      // setIsLoading(false);
     }
   }, [email, setError, validateEmail, setIsLoading, router]);
 
