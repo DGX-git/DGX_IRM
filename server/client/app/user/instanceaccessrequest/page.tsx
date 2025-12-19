@@ -1004,10 +1004,10 @@ function DGXInstanceRequestFormContent() {
     setShowSnackbar(true);
     setTimeout(() => {
       setShowSnackbar(false);
-    }, 2500); // Keep visible for 2.5 seconds
+    }, 1500); // Keep visible for 2.5 seconds
     setTimeout(() => {
       router.push("/user");
-    }, 4000); // Redirect after 4 seconds total
+    }, 2000); // Redirect after 4 seconds total
   };
 
   useEffect(() => {
@@ -3049,7 +3049,7 @@ const getInstanceRequestByUserId = async () => {
       gpuPartitionId: String(data.gpu_partition_id || ''),
       storageVolume: String(data.storage_volume || '10'),
       ramId: String(data.ram_id || ''),
-      gpuSlotId: String(data.gpu_vendor_id || ''),
+      gpuSlotId: String(data.gpu_id || ''),
       workDescription: data.work_description || '',
       dateTimeSlots: timeSlotsByDate,
       selectedSlots: timeSlotsByDate[firstDate]?.selectedSlots || [],
@@ -3136,7 +3136,7 @@ const updateInstanceRequest = async () => {
     const payload = {
       user_id: userId || loggedInUserId,
       cpu_id: formData.cpuId,
-      gpu_id: 1, // Required field
+      gpu_id: Number(formData.gpuSlotId) || 1, // Required field
       ram_id: formData.ramId,
       gpu_vendor_id: formData.gpuSlotId || null,
       gpu_partition_id: formData.gpuPartitionId || null,
@@ -3164,8 +3164,12 @@ const updateInstanceRequest = async () => {
 
     console.log('Update response:', response);
 
-    if (response && response.id) {
-      console.log('Instance updated with ID:', response.id);
+    // if (response && response.id) {
+    //   console.log('Instance updated with ID:', response.id);
+
+       if (response && response.instance_request_id) {
+      console.log('Instance updated with ID:', response.instance_request_id);
+
       await deleteUserTimeSlots(instance_id);
       await saveUserTimeSlots(instance_id);
       showSuccessSnackbar();
