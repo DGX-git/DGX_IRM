@@ -244,9 +244,10 @@ function DGXInstanceRequestFormContent() {
 
         if (slots.length === 0) {
           throw new Error(
-            `Please select time slots for ${new Date(
-              date
-            ).toLocaleDateString()}`
+            // `Please select time slots for ${new Date(
+            //   date
+            // ).toLocaleDateString()}`
+            `Please select time slots for ${formatDateDDMMYYYY(date)}`
           );
         }
       }
@@ -544,9 +545,10 @@ function DGXInstanceRequestFormContent() {
       for (const date of formData.selectedDates) {
         const dateSlots = formData.dateTimeSlots[date]?.selectedSlots || [];
         if (dateSlots.length === 0) {
-          newErrors.selectedSlots = `Please select time slots for ${new Date(
-            date
-          ).toLocaleDateString()}`;
+          // newErrors.selectedSlots = `Please select time slots for ${new Date(
+          //   date
+          // ).toLocaleDateString()}`;
+          newErrors.selectedSlots = `Please select time slots for ${formatDateDDMMYYYY(date)}`;
           isValid = false;
           break;
         }
@@ -580,9 +582,10 @@ function DGXInstanceRequestFormContent() {
         // Check if any range has only a single slot (not allowed)
         const hasSingleSlotRange = ranges.some(range => range.start === range.end);
         if (hasSingleSlotRange) {
-          newErrors.selectedSlots = `Time slots for ${new Date(
-            date
-          ).toLocaleDateString()} must have at least 2 consecutive slots in each range`;
+          // newErrors.selectedSlots = `Time slots for ${new Date(
+          //   date
+          // ).toLocaleDateString()} must have at least 2 consecutive slots in each range`;
+          newErrors.selectedSlots = `Time slots for ${formatDateDDMMYYYY(date)} must have at least 2 consecutive slots in each range`;
           isValid = false;
           break;
         }
@@ -606,6 +609,26 @@ function DGXInstanceRequestFormContent() {
     );
 
     return isValid;
+  };
+
+
+  const validateDateRange = () => {
+    const errors: { start?: string; end?: string } = {};
+
+    if (dateSelectionMode === "range") {
+      if (!dateRange.start) {
+        errors.start = "Start date is required";
+      }
+      if (!dateRange.end) {
+        errors.end = "End date is required";
+      }
+      if (dateRange.start && dateRange.end && new Date(dateRange.end) < new Date(dateRange.start)) {
+        errors.end = "End date must be after start date";
+      }
+    }
+
+    setDateRangeErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
 
@@ -659,6 +682,35 @@ function DGXInstanceRequestFormContent() {
     selectedRanges: TimeSlotRange[]; // Add this for tracking ranges
   }
 
+  // const handleReset = () => {
+  //   if (instance_id) {
+  //     getInstanceRequestByUserId();
+  //     return;
+  //   }
+
+  //   if (!instance_id) {
+  //     setFormData({
+  //       userTypeId: "",
+  //       selectedDate: "",
+  //       dateTimeSlots: {},
+  //       selectedDates: [],
+  //       customImageId: "",
+  //       cpuId: "",
+  //       statusId: "",
+  //       gpuPartitionId: "",
+  //       storageVolume: "10",
+  //       ramId: "",
+  //       gpuSlotId: "",
+  //       workDescription: "",
+  //       selectedSlots: [],
+  //       selectedRanges: [],
+  //     });
+  //     setSelectedDate("");
+  //     setErrors({});
+  //     setTouched({});
+  //   }
+  // };
+
   const handleReset = () => {
     if (instance_id) {
       getInstanceRequestByUserId();
@@ -685,6 +737,9 @@ function DGXInstanceRequestFormContent() {
       setSelectedDate("");
       setErrors({});
       setTouched({});
+
+      // ✅ Clear booked slots on reset
+      setUserTimeSlot([]);
     }
   };
 
@@ -759,8 +814,8 @@ function DGXInstanceRequestFormContent() {
   const SuccessSnackbar = () => (
     <div
       className={`fixed inset-x-0 bottom-5 flex justify-center z-50 transition-all duration-500 ${showSnackbar
-          ? "transform translate-y-0 opacity-100"
-          : "transform translate-y-full opacity-0"
+        ? "transform translate-y-0 opacity-100"
+        : "transform translate-y-full opacity-0"
         }`}
     >
       <div
@@ -803,6 +858,15 @@ function DGXInstanceRequestFormContent() {
 
   const getSlotIndex = (slotId: any) => {
     return timeSlot.findIndex((slot) => String(slot.time_slot_id) === String(slotId));
+  };
+
+  // Helper function to format date as dd-mm-yyyy
+  const formatDateDDMMYYYY = (date: string | Date): string => {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
   };
 
   const areSlotsConsecutive = (slots: any) => {
@@ -942,6 +1006,24 @@ function DGXInstanceRequestFormContent() {
   };
 
   // Update handleDateRemove function
+  // const handleDateRemove = (dateToRemove: string) => {
+  //   const updatedDates = formData.selectedDates.filter(
+  //     (date) => date !== dateToRemove
+  //   );
+  //   const updatedDateTimeSlots = { ...formData.dateTimeSlots };
+  //   delete updatedDateTimeSlots[dateToRemove];
+
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     selectedDates: updatedDates,
+  //     dateTimeSlots: updatedDateTimeSlots,
+  //     selectedSlots: selectedDate === dateToRemove ? [] : prev.selectedSlots,
+  //     selectedRanges: selectedDate === dateToRemove ? [] : prev.selectedRanges,
+  //   }));
+  // };
+
+
+
   const handleDateRemove = (dateToRemove: string) => {
     const updatedDates = formData.selectedDates.filter(
       (date) => date !== dateToRemove
@@ -956,11 +1038,24 @@ function DGXInstanceRequestFormContent() {
       selectedSlots: selectedDate === dateToRemove ? [] : prev.selectedSlots,
       selectedRanges: selectedDate === dateToRemove ? [] : prev.selectedRanges,
     }));
+
+    // ✅ Clear booked slots when no dates are selected
+    if (updatedDates.length === 0) {
+      setUserTimeSlot([]);
+    }
   };
 
   // Update the submit function
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+
+    // Validate date range if in range mode
+    if (dateSelectionMode === "range") {
+      if (!validateDateRange()) {
+        return;
+      }
+    }
 
     if (!validateForm()) {
       return;
@@ -974,9 +1069,7 @@ function DGXInstanceRequestFormContent() {
       );
       if (conflicts.length > 0) {
         showErrorSnackbarFunc(
-          `Some time slots are already booked for ${new Date(
-            date
-          ).toLocaleDateString()}`
+          `Some time slots are already booked for date ${formatDateDDMMYYYY(date)}`
         );
         return;
       }
@@ -1024,20 +1117,21 @@ function DGXInstanceRequestFormContent() {
             <div
               key={date}
               className={`mb-1 p-1 border rounded-sm transition-all ${isCurrentDate
-                  ? "border-green-500 bg-green-50"
-                  : "border-gray-200"
+                ? "border-green-500 bg-green-50"
+                : "border-gray-200"
                 }`}
               onClick={() => setSelectedDate(date)}
               style={{ cursor: "pointer" }}
             >
               <div className="flex justify-between items-center mb-2">
                 <div className="font-small text-sm text-gray-700">
-                  {new Date(date).toLocaleDateString("en-US", {
+                  {/* {new Date(date).toLocaleDateString("en-US", {
                     weekday: "short",
                     year: "numeric",
                     month: "short",
                     day: "numeric",
-                  })}
+                  })} */}
+                  {formatDateDDMMYYYY(date)}
                 </div>
                 <div className="text-xs text-gray-500">
                   {dateSlots.length} slots selected
@@ -1052,8 +1146,8 @@ function DGXInstanceRequestFormContent() {
                     <span
                       key={slotId}
                       className={`px-1 py-1 rounded-sm text-xs ${isCurrentDate
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-700"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-700"
                         }`}
                     >
                       {slot?.time_slot}
@@ -1088,22 +1182,42 @@ function DGXInstanceRequestFormContent() {
   // }, [selectedDate, instance_id]);
 
 
+  //   useEffect(() => {
+  //   if (selectedDate) {
+  //     // Load existing slots for the selected date
+  //     const dateSlots = formData.dateTimeSlots[selectedDate];
+  //     console.log(`📅 Date switched to ${selectedDate}, loading slots:`, dateSlots?.selectedSlots);
+
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       selectedSlots: dateSlots?.selectedSlots || [],
+  //       selectedRanges: dateSlots?.selectedRanges || [],
+  //     }));
+
+  //     // ✅ Use getUserTimeSlotsForDate instead of getUserTimeSlots
+  //     getUserTimeSlotsForDate(selectedDate);
+  //   }
+  // }, [selectedDate, instance_id]);
+
   useEffect(() => {
-  if (selectedDate) {
-    // Load existing slots for the selected date
-    const dateSlots = formData.dateTimeSlots[selectedDate];
-    console.log(`📅 Date switched to ${selectedDate}, loading slots:`, dateSlots?.selectedSlots);
+    if (selectedDate) {
+      // Load existing slots for the selected date
+      const dateSlots = formData.dateTimeSlots[selectedDate];
+      console.log(`📅 Date switched to ${selectedDate}, loading slots:`, dateSlots?.selectedSlots);
 
-    setFormData((prev) => ({
-      ...prev,
-      selectedSlots: dateSlots?.selectedSlots || [],
-      selectedRanges: dateSlots?.selectedRanges || [],
-    }));
+      setFormData((prev) => ({
+        ...prev,
+        selectedSlots: dateSlots?.selectedSlots || [],
+        selectedRanges: dateSlots?.selectedRanges || [],
+      }));
 
-    // ✅ Use getUserTimeSlotsForDate instead of getUserTimeSlots
-    getUserTimeSlotsForDate(selectedDate);
-  }
-}, [selectedDate, instance_id]);
+      // ✅ Use getUserTimeSlotsForDate instead of getUserTimeSlots
+      getUserTimeSlotsForDate(selectedDate);
+    } else {
+      // ✅ Clear booked slots when no date is selected
+      setUserTimeSlot([]);
+    }
+  }, [selectedDate, instance_id]);
 
 
   // New function to fetch user time slots with proper date parameter
@@ -1122,20 +1236,20 @@ function DGXInstanceRequestFormContent() {
   //   }
   // };
 
-    const getUserTimeSlotsForDate = async (date: string) => {
+  const getUserTimeSlotsForDate = async (date: string) => {
     try {
       const params = new URLSearchParams();
       if (date) params.append('selectedDate', date);
       if (instance_id) params.append('excludeInstanceId', instance_id);
 
       const data = await fetchAPI(`/userTimeSlots?${params.toString()}`);
-      
+
       // Ensure time_slot_id is properly typed
       const processedData = data.map((slot: any) => ({
         ...slot,
         time_slot_id: String(slot.time_slot_id) // Convert to string for consistency
       }));
-      
+
       setUserTimeSlot(processedData);
       console.log("📋 Booked slots for", date, ":", processedData);
     } catch (error) {
@@ -1271,6 +1385,11 @@ function DGXInstanceRequestFormContent() {
     setDragMode(null);
   };
 
+  const [dateRangeErrors, setDateRangeErrors] = useState<{
+    start?: string;
+    end?: string;
+  }>({});
+
   // Add this helper function to get today's date in YYYY-MM-DD format
   const getTodayDate = () => {
     const today = new Date();
@@ -1366,69 +1485,367 @@ function DGXInstanceRequestFormContent() {
   // };
 
 
-
-  const handleDateRangeAdd = () => {
-  if (!dateRange.start || !dateRange.end) {
-    showErrorSnackbarFunc("Please select both start and end dates");
-    return;
-  }
-
-  const startDate = new Date(dateRange.start);
-  const endDate = new Date(dateRange.end);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  if (startDate < today || endDate < today) {
-    setErrors((prev) => ({
-      ...prev,
-      selectedDates: "Dates cannot be in the past",
-    }));
-    return;
-  }
-
-  if (endDate < startDate) {
-    setErrors((prev) => ({
-      ...prev,
-      selectedDates: "End date must be after start date",
-    }));
-    return;
-  }
-
-  const dates: string[] = [];
-  const currentDate = new Date(startDate);
-  while (currentDate <= endDate) {
-    const dateString = currentDate.toISOString().split("T")[0];
-    if (!formData.selectedDates.includes(dateString)) {
-      dates.push(dateString);
+    const handleDateRangeAdd = () => {
+    if (!dateRange.start || !dateRange.end) {
+      showErrorSnackbarFunc("Please select both start and end dates");
+      return;
     }
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
 
-  // Initialize empty time slots for new dates
-  const updatedDateTimeSlots = { ...formData.dateTimeSlots };
-  dates.forEach((date) => {
-    updatedDateTimeSlots[date] = {
-      selectedSlots: [],
-      selectedRanges: [],
-    };
-  });
+    const startDate = new Date(dateRange.start);
+    const endDate = new Date(dateRange.end);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  setFormData((prev) => ({
-    ...prev,
-    selectedDates: [...prev.selectedDates, ...dates].sort(),
-    dateTimeSlots: updatedDateTimeSlots,
-  }));
+    if (startDate < today || endDate < today) {
+      setErrors((prev) => ({
+        ...prev,
+        selectedDates: "Dates cannot be in the past",
+      }));
+      return;
+    }
 
-  setDateRange({ start: "", end: "" });
-  setErrors((prev) => ({ ...prev, selectedDates: "" }));
-  
-  // ✅ Fetch booked slots for all new dates
-  dates.forEach(date => getUserTimeSlotsForDate(date));
-};
+    if (endDate < startDate) {
+      setErrors((prev) => ({
+        ...prev,
+        selectedDates: "End date must be after start date",
+      }));
+      return;
+    }
+
+    const dates: string[] = [];
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      const dateString = currentDate.toISOString().split("T")[0];
+      if (!formData.selectedDates.includes(dateString)) {
+        dates.push(dateString);
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // Initialize empty time slots for new dates
+    const updatedDateTimeSlots = { ...formData.dateTimeSlots };
+    dates.forEach((date) => {
+      updatedDateTimeSlots[date] = {
+        selectedSlots: [],
+        selectedRanges: [],
+      };
+    });
+
+    setFormData((prev) => ({
+      ...prev,
+      selectedDates: [...prev.selectedDates, ...dates].sort(),
+      dateTimeSlots: updatedDateTimeSlots,
+    }));
+
+    // Removed: setDateRange({ start: "", end: "" });
+    setErrors((prev) => ({ ...prev, selectedDates: "" }));
+
+    // ✅ Fetch booked slots for all new dates
+    dates.forEach(date => getUserTimeSlotsForDate(date));
+  };
+
+
+  // const handleDateRangeAdd = () => {
+  //   if (!dateRange.start || !dateRange.end) {
+  //     showErrorSnackbarFunc("Please select both start and end dates");
+  //     return;
+  //   }
+
+  //   const startDate = new Date(dateRange.start);
+  //   const endDate = new Date(dateRange.end);
+  //   const today = new Date();
+  //   today.setHours(0, 0, 0, 0);
+
+  //   if (startDate < today || endDate < today) {
+  //     setErrors((prev) => ({
+  //       ...prev,
+  //       selectedDates: "Dates cannot be in the past",
+  //     }));
+  //     return;
+  //   }
+
+  //   if (endDate < startDate) {
+  //     setErrors((prev) => ({
+  //       ...prev,
+  //       selectedDates: "End date must be after start date",
+  //     }));
+  //     return;
+  //   }
+
+  //   const dates: string[] = [];
+  //   const currentDate = new Date(startDate);
+  //   while (currentDate <= endDate) {
+  //     const dateString = currentDate.toISOString().split("T")[0];
+  //     if (!formData.selectedDates.includes(dateString)) {
+  //       dates.push(dateString);
+  //     }
+  //     currentDate.setDate(currentDate.getDate() + 1);
+  //   }
+
+  //   // Initialize empty time slots for new dates
+  //   const updatedDateTimeSlots = { ...formData.dateTimeSlots };
+  //   dates.forEach((date) => {
+  //     updatedDateTimeSlots[date] = {
+  //       selectedSlots: [],
+  //       selectedRanges: [],
+  //     };
+  //   });
+
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     selectedDates: [...prev.selectedDates, ...dates].sort(),
+  //     dateTimeSlots: updatedDateTimeSlots,
+  //   }));
+
+  //   // setDateRange({ start: "", end: "" });
+  //   setErrors((prev) => ({ ...prev, selectedDates: "" }));
+
+  //   // ✅ Fetch booked slots for all new dates
+  //   dates.forEach(date => getUserTimeSlotsForDate(date));
+  // };
 
   // Update the handleReplicateSlots function
+  //   const handleReplicateSlots = async (sourceDate?: string) => {
+  //     setIsReplicating(true); // Start loading
+  //     try {
+  //       const src = sourceDate || selectedDate;
+  //       if (!src) {
+  //         showErrorSnackbarFunc("No source date available to replicate from");
+  //         return;
+  //       }
+
+  //       console.log("Replicating from date:", src);
+
+  //       // Prefer the explicitly stored per-date slots, fallback to current working slots
+  //       const sourceSlots =
+  //         formData.dateTimeSlots[src]?.selectedSlots?.slice() ||
+  //         formData.selectedSlots?.slice() ||
+  //         [];
+
+  //       if (sourceSlots.length === 0) {
+  //         showErrorSnackbarFunc("No slots selected to replicate");
+  //         setErrors((prev) => ({
+  //           ...prev,
+  //           selectedSlots: "No slots selected to replicate",
+  //         }));
+  //         return;
+  //       }
+
+  //       // Target dates are all selected dates except the source date
+  //       const targetDates = formData.selectedDates.filter((date) => date !== src);
+  //       if (targetDates.length === 0) {
+  //         showErrorSnackbarFunc("No other dates to replicate to");
+  //         return;
+  //       }
+
+  //       console.log("Target dates for replication:", targetDates);
+  //       console.log("Source slots to replicate:", sourceSlots);
+
+  //       // Check server-side conflicts for each target date
+  //       // const conflictDetails: { [key: string]: string[] } = {};
+  //       // for (const date of targetDates) {
+  //       //   console.log(`Checking conflicts for date: ${date}`);
+  //       //   const conflicts = await checkTimeSlotConflicts(date, sourceSlots);
+  //       //   if (conflicts.length > 0) {
+  //       //     conflictDetails[date] = conflicts;
+  //       //     console.log(`Conflicts found for ${date}:`, conflicts);
+  //       //   }
+  //       // }
+
+  //       // // If there are any conflicts, show detailed error message
+  //       // if (Object.keys(conflictDetails).length > 0) {
+  //       //   const conflictDatesArray = Object.keys(conflictDetails);
+  //       //   const conflictDates = conflictDatesArray
+  //       //     .map((date) => new Date(date).toLocaleDateString())
+  //       //     .join(", ");
+
+  //       //   // Get the conflicting slot times for more detailed error message
+  //       //   const conflictingSlotTimes: string[] = [];
+  //       //   Object.values(conflictDetails).forEach((slotIds) => {
+  //       //     slotIds.forEach((slotId) => {
+  //       //       const slot = timeSlot.find(
+  //       //         (ts) => ts.time_slot_id.toString() === slotId
+  //       //       );
+  //       //       if (slot && !conflictingSlotTimes.includes(slot.time_slot || "")) {
+  //       //         conflictingSlotTimes.push(slot.time_slot || "");
+  //       //       }
+  //       //     });
+  //       //   });
+
+  //       //   const errorMsg = `Cannot replicate slots to ${conflictDates}. Time slots [${conflictingSlotTimes.join(
+  //       //     ", "
+  //       //   )}] are already booked. Please select different time slots or dates.`;
+
+  //       //   console.error("Replication conflict error:", {
+  //       //     conflictDates,
+  //       //     conflictingSlots: conflictingSlotTimes,
+  //       //     affectedDates: conflictDatesArray,
+  //       //   });
+
+  //       //   // Show error in multiple ways for better visibility
+  //       //   setErrors((prev) => ({
+  //       //     ...prev,
+  //       //     selectedSlots: errorMsg,
+  //       //   }));
+
+  //       //   setTouched((prev) => ({
+  //       //     ...prev,
+  //       //     selectedSlots: true,
+  //       //   }));
+  //       //   // showErrorSnackbarFunc(errorMsg);
+  //       //   return;
+  //       // }
+
+
+
+  //       // Check server-side conflicts for each target date
+  // const conflictDetails: { [key: string]: string[] } = {};
+  // for (const date of targetDates) {
+  //   console.log(`Checking conflicts for date: ${date}`);
+  //   const conflicts = await checkTimeSlotConflicts(date, sourceSlots);
+  //   if (conflicts.length > 0) {
+  //     conflictDetails[date] = conflicts;
+  //     console.log(`Conflicts found for ${date}:`, conflicts);
+  //   }
+  // }
+
+  // // If there are any conflicts, show detailed error message
+  // if (Object.keys(conflictDetails).length > 0) {
+  //   const conflictDatesArray = Object.keys(conflictDetails);
+  //   const conflictDates = conflictDatesArray
+  //     .map((date) => new Date(date).toLocaleDateString())
+  //     .join(", ");
+
+  //   // Get the conflicting slot times for more detailed error message
+  //   const conflictingSlotTimes: string[] = [];
+  //   const slotsByDate: { [key: string]: string[] } = {};
+
+  //   Object.entries(conflictDetails).forEach(([date, slotIds]) => {
+  //     const slotsForDate: string[] = [];
+  //     slotIds.forEach((slotId) => {
+  //       const slot = timeSlot.find(
+  //         (ts) => ts.time_slot_id.toString() === slotId
+  //       );
+  //       if (slot && !conflictingSlotTimes.includes(slot.time_slot || "")) {
+  //         conflictingSlotTimes.push(slot.time_slot || "");
+  //         slotsForDate.push(slot.time_slot || "");
+  //       }
+  //     });
+  //     if (slotsForDate.length > 0) {
+  //       slotsByDate[date] = slotsForDate;
+  //     }
+  //   });
+
+  //   // Build detailed error message
+  //   let errorMsg = `Cannot replicate slots. The following dates have overlapping booked slots:\n\n`;
+
+  //   Object.entries(slotsByDate).forEach(([date, slots]) => {
+  //     const formattedDate = new Date(date).toLocaleDateString();
+  //     errorMsg += `📅 ${formattedDate}: Time slots [${slots.join(", ")}] are already booked (grey)\n`;
+  //   });
+
+  //   errorMsg += `\nPlease select different time slots or dates.`;
+
+  //   console.error("Replication conflict error:", {
+  //     conflictDates,
+  //     conflictingSlots: conflictingSlotTimes,
+  //     affectedDates: conflictDatesArray,
+  //     slotsByDate,
+  //   });
+
+  //   // Show error in multiple ways for better visibility
+  //   setErrors((prev) => ({
+  //     ...prev,
+  //     selectedSlots: errorMsg,
+  //   }));
+
+  //   setTouched((prev) => ({
+  //     ...prev,
+  //     selectedSlots: true,
+  //   }));
+
+  //   // Show error snackbar for immediate feedback
+  //   showErrorSnackbarFunc(`Cannot replicate: ${conflictDates} have overlapping booked slots`);
+
+  //   return;
+  // }
+
+  //       // Build ranges for the sourceSlots (by index in timeSlot)
+  //       const indices = sourceSlots
+  //         .map((id) => getSlotIndex(id))
+  //         .filter((i) => i >= 0)
+  //         .sort((a, b) => a - b);
+
+  //       const ranges: TimeSlotRange[] = [];
+  //       if (indices.length > 0) {
+  //         let rangeStart = indices[0];
+  //         let rangeEnd = indices[0];
+  //         for (let i = 1; i < indices.length; i++) {
+  //           if (indices[i] === rangeEnd + 1) {
+  //             rangeEnd = indices[i];
+  //           } else {
+  //             ranges.push({ start: rangeStart, end: rangeEnd });
+  //             rangeStart = indices[i];
+  //             rangeEnd = indices[i];
+  //           }
+  //         }
+  //         ranges.push({ start: rangeStart, end: rangeEnd });
+  //       }
+
+  //       console.log("Calculated ranges:", ranges);
+
+  //       // Update dateTimeSlots for all target dates
+  //       setFormData((prev) => {
+  //         const updatedDateTimeSlots = { ...prev.dateTimeSlots };
+  //         targetDates.forEach((date) => {
+  //           updatedDateTimeSlots[date] = {
+  //             selectedSlots: [...sourceSlots],
+  //             selectedRanges: ranges.map((r) => ({ start: r.start, end: r.end })),
+  //           };
+  //         });
+
+  //         // If the current selectedDate is one of the targets, also update current working selection
+  //         const updatedSelectedSlots =
+  //           prev.selectedDate && targetDates.includes(prev.selectedDate)
+  //             ? [...sourceSlots]
+  //             : prev.selectedSlots;
+
+  //         const updatedSelectedRanges =
+  //           prev.selectedDate && targetDates.includes(prev.selectedDate)
+  //             ? ranges.map((r) => ({ start: r.start, end: r.end }))
+  //             : prev.selectedRanges;
+
+  //         return {
+  //           ...prev,
+  //           dateTimeSlots: updatedDateTimeSlots,
+  //           selectedSlots: updatedSelectedSlots,
+  //           selectedRanges: updatedSelectedRanges,
+  //         };
+  //       });
+
+  //       // Clear any previous slot errors on success
+  //       setErrors((prev) => ({ ...prev, selectedSlots: "" }));
+
+  //       // Show brief success feedback
+  //       const successMsg = `Slots replicated to ${targetDates.length} date${targetDates.length > 1 ? "s" : ""
+  //         }`;
+  //       console.log("Replication successful:", successMsg);
+  //       showSuccessSnackbarFunc(successMsg);
+  //     } catch (error) {
+  //       console.error("Error replicating slots:", error);
+  //       const errorMsg =
+  //         error instanceof Error
+  //           ? error.message
+  //           : "Failed to replicate time slots. Please try again.";
+  //       showErrorSnackbarFunc(errorMsg);
+  //       setErrors((prev) => ({ ...prev, selectedSlots: errorMsg }));
+  //     } finally {
+  //       setIsReplicating(false); // Stop loading
+  //     }
+  //   };
+
   const handleReplicateSlots = async (sourceDate?: string) => {
-    setIsReplicating(true); // Start loading
+    setIsReplicating(true);
     try {
       const src = sourceDate || selectedDate;
       if (!src) {
@@ -1474,49 +1891,145 @@ function DGXInstanceRequestFormContent() {
         }
       }
 
+      // // If there are any conflicts, show detailed error message
+      // if (Object.keys(conflictDetails).length > 0) {
+      //   const conflictDatesArray = Object.keys(conflictDetails).sort();
+
+      //   // Build detailed mapping of conflicts by date
+      //   const slotsByDate: { [key: string]: { slot: string; slotId: string }[] } = {};
+
+      //   Object.entries(conflictDetails).forEach(([date, slotIds]) => {
+      //     const slotsForDate: { slot: string; slotId: string }[] = [];
+      //     slotIds.forEach((slotId) => {
+      //       const slot = timeSlot.find(
+      //         (ts) => String(ts.time_slot_id) === String(slotId)
+      //       );
+      //       if (slot && slot.time_slot) {
+      //         slotsForDate.push({
+      //           slot: slot.time_slot,
+      //           slotId: String(slotId),
+      //         });
+      //       }
+      //     });
+      //     if (slotsForDate.length > 0) {
+      //       slotsByDate[date] = slotsForDate;
+      //     }
+      //   });
+
+      //   // Build comprehensive error message
+      //   let errorMsg = `❌ Cannot replicate slots - conflicts detected:\n\n`;
+
+      //   Object.entries(slotsByDate).forEach(([date, slotsInfo]) => {
+      //     // const formattedDate = new Date(date).toLocaleDateString("en-US", {
+      //     //   weekday: "short",
+      //     //   year: "numeric",
+      //     //   month: "short",
+      //     //   day: "numeric",
+      //     // });
+      //     const formattedDate = formatDateDDMMYYYY(date);
+      //     const slotNames = slotsInfo.map((s) => s.slot).join(", ");
+      //     errorMsg += `📅 ${formattedDate}\n`;
+      //     errorMsg += `   🔲 Grey slots (booked by others): ${slotNames}\n\n`;
+      //   });
+
+      //   errorMsg += `Please select different time slots or dates.`;
+
+      //   console.error("Replication conflict error:", {
+      //     affectedDates: conflictDatesArray,
+      //     conflictsByDate: slotsByDate,
+      //   });
+
+      //   // Show error in multiple ways for better visibility
+      //   setErrors((prev) => ({
+      //     ...prev,
+      //     selectedSlots: errorMsg,
+      //   }));
+
+      //   setTouched((prev) => ({
+      //     ...prev,
+      //     selectedSlots: true,
+      //   }));
+
+      //   // Show error snackbar for immediate feedback
+      //   const affectedCount = conflictDatesArray.length;
+      //   showErrorSnackbarFunc(
+      //     `Cannot replicate: ${affectedCount} date${affectedCount > 1 ? "s" : ""} have conflicting booked slots`
+      //   );
+
+      //   return;
+      // }
+
       // If there are any conflicts, show detailed error message
-      if (Object.keys(conflictDetails).length > 0) {
-        const conflictDatesArray = Object.keys(conflictDetails);
-        const conflictDates = conflictDatesArray
-          .map((date) => new Date(date).toLocaleDateString())
-          .join(", ");
+if (Object.keys(conflictDetails).length > 0) {
+  const conflictDatesArray = Object.keys(conflictDetails).sort();
+  const totalTargetDates = targetDates.length;
+  const conflictCount = conflictDatesArray.length;
 
-        // Get the conflicting slot times for more detailed error message
-        const conflictingSlotTimes: string[] = [];
-        Object.values(conflictDetails).forEach((slotIds) => {
-          slotIds.forEach((slotId) => {
-            const slot = timeSlot.find(
-              (ts) => ts.time_slot_id.toString() === slotId
-            );
-            if (slot && !conflictingSlotTimes.includes(slot.time_slot || "")) {
-              conflictingSlotTimes.push(slot.time_slot || "");
-            }
-          });
+  // Build detailed mapping of conflicts by date
+  const slotsByDate: { [key: string]: { slot: string; slotId: string }[] } = {};
+
+  Object.entries(conflictDetails).forEach(([date, slotIds]) => {
+    const slotsForDate: { slot: string; slotId: string }[] = [];
+    slotIds.forEach((slotId) => {
+      const slot = timeSlot.find(
+        (ts) => String(ts.time_slot_id) === String(slotId)
+      );
+      if (slot && slot.time_slot) {
+        slotsForDate.push({
+          slot: slot.time_slot,
+          slotId: String(slotId),
         });
-
-        const errorMsg = `Cannot replicate slots to ${conflictDates}. Time slots [${conflictingSlotTimes.join(
-          ", "
-        )}] are already booked. Please select different time slots or dates.`;
-
-        console.error("Replication conflict error:", {
-          conflictDates,
-          conflictingSlots: conflictingSlotTimes,
-          affectedDates: conflictDatesArray,
-        });
-
-        // Show error in multiple ways for better visibility
-        setErrors((prev) => ({
-          ...prev,
-          selectedSlots: errorMsg,
-        }));
-
-        setTouched((prev) => ({
-          ...prev,
-          selectedSlots: true,
-        }));
-        // showErrorSnackbarFunc(errorMsg);
-        return;
       }
+    });
+    if (slotsForDate.length > 0) {
+      slotsByDate[date] = slotsForDate;
+    }
+  });
+
+  // Build comprehensive error message with summary
+  let errorMsg = `❌ REPLICATION BLOCKED - Time Slot Conflicts Detected\n`;
+  errorMsg += `═══════════════════════════════════════════════════\n\n`;
+  errorMsg += `📊 Summary: ${conflictCount} out of ${totalTargetDates} target date${totalTargetDates > 1 ? "s" : ""} have overlapping booked slots.\n\n`;
+  errorMsg += `Conflicting Dates:\n`;
+  errorMsg += `─────────────────\n`;
+
+  Object.entries(slotsByDate).forEach(([date, slotsInfo]) => {
+    const formattedDate = formatDateDDMMYYYY(date);
+    const slotNames = slotsInfo.map((s) => s.slot).join(", ");
+    errorMsg += `📅 ${formattedDate}\n`;
+    errorMsg += `   ⚠️  Already booked: ${slotNames}\n`;
+  });
+
+  errorMsg += `\n═══════════════════════════════════════════════════\n`;
+  errorMsg += `💡 Solution:\n`;
+  errorMsg += `   • Select different time slots, OR\n`;
+  errorMsg += `   • Choose a date range without conflicts, OR\n`;
+  errorMsg += `   • Wait for other users to complete their bookings\n`;
+
+  console.error("Replication conflict error:", {
+    affectedDates: conflictDatesArray,
+    affectedCount: conflictCount,
+    totalTargetDates: totalTargetDates,
+    conflictsByDate: slotsByDate,
+  });
+
+  // Show error in multiple ways for better visibility
+  setErrors((prev) => ({
+    ...prev,
+    selectedSlots: errorMsg,
+  }));
+
+  setTouched((prev) => ({
+    ...prev,
+    selectedSlots: true,
+  }));
+
+  // Show error snackbar for immediate feedback with clear summary
+  const summary = `Cannot replicate: ${conflictCount}/${totalTargetDates} dates have booked slots in your selected time range`;
+  showErrorSnackbarFunc(summary);
+
+  return;
+}
 
       // Build ranges for the sourceSlots (by index in timeSlot)
       const indices = sourceSlots
@@ -1574,9 +2087,29 @@ function DGXInstanceRequestFormContent() {
       // Clear any previous slot errors on success
       setErrors((prev) => ({ ...prev, selectedSlots: "" }));
 
-      // Show brief success feedback
+      // Clear any previous slot errors on success
+      setErrors((prev) => ({ ...prev, selectedSlots: "" }));
+
+      // Show brief success feedback with list of dates
+      // const formattedDates = targetDates.map((date) =>
+      //   new Date(date).toLocaleDateString("en-US", {
+      //     day: "numeric",
+      //     month: "numeric",
+      //     year: "numeric",
+      //   })
+      // );
+      const formattedDates = targetDates.map((date) =>
+        formatDateDDMMYYYY(date)
+      );
       const successMsg = `Slots replicated to ${targetDates.length} date${targetDates.length > 1 ? "s" : ""
-        }`;
+        }: ${formattedDates.join(", ")}`;
+      console.log("Replication successful:", successMsg);
+      showSuccessSnackbarFunc(successMsg);
+
+      // Show brief success feedback
+      // const successMsg = `Slots replicated to ${targetDates.length + 1} date${
+      //   targetDates.length > 1 ? "s" : ""
+      // }`;
       console.log("Replication successful:", successMsg);
       showSuccessSnackbarFunc(successMsg);
     } catch (error) {
@@ -1588,9 +2121,12 @@ function DGXInstanceRequestFormContent() {
       showErrorSnackbarFunc(errorMsg);
       setErrors((prev) => ({ ...prev, selectedSlots: errorMsg }));
     } finally {
-      setIsReplicating(false); // Stop loading
+      setIsReplicating(false);
     }
   };
+
+
+
 
   const handleTimeSlotClick = async (slotId: string) => {
     // Initial validation checks
@@ -1730,20 +2266,20 @@ function DGXInstanceRequestFormContent() {
   // };
 
 
-    const getUserTimeSlots = async () => {
+  const getUserTimeSlots = async () => {
     try {
       const params = new URLSearchParams();
       if (selectedDate) params.append('selectedDate', selectedDate);
       if (instance_id) params.append('excludeInstanceId', instance_id);
 
       const data = await fetchAPI(`/userTimeSlots?${params.toString()}`);
-      
+
       // Ensure time_slot_id is properly typed
       const processedData = data.map((slot: any) => ({
         ...slot,
         time_slot_id: String(slot.time_slot_id) // Convert to string for consistency
       }));
-      
+
       setUserTimeSlot(processedData);
       console.log('📋 Booked slots for', selectedDate, ':', processedData);
     } catch (error) {
@@ -1827,6 +2363,28 @@ function DGXInstanceRequestFormContent() {
   };
 
 
+  // Helper function to detect if dates form a consecutive range
+const isConsecutiveDateRange = (dates: string[]): boolean => {
+  if (dates.length <= 1) return false;
+  
+  const sortedDates = [...dates].sort();
+  const firstDate = new Date(sortedDates[0]);
+  
+  for (let i = 1; i < sortedDates.length; i++) {
+    const currentDate = new Date(sortedDates[i]);
+    const previousDate = new Date(sortedDates[i - 1]);
+    
+    // Check if current date is exactly 1 day after previous date
+    const diffTime = currentDate.getTime() - previousDate.getTime();
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    
+    if (diffDays !== 1) {
+      return false;
+    }
+  }
+  
+  return true;
+};
 
 
   const getInstanceRequestByUserId = async () => {
@@ -1841,9 +2399,14 @@ function DGXInstanceRequestFormContent() {
       console.log("🔍 Loaded instance data:", data);
       console.log("🔍 Loaded time slots:", timeSlotData);
 
+      
+
       // Build dateTimeSlots structure
       const timeSlotsByDate: DateTimeSlots = {};
       const uniqueDates: string[] = [];
+
+
+      
 
       timeSlotData.forEach((slot: any) => {
         const date = slot.selected_date;
@@ -1898,6 +2461,8 @@ function DGXInstanceRequestFormContent() {
       console.log("🔍 Built dateTimeSlots:", timeSlotsByDate);
       console.log("🔍 Unique dates:", uniqueDates);
 
+      
+
       // Populate form data
       const firstDate = uniqueDates.length > 0 ? uniqueDates[0] : '';
       const newFormData = {
@@ -1920,6 +2485,24 @@ function DGXInstanceRequestFormContent() {
       console.log("🔍 Setting formData:", newFormData);
       setFormData(newFormData);
       setSelectedDate(firstDate);
+
+      console.log("🔍 Setting formData:", newFormData);
+      setFormData(newFormData);
+      setSelectedDate(firstDate);
+      
+      // ✅ Detect if dates are consecutive (range) or random (individual)
+      if (isConsecutiveDateRange(uniqueDates)) {
+        setDateSelectionMode("range");
+        // Extract start and end dates for range mode display
+        const sortedDates = [...uniqueDates].sort();
+        setDateRange({
+          start: sortedDates[0],
+          end: sortedDates[sortedDates.length - 1]
+        });
+      } else {
+        setDateSelectionMode("individual");
+      }
+
     } catch (error) {
       console.error('Error fetching instance request:', error);
       showErrorSnackbarFunc('Failed to load instance request data');
@@ -1989,7 +2572,8 @@ function DGXInstanceRequestFormContent() {
         const dateSlots = formData.dateTimeSlots[date]?.selectedSlots || [];
         if (dateSlots.length === 0) {
           throw new Error(
-            `Please select time slots for ${new Date(date).toLocaleDateString()}`
+            // `Please select time slots for ${new Date(date).toLocaleDateString()}`
+            `Please select time slots for ${formatDateDDMMYYYY(date)}`
           );
         }
       }
@@ -2074,8 +2658,8 @@ function DGXInstanceRequestFormContent() {
 
         <div
           className={`fixed inset-x-0 bottom-5 flex justify-center z-50 transition-all duration-500 ${showErrorSnackbar
-              ? "transform translate-y-0 opacity-100"
-              : "transform translate-y-full opacity-0"
+            ? "transform translate-y-0 opacity-100"
+            : "transform translate-y-full opacity-0"
             }`}
         >
           <div
@@ -2092,8 +2676,8 @@ function DGXInstanceRequestFormContent() {
         {/* Success Snackbar */}
         <div
           className={`fixed inset-x-0 bottom-5 flex justify-center z-50 transition-all duration-500 ${successSnackbar
-              ? "transform translate-y-0 opacity-100"
-              : "transform translate-y-full opacity-0"
+            ? "transform translate-y-0 opacity-100"
+            : "transform translate-y-full opacity-0"
             }`}
         >
           <div
@@ -2113,8 +2697,8 @@ function DGXInstanceRequestFormContent() {
         {/* Error Snackbar */}
         <div
           className={`fixed inset-x-0 bottom-5 flex justify-center z-50 transition-all duration-500 ${showErrorSnackbar
-              ? "transform translate-y-0 opacity-100"
-              : "transform translate-y-full opacity-0"
+            ? "transform translate-y-0 opacity-100"
+            : "transform translate-y-full opacity-0"
             }`}
         >
           <div
@@ -2131,8 +2715,8 @@ function DGXInstanceRequestFormContent() {
         {/* Success Snackbar */}
         <div
           className={`fixed inset-x-0 bottom-5 flex justify-center z-50 transition-all duration-500 ${successSnackbar
-              ? "transform translate-y-0 opacity-100"
-              : "transform translate-y-full opacity-0"
+            ? "transform translate-y-0 opacity-100"
+            : "transform translate-y-full opacity-0"
             }`}
         >
           <div
@@ -2147,11 +2731,11 @@ function DGXInstanceRequestFormContent() {
         </div>
 
         {/* Main Container with Card */}
-        <div className="max-w-5xl mx-auto p-4">
+        <div className="max-w-5xl mx-auto p-2">
           {/* Card Container */}
           {/* <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden"> */}
           <div
-            className="rounded-xl p-5"
+            className="rounded-xl p-2"
             style={{
               backgroundColor: "#fff",
               boxShadow:
@@ -2832,48 +3416,146 @@ function DGXInstanceRequestFormContent() {
                           />
                         </div>
                       </div>
+                      // ) : (
+                      //   // Date range selection
+                      //   <div className="flex items-center gap-4">
+                      //     <div className="relative w-64">
+                      //       <label className="absolute -top-2 left-3 px-1 bg-white text-sm text-[#5A8F00] font-small">
+                      //         Start Date
+                      //       </label>
+                      //       <input
+                      //         type="date"
+                      //         value={dateRange.start}
+                      //         min={getTodayDate()}
+                      //         onChange={(e) =>
+                      //           setDateRange((prev) => ({
+                      //             ...prev,
+                      //             start: e.target.value,
+                      //           }))
+                      //         }
+                      //         className="w-full px-3 pt-2 pb-2 text-sm rounded-lg focus:outline-none bg-white transition-all duration-200 hover:border-green-200 cursor-pointer"
+                      //         style={{
+                      //           color: "#2d4a00",
+                      //           border: "2px solid #e8f5d0",
+                      //         }}
+                      //       />
+                      //     </div>
+                      //     <div className="relative w-64">
+                      //       <label className="absolute -top-2 left-3 px-1 bg-white text-sm text-[#5A8F00] font-small">
+                      //         End Date
+                      //       </label>
+                      //       <input
+                      //         type="date"
+                      //         value={dateRange.end}
+                      //         min={dateRange.start || getTodayDate()}
+                      //         onChange={(e) =>
+                      //           setDateRange((prev) => ({
+                      //             ...prev,
+                      //             end: e.target.value,
+                      //           }))
+                      //         }
+                      //         className="w-full px-3 pt-2 pb-2 text-sm rounded-lg focus:outline-none bg-white transition-all duration-200 hover:border-green-200 cursor-pointer"
+                      //         style={{
+                      //           color: "#2d4a00",
+                      //           border: "2px solid #e8f5d0",
+                      //         }}
+                      //       />
+                      //     </div>
+                      //     <button
+                      //       type="button"
+                      //       onClick={handleDateRangeAdd}
+                      //       disabled={!dateRange.start || !dateRange.end}
+                      //       className="p-2 text-white rounded-full transition-all duration-200 hover:shadow-lg disabled:opacity-50 flex items-center justify-center"
+                      //       style={{
+                      //         backgroundColor:
+                      //           !dateRange.start || !dateRange.end
+                      //             ? "#9ca3af"
+                      //             : "#76B900",
+                      //         width: "36px",
+                      //         height: "36px",
+                      //       }}
+                      //       title="Set date range"
+                      //     >
+                      //       <ArrowRightIcon size={16} />
+                      //     </button>
+                      //   </div>
+                      // )}
                     ) : (
                       // Date range selection
                       <div className="flex items-center gap-4">
                         <div className="relative w-64">
-                          <label className="absolute -top-2 left-3 px-1 bg-white text-sm text-[#5A8F00] font-small">
-                            Start Date
+                          <label
+                            className={`absolute -top-2 left-3 px-1 bg-white text-sm font-small
+          ${dateRangeErrors.start ? "text-red-500" : "text-[#5A8F00]"}
+        `}
+                          >
+                            {dateRangeErrors.start || "Start Date*"}
                           </label>
                           <input
                             type="date"
                             value={dateRange.start}
                             min={getTodayDate()}
-                            onChange={(e) =>
+                            onChange={(e) => {
                               setDateRange((prev) => ({
                                 ...prev,
                                 start: e.target.value,
-                              }))
-                            }
+                              }));
+                              if (dateRangeErrors.start) {
+                                setDateRangeErrors((prev) => ({ ...prev, start: "" }));
+                              }
+                            }}
+                            onFocus={(e) => {
+                              e.target.style.borderColor = "#5A8F00";
+                              e.target.style.boxShadow = "0 0 0 3px rgba(118, 185, 0, 0.1)";
+                            }}
+                            onBlur={(e) => {
+                              if (!dateRangeErrors.start) {
+                                e.target.style.borderColor = "#e8f5d0";
+                                e.target.style.boxShadow = "none";
+                              }
+                            }}
                             className="w-full px-3 pt-2 pb-2 text-sm rounded-lg focus:outline-none bg-white transition-all duration-200 hover:border-green-200 cursor-pointer"
                             style={{
                               color: "#2d4a00",
-                              border: "2px solid #e8f5d0",
+                              border: dateRangeErrors.start ? "2px solid #ef4444" : "2px solid #e8f5d0",
                             }}
                           />
                         </div>
                         <div className="relative w-64">
-                          <label className="absolute -top-2 left-3 px-1 bg-white text-sm text-[#5A8F00] font-small">
-                            End Date
+                          <label
+                            className={`absolute -top-2 left-3 px-1 bg-white text-sm font-small
+          ${dateRangeErrors.end ? "text-red-500" : "text-[#5A8F00]"}
+        `}
+                          >
+                            {dateRangeErrors.end || "End Date*"}
                           </label>
                           <input
                             type="date"
                             value={dateRange.end}
                             min={dateRange.start || getTodayDate()}
-                            onChange={(e) =>
+                            onChange={(e) => {
                               setDateRange((prev) => ({
                                 ...prev,
                                 end: e.target.value,
-                              }))
-                            }
+                              }));
+                              if (dateRangeErrors.end) {
+                                setDateRangeErrors((prev) => ({ ...prev, end: "" }));
+                              }
+                            }}
+                            onFocus={(e) => {
+                              e.target.style.borderColor = "#5A8F00";
+                              e.target.style.boxShadow = "0 0 0 3px rgba(118, 185, 0, 0.1)";
+                            }}
+                            onBlur={(e) => {
+                              if (!dateRangeErrors.end) {
+                                e.target.style.borderColor = "#e8f5d0";
+                                e.target.style.boxShadow = "none";
+                              }
+                            }}
                             className="w-full px-3 pt-2 pb-2 text-sm rounded-lg focus:outline-none bg-white transition-all duration-200 hover:border-green-200 cursor-pointer"
                             style={{
                               color: "#2d4a00",
-                              border: "2px solid #e8f5d0",
+                              border: dateRangeErrors.end ? "2px solid #ef4444" : "2px solid #e8f5d0",
                             }}
                           />
                         </div>
@@ -2915,19 +3597,20 @@ function DGXInstanceRequestFormContent() {
                                   key={date}
                                   onClick={() => setSelectedDate(date)}
                                   className={`flex items-center gap-1 px-1 py-0.5 rounded-full text-xs cursor-pointer transition-all duration-200 ${date === selectedDate
-                                      ? "bg-green-100 border-1 border-green-500"
-                                      : "bg-gray-50 border border-gray-200 hover:border-green-300 hover:bg-green-50"
+                                    ? "bg-green-100 border-1 border-green-500"
+                                    : "bg-gray-50 border border-gray-200 hover:border-green-300 hover:bg-green-50"
                                     }`}
                                 >
                                   <span className="text-xs text-gray-700">
-                                    {new Date(date).toLocaleDateString(
+                                    {/* {new Date(date).toLocaleDateString(
                                       "en-US",
                                       {
                                         day: "2-digit",
                                         month: "2-digit",
                                         year: "numeric",
                                       }
-                                    )}
+                                    )} */}
+                                    {formatDateDDMMYYYY(date)}
                                   </span>
                                   <div className="flex items-center gap-1">
                                     {/* <span className="text-xs text-gray-500">
@@ -3021,12 +3704,16 @@ function DGXInstanceRequestFormContent() {
                     </label>
                   </div>
 
-                  {errors.selectedSlots && touched.selectedSlots && (
+                  {/* {errors.selectedSlots && touched.selectedSlots && (
                     <div className="text-red-500 text-sm mb-2">
                       {errors.selectedSlots}
                     </div>
+                  )} */}
+                  {errors.selectedSlots && touched.selectedSlots && (
+                    <div className="text-red-500 text-sm mb-2 whitespace-pre-wrap">
+                      {errors.selectedSlots}
+                    </div>
                   )}
-
                   <div
                     className="grid grid-cols-12 gap-0.5 mb-2"
                     onMouseLeave={() => {
