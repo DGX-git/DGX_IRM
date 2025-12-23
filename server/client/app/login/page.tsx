@@ -128,7 +128,7 @@ const fetchUserFromAuth = async () => {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col overflow-y-auto">
       <Header />
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md">

@@ -1,22 +1,38 @@
-const sgMail = require("@sendgrid/mail");
+const sequelize = require("../config/sequelize.config"); // backend/services/emailService.js
+const nodemailer = require("nodemailer");
 
-// Configure SendGrid
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+// Configure Zoho transporter
+// const transporter = nodemailer.createTransport({
+//   host: 'smtp.zoho.in',
+//   port: 465,
+//   secure: true,
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_APP_PASSWORD,
+//   },
+// });
 
-// Verify SendGrid configuration
-const verifySendGrid = async () => {
-  try {
-    if (process.env.SENDGRID_API_KEY) {
-      console.log("SendGrid API key is configured and ready to send emails");
-    } else {
-      console.error("SendGrid API key is not configured");
-    }
-  } catch (error) {
-    console.error("SendGrid configuration error:", error);
+const transporter = nodemailer.createTransport({
+  host: "smtp.zoho.in",
+  port: 587, // TLS port (works on Render)
+  secure: false, // MUST be false for port 587
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_APP_PASSWORD,
+  },
+  tls: {
+    rejectUnauthorized: false, // Zoho sometimes requires this on cloud hosts
+  },
+});
+
+// Verify transporter configuration
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("Email transporter verification failed:", error);
+  } else {
+    console.log("Email transporter is ready to send emails");
   }
-};
-
-verifySendGrid();
+});
 
 // Helper function to format request details
 function formatRequestDetails(requestData, type) {
@@ -431,9 +447,12 @@ const sendApprovalEmail = async (request, response) => {
       });
     }
 
-    const msg = {
+    const mailOptions = {
+      from: {
+        name: "DGX Administrator",
+        address: process.env.EMAIL_USER,
+      },
       to: requestData.user?.email_id,
-      from: process.env.SENDGRID_VERIFIED_EMAIL,
       subject: `DGX Instance Request Approved (${
         requestData.admin || "Administrator"
       })`,
@@ -441,12 +460,13 @@ const sendApprovalEmail = async (request, response) => {
       html: generateApprovalEmailHtml(requestData, credentials),
     };
 
-    await sgMail.send(msg);
-    console.log("Approval email sent successfully via SendGrid");
+    const result = await transporter.sendMail(mailOptions);
+    console.log("Approval email sent successfully:", result.messageId);
 
     return response.json({
       success: true,
       message: "Approval email sent successfully",
+      data: { messageId: result.messageId },
     });
   } catch (error) {
     console.error("Error sending approval email:", error);
@@ -470,9 +490,12 @@ const sendRejectionEmail = async (request, response) => {
       });
     }
 
-    const msg = {
+    const mailOptions = {
+      from: {
+        name: "DGX Administrator",
+        address: process.env.EMAIL_USER,
+      },
       to: requestData.user?.email_id,
-      from: process.env.SENDGRID_VERIFIED_EMAIL,
       subject: `DGX Instance Request Rejected (${
         requestData.admin || "Administrator"
       })`,
@@ -480,12 +503,13 @@ const sendRejectionEmail = async (request, response) => {
       html: generateRejectionEmailHtml(requestData, remarks, "rejection"),
     };
 
-    await sgMail.send(msg);
-    console.log("Rejection email sent successfully via SendGrid");
+    const result = await transporter.sendMail(mailOptions);
+    console.log("Rejection email sent successfully:", result.messageId);
 
     return response.json({
       success: true,
       message: "Rejection email sent successfully",
+      data: { messageId: result.messageId },
     });
   } catch (error) {
     console.error("Error sending rejection email:", error);
@@ -509,9 +533,12 @@ const sendRevokeEmail = async (request, response) => {
       });
     }
 
-    const msg = {
+    const mailOptions = {
+      from: {
+        name: "DGX Administrator",
+        address: process.env.EMAIL_USER,
+      },
       to: requestData.user?.email_id,
-      from: process.env.SENDGRID_VERIFIED_EMAIL,
       subject: `DGX Instance Request Revoked (${
         requestData.admin || "Administrator"
       })`,
@@ -519,12 +546,13 @@ const sendRevokeEmail = async (request, response) => {
       html: generateRejectionEmailHtml(requestData, remarks, "revoke"),
     };
 
-    await sgMail.send(msg);
-    console.log("Revoke email sent successfully via SendGrid");
+    const result = await transporter.sendMail(mailOptions);
+    console.log("Revoke email sent successfully:", result.messageId);
 
     return response.json({
       success: true,
       message: "Revoke email sent successfully",
+      data: { messageId: result.messageId },
     });
   } catch (error) {
     console.error("Error sending revoke email:", error);
@@ -547,9 +575,12 @@ const sendGrantAccessEmail = async (request, response) => {
       });
     }
 
-    const msg = {
+    const mailOptions = {
+      from: {
+        name: "DGX Administrator",
+        address: process.env.EMAIL_USER,
+      },
       to: requestData.user?.email_id,
-      from: process.env.SENDGRID_VERIFIED_EMAIL,
       subject: `DGX Instance Access Granted (${
         requestData.admin || "Administrator"
       })`,
@@ -557,16 +588,17 @@ const sendGrantAccessEmail = async (request, response) => {
       html: generateGrantAccessEmailHtml(requestData),
     };
 
-    await sgMail.send(msg);
-    console.log("Grant access email sent successfully via SendGrid");
+    const result = await transporter.sendMail(mailOptions);
+    console.log("Grant access email sent successfully:", result.messageId);
 
     return response.json({
       success: true,
       message: "Grant access email sent successfully",
+      data: { messageId: result.messageId },
     });
   } catch (error) {
     console.error("Error sending grant access email:", error);
-    return response.status(500).json({
+    return response.status(500).json({ 
       success: false,
       message: "Failed to send grant access email",
       error: error.message,

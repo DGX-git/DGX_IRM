@@ -234,36 +234,38 @@ function DGXDashboard() {
   }, [router]);
 
   // Fetch user's institutes
- useEffect(() => {
-   const fetchInstitutes = async () => {
-     try {
-       const response = await fetch(
-         process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin//user-institutes/" + loggedInUserId, // direct URL
-         {
-           method: "GET",
-           headers: { "Content-Type": "application/json" },
-         }
-       );
- 
-       if (!response.ok) throw new Error("Network response was not ok");
- 
-       const data = await response.json();
-       console.log("Fetched institutes:", data);
- 
-       if (!data || data.length === 0) return;
- 
-       const allOption = { institute_id: "all", institute_name: "All" };
-       const updatedList = [allOption, ...data];
- 
-       setUserInstitutes(updatedList);
-       setSelectedInstitute(allOption);
-     } catch (error) {
-       console.error("Error fetching institutes:", error);
-     }
-   };
- 
-   fetchInstitutes();
- }, [loggedInUserId]);
+  useEffect(() => {
+    const fetchInstitutes = async () => {
+      try {
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_DGX_API_URL +
+            "/technicaladmin//user-institutes/" +
+            loggedInUserId, // direct URL
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        if (!response.ok) throw new Error("Network response was not ok");
+
+        const data = await response.json();
+        console.log("Fetched institutes:", data);
+
+        if (!data || data.length === 0) return;
+
+        const allOption = { institute_id: "all", institute_name: "All" };
+        const updatedList = [allOption, ...data];
+
+        setUserInstitutes(updatedList);
+        setSelectedInstitute(allOption);
+      } catch (error) {
+        console.error("Error fetching institutes:", error);
+      }
+    };
+
+    fetchInstitutes();
+  }, [loggedInUserId]);
 
   // Update this useEffect to reapply filters when requests change
   useEffect(() => {
@@ -562,7 +564,60 @@ function DGXDashboard() {
   const closeFilterValidationPopup = () => {
     setIsFilterValidationPopupOpen(false);
   };
+  // Get Full User Name
+  const getUserName = (userId: number): string => {
+    if (!userId) return "";
 
+    const user = users.find((u) => u.user_id === userId);
+    if (!user) return `Unknown User (${userId})`;
+
+    const first = user.first_name?.trim() ?? "";
+    const last = user.last_name?.trim() ?? "";
+
+    const fullName = `${first} ${last}`.trim();
+    return fullName || "No Name";
+  };
+
+  // Get Institute Name (Based on user_id)
+  const getInstituteName = (userId: number): string => {
+    if (!userId) return "Not Assigned";
+
+    const user = users.find((u) => u.user_id === userId);
+    if (!user) return `Unknown User (${userId})`;
+
+    // If table is filtered by a specific institute
+    if (
+      currentFilteredInstitute &&
+      currentFilteredInstitute.institute_id !== "all"
+    ) {
+      const hasAssociation = userInstituteAssociation.some(
+        (assoc) =>
+          assoc.user_id === userId &&
+          assoc.institute_id === currentFilteredInstitute.institute_id
+      );
+
+      if (hasAssociation) {
+        return currentFilteredInstitute.institute_name || "";
+      }
+    }
+
+    // Otherwise → find user's first/default institute
+    const association = userInstituteAssociation.find(
+      (assoc) => assoc.user_id === userId
+    );
+
+    if (!association) return "No Institute Assigned";
+
+    // Match institute details
+    const institute = institutes.find(
+      (inst) => inst.institute_id === association.institute_id
+    );
+
+    return (
+      institute?.institute_name ??
+      `Unknown Institute (${association.institute_id})`
+    );
+  };
   const sortedRequests = useMemo(() => {
     let sortable = [...filteredRequests];
 
@@ -1071,61 +1126,6 @@ function DGXDashboard() {
     }
   };
 
-  // Get Full User Name
-  const getUserName = (userId: number): string => {
-    if (!userId) return "";
-
-    const user = users.find((u) => u.user_id === userId);
-    if (!user) return `Unknown User (${userId})`;
-
-    const first = user.first_name?.trim() ?? "";
-    const last = user.last_name?.trim() ?? "";
-
-    const fullName = `${first} ${last}`.trim();
-    return fullName || "No Name";
-  };
-
-  // Get Institute Name (Based on user_id)
-  const getInstituteName = (userId: number): string => {
-    if (!userId) return "Not Assigned";
-
-    const user = users.find((u) => u.user_id === userId);
-    if (!user) return `Unknown User (${userId})`;
-
-    // If table is filtered by a specific institute
-    if (
-      currentFilteredInstitute &&
-      currentFilteredInstitute.institute_id !== "all"
-    ) {
-      const hasAssociation = userInstituteAssociation.some(
-        (assoc) =>
-          assoc.user_id === userId &&
-          assoc.institute_id === currentFilteredInstitute.institute_id
-      );
-
-      if (hasAssociation) {
-        return currentFilteredInstitute.institute_name || "";
-      }
-    }
-
-    // Otherwise → find user's first/default institute
-    const association = userInstituteAssociation.find(
-      (assoc) => assoc.user_id === userId
-    );
-
-    if (!association) return "No Institute Assigned";
-
-    // Match institute details
-    const institute = institutes.find(
-      (inst) => inst.institute_id === association.institute_id
-    );
-
-    return (
-      institute?.institute_name ??
-      `Unknown Institute (${association.institute_id})`
-    );
-  };
-
   // Updated function to check status by name instead of ID
   const getAccessStatusIcon = (statusId: number) => {
     const statusName = getStatusName(statusId);
@@ -1160,7 +1160,7 @@ function DGXDashboard() {
     }
   };
 
-    if (authLoading) {
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
@@ -1443,10 +1443,13 @@ function DGXDashboard() {
                     { key: "institute_name", label: "Institute Name" },
                     { key: "created_timestamp", label: "Requested Date/Time" },
                     { key: "work_description", label: "Description" },
-                    { key: "", label: "" },
-                    { key: "", label: "" },
-                    { key: "status", label: "Status" },
-                    { key: "", label: "" },
+                    // { key: "", label: "" },
+                    // { key: "", label: "" },
+                    { key: "view_action", label: "" },
+                    { key: "edit_action", label: "" },
+                    { key: "status_id", label: "Status" },
+                    // { key: "", label: "" },
+                    { key: "approve_action", label: "" },
                     { key: "remarks", label: "Remarks" },
                   ].map((col) => (
                     <th
@@ -2322,7 +2325,7 @@ function DGXDashboard() {
                 <button
                   onClick={handleRemarksSubmit}
                   disabled={isEmailSending}
-                  className="bg-lime-500 text-white py-2 px-6 rounded hover:bg-lime-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-semibold"
+                  className="bg-lime-500 text-white py-2 px-6 rounded hover:bg-lime-600 transition-colors text-sm font-medium disabled:opacity-50 cursor-pointer font-semibold"
                   style={{
                     backgroundColor: isEmailSending ? "#9ca3af" : "#76B900",
                   }}

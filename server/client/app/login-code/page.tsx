@@ -108,9 +108,9 @@ function LoginCodeContent() {
       console.error("Error verifying OTP:", err);
       setError("Something went wrong. Try again.");
     }
-    finally {
-      setIsVerifying(false);
-    }
+    // finally {
+    //   setIsVerifying(false);
+    // }
   };
 
   const handleResendCode = async () => {
@@ -157,7 +157,7 @@ function LoginCodeContent() {
     >
       <Header />
 
-      <div className="flex-1 flex items-center justify-center p-2">
+      <div className="flex-1 flex items-center justify-center p-2 overflow-y-auto">
         <div className="w-full max-w-lg">
           <div
             className="rounded-xl p-5"

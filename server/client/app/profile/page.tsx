@@ -214,6 +214,8 @@ function ProfilePage() {
     if (!validateAll()) return;
 
     const emailChanged = editData.email_id !== profileData.email_id;
+    const firstNameChanged = editData.firstname !== profileData.firstname;
+    const lastNameChanged = editData.lastname !== profileData.lastname;
 
     try {
       setSaving(true);
@@ -254,7 +256,7 @@ function ProfilePage() {
         const updateUserData = await updateUserResponse.json();
 
 // If backend sends a new token (because email changed), update localStorage
-if (emailChanged && updateUserData.newToken) {
+if (emailChanged || firstNameChanged || lastNameChanged && updateUserData.newToken) {
   localStorage.setItem("JWT_Token", updateUserData.newToken);
 }
 
@@ -376,7 +378,10 @@ if (emailChanged && updateUserData.newToken) {
       setFieldErrors({});
       setError(null);
       showSnackbar("Profile updated successfully!");
-      setTimeout(() => setShowSuccessSnackbar(false), 3000);
+      setTimeout(() => {
+      setShowSuccessSnackbar(false);
+      window.location.reload();
+      }, 3000);
     } catch (err) {
       console.error("❌ Error saving user data:", err);
       setError("Failed to save changes");
@@ -473,7 +478,7 @@ if (emailChanged && updateUserData.newToken) {
                   <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="transition-colors text-sm font-medium cursor-pointer inline-flex items-center px-3 py-1.5 text-sm font-semibold text-white rounded-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="transition-colors text-sm font-medium cursor-pointer inline-flex items-center px-3 py-1.5 text-sm font-semibold text-white rounded-md transition-all duration-300 disabled:opacity-50 "
                     style={{
                       backgroundColor: saving ? "#9ca3af" : "#76B900",
                     }}
@@ -498,7 +503,7 @@ if (emailChanged && updateUserData.newToken) {
                   <button
                     onClick={handleCancel}
                     disabled={saving}
-                    className="transition-colors text-sm font-medium cursor-pointer px-3 py-1.5 text-sm font-semibold text-white rounded-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="transition-colors text-sm font-medium cursor-pointer px-3 py-1.5 text-sm font-semibold text-white rounded-md transition-all duration-300 disabled:opacity-50"
                     style={{
                       backgroundColor: saving ? "#9ca3af" : "#76B900",
                     }}
