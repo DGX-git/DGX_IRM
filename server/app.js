@@ -141,7 +141,7 @@ nextApp.prepare().then(() => {
     res.render("error");
   });
 
-  const PORT = process.env.PORT || 5000;
+  const PORT = process.env.PORT || 5100;
   app.listen(PORT, () => {
     console.log(`:rocket: Server running on port ${PORT}`);
   });
