@@ -474,6 +474,52 @@ function DGXDashboard() {
   const closeFilterValidationPopup = () => {
     setIsFilterValidationPopupOpen(false);
   };
+   // Get Full User Name
+  const getUserName = (userId: number): string => {
+    if (!userId) return "";
+
+    const user = users.find((u) => u.user_id === userId);
+    if (!user) return `Unknown User (${userId})`;
+
+    const fullName = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
+    return fullName || "No Name";
+  };
+
+  // Updated getInstituteName to show the correct filtered institute
+  const getInstituteName = (userId: number): string => {
+    if (!userId) return "Not Assigned";
+
+    const user = users.find((u) => u.user_id === userId);
+    if (!user) return `Unknown User (${userId})`;
+
+    if (currentFilteredInstitute) {
+      const hasAssociation = userInstituteAssociation.some(
+        (assoc) =>
+          assoc.user_id === userId &&
+          assoc.institute_id === currentFilteredInstitute.institute_id
+      );
+
+      if (hasAssociation) {
+        return currentFilteredInstitute.institute_name;
+      }
+    }
+
+    const association = userInstituteAssociation.find(
+      (assoc) => assoc.user_id === userId
+    );
+
+    if (!association) return "No Institute Assigned";
+
+    const institute = institutes.find(
+      (inst) => inst.institute_id === association.institute_id
+    );
+
+    return (
+      institute?.institute_name ??
+      `Unknown Institute (${association.institute_id})`
+    );
+  };
+
 
   // Sorting logic
   const sortedRequests = useMemo(() => {
@@ -1385,51 +1431,6 @@ function DGXDashboard() {
     }
   };
 
-  // Get Full User Name
-  const getUserName = (userId: number): string => {
-    if (!userId) return "";
-
-    const user = users.find((u) => u.user_id === userId);
-    if (!user) return `Unknown User (${userId})`;
-
-    const fullName = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
-    return fullName || "No Name";
-  };
-
-  // Updated getInstituteName to show the correct filtered institute
-  const getInstituteName = (userId: number): string => {
-    if (!userId) return "Not Assigned";
-
-    const user = users.find((u) => u.user_id === userId);
-    if (!user) return `Unknown User (${userId})`;
-
-    if (currentFilteredInstitute) {
-      const hasAssociation = userInstituteAssociation.some(
-        (assoc) =>
-          assoc.user_id === userId &&
-          assoc.institute_id === currentFilteredInstitute.institute_id
-      );
-
-      if (hasAssociation) {
-        return currentFilteredInstitute.institute_name;
-      }
-    }
-
-    const association = userInstituteAssociation.find(
-      (assoc) => assoc.user_id === userId
-    );
-
-    if (!association) return "No Institute Assigned";
-
-    const institute = institutes.find(
-      (inst) => inst.institute_id === association.institute_id
-    );
-
-    return (
-      institute?.institute_name ??
-      `Unknown Institute (${association.institute_id})`
-    );
-  };
 
   // Updated function to check status by name instead of ID
   const getAccessStatusIcon = (statusId: number) => {
@@ -1736,11 +1737,11 @@ function DGXDashboard() {
                   {[
                     { key: "instance_request_id", label: "Request Id" },
                     { key: "user_id", label: "User Name" },
-                    { key: "status_id", label: "Institute Name" },
+                    { key: "institute_name", label: "Institute Name" },
                     { key: "created_timestamp", label: "Requested Date/Time" },
                     { key: "work_description", label: "Description" },
-                    { key: "status", label: "Status" },
-                    { key: "accessStatus", label: "Access Status" },
+                    { key: "status_id", label: "Status" },
+                    { key: "is_access_granted", label: "Access Status" },
                     { key: "remarks", label: "Remarks" },
                   ].map((col) => (
                     <th
@@ -2756,7 +2757,7 @@ function DGXDashboard() {
                 <button
                   onClick={handleCredentialsSubmit}
                   disabled={isEmailSending}
-                  className="bg-lime-500 text-white py-2 px-6 rounded hover:bg-lime-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-semibold"
+                  className="bg-lime-500 text-white py-2 px-6 rounded hover:bg-lime-700 transition-colors text-sm font-medium disabled:opacity-50 cursor-pointer font-semibold"
                   style={{
                     backgroundColor: isEmailSending ? "#9ca3af" : "#76B900",
                   }}
@@ -2855,7 +2856,7 @@ function DGXDashboard() {
                 <button
                   onClick={handleRemarksSubmit}
                   disabled={isEmailSending}
-                  className="bg-lime-500 text-white py-2 px-6 rounded hover:bg-lime-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-semibold"
+                  className="bg-lime-500 text-white py-2 px-6 rounded hover:bg-lime-600 transition-colors text-sm font-medium disabled:opacity-50 cursor-pointer font-semibold"
                   style={{
                     backgroundColor: isEmailSending ? "#9ca3af" : "#76B900",
                   }}

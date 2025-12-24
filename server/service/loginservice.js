@@ -32,60 +32,35 @@ const generateOtp = () => {
 };
 
 // Function to send the OTP via email (placeholder implementation)
-// const sendOtpEmail = async (email, otp) => {
-//   // const transporter = nodemailer.createTransport({
-//   //   // service: 'gmail',
-//   //   host: "smtp.zoho.in", // or 'smtp.zoho.com' if using .com domain
-//   //   port: 465, // use 465 for SSL
-//   //   secure: true,
-//   //   auth: {
-//   //     user: process.env.EMAIL_USER,
-//   //     pass: process.env.EMAIL_APP_PASSWORD,
-//   //   },
-//   // });
-
-//   const transporter = nodemailer.createTransport({
-//     host: "smtp.zoho.in",
-//     port: 587, // TLS port (works on Render)
-//     secure: false, // MUST be false for port 587
-//     auth: {
-//       user: process.env.EMAIL_USER,
-//       pass: process.env.EMAIL_APP_PASSWORD,
-//     },
-//     tls: {
-//       rejectUnauthorized: false, // Zoho sometimes requires this on cloud hosts
-//     },
-//   });
-
-
-//   const mailOptions = {
-//     from: process.env.EMAIL_USER,
-//     to: email,
-//     subject: `${otp} - OTP for DGX Portal Login Request`,
-//     text: `Dear User,
-
-// Your one-time password (OTP) for the DGX login request is: ${otp}
-
-// This code is valid for 10 minutes.
-
-// If you did not request this code, please ignore this email.
-
-// Regards,
-// DGX Administration Team`,
-//   };
-
-//   // Send the email
-//   return transporter.sendMail(mailOptions);
-// };
-
-
-// SendGrid only - simple and clean
 const sendOtpEmail = async (email, otp) => {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  const transporter = nodemailer.createTransport({
+    // service: 'gmail',
+    host: "smtp.zoho.in", // or 'smtp.zoho.com' if using .com domain
+    port: 465, // use 465 for SSL
+    secure: true,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_APP_PASSWORD,
+    },
+  });
 
-  const msg = {
+  // const transporter = nodemailer.createTransport({
+  //   host: "smtp.zoho.in",
+  //   port: 587, // TLS port (works on Render)
+  //   secure: false, // MUST be false for port 587
+  //   auth: {
+  //     user: process.env.EMAIL_USER,
+  //     pass: process.env.EMAIL_APP_PASSWORD,
+  //   },
+  //   tls: {
+  //     rejectUnauthorized: false, // Zoho sometimes requires this on cloud hosts
+  //   },
+  // });
+
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
     to: email,
-    from: process.env.SENDGRID_VERIFIED_EMAIL,
     subject: `${otp} - OTP for DGX Portal Login Request`,
     text: `Dear User,
 
@@ -99,8 +74,33 @@ Regards,
 DGX Administration Team`,
   };
 
-  return sgMail.send(msg);
+  // Send the email
+  return transporter.sendMail(mailOptions);
 };
+
+
+// SendGrid only - simple and clean
+// const sendOtpEmail = async (email, otp) => {
+//   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+//   const msg = {
+//     to: email,
+//     from: process.env.SENDGRID_VERIFIED_EMAIL,
+//     subject: `${otp} - OTP for DGX Portal Login Request`,
+//     text: `Dear User,
+
+// Your one-time password (OTP) for the DGX login request is: ${otp}
+
+// This code is valid for 10 minutes.
+
+// If you did not request this code, please ignore this email.
+
+// Regards,
+// DGX Administration Team`,
+//   };
+
+//   return sgMail.send(msg);
+// };
 
 // Sign-in function: generates OTP, sends it via email, and stores it in the OTP table
 const signin = async (req, res) => {

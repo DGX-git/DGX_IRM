@@ -64,7 +64,9 @@ const updateProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-const oldEmail = user.email_id;
+    const oldEmail = user.email_id;
+    const oldFirstName = user.first_name;
+    const oldLastName = user.last_name;
     // Update user
     await user.update({
       first_name,
@@ -79,12 +81,18 @@ const oldEmail = user.email_id;
       // ---------------------------------------------
     //  Generate NEW JWT ONLY if email was changed
     // ---------------------------------------------
-    if (email_id && email_id !== oldEmail) {
-        // Fetch role details
-  const role = await dgx_role.findOne({
-    where: { role_id: user.role_id },
-    attributes: ["role_name"],
-  });
+
+    const isEmailChanged = email_id && email_id !== oldEmail;
+    const isFirstNameChanged = first_name && first_name !== oldFirstName;
+    const isLastNameChanged = last_name && last_name !== oldLastName;
+
+
+    if (isEmailChanged || isFirstNameChanged || isLastNameChanged) {
+      // Fetch role details
+      const role = await dgx_role.findOne({
+        where: { role_id: user.role_id },
+        attributes: ["role_name"],
+      });
 
   // Safety check
   const roleName = role ? role.role_name : null;

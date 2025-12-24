@@ -578,10 +578,10 @@ export default function RegisterForm() {
       {/* Terms Modal */}
       {showTermsModal && <TermsModal />}
 
-      <div className="flex-1 flex items-center justify-center p-2">
+      <div className="flex-1 flex items-center justify-center p-2 max-h-[90vh] overflow-y-auto">
         <div className="w-full max-w-lg">
           <div
-            className="rounded-xl p-4"
+            className="rounded-xl p-4 "
             style={{
               backgroundColor: "#fff",
               boxShadow:
@@ -604,14 +604,14 @@ export default function RegisterForm() {
                   <label
                     className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
                     ${
-                      floatCondition("firstName", formData.firstName)
+                      floatCondition("firstName", formData.firstName || focusedField === "firstName")
                         ? "text-xs -top-2 px-1"
                         : "top-3"
                     }
                     ${
                       errors.firstName && touched.firstName
                         ? "text-red-500"
-                        : floatCondition("firstName", formData.firstName)
+                        : floatCondition("firstName", formData.firstName|| focusedField === "firstName")
                         ? // ? "text-black font-medium"
                           "text-[#5a8f00] font-medium"
                         : "text-gray-500"
@@ -620,7 +620,7 @@ export default function RegisterForm() {
                     style={{
                       backgroundColor: floatCondition(
                         "firstName",
-                        formData.firstName
+                        formData.firstName|| focusedField === "firstName"
                       )
                         ? "#ffffff"
                         : "transparent",
@@ -690,14 +690,14 @@ export default function RegisterForm() {
                   <label
                     className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
                     ${
-                      floatCondition("lastName", formData.lastName)
+                      floatCondition("lastName", formData.lastName|| focusedField === "lastName")
                         ? "text-xs -top-2 px-1"
                         : "top-3"
                     }
                     ${
                       errors.lastName && touched.lastName
                         ? "text-red-500"
-                        : floatCondition("lastName", formData.lastName)
+                        : floatCondition("lastName", formData.lastName|| focusedField === "lastName")
                         ? "text-[#5a8f00] font-medium"
                         : "text-gray-500"
                     }
@@ -705,7 +705,7 @@ export default function RegisterForm() {
                     style={{
                       backgroundColor: floatCondition(
                         "lastName",
-                        formData.lastName
+                        formData.lastName|| focusedField === "lastName"
                       )
                         ? "#ffffff"
                         : "transparent",
@@ -775,14 +775,14 @@ export default function RegisterForm() {
                   <label
                     className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
       ${
-        floatCondition("department", formData.institute)
+        floatCondition("department", formData.institute|| focusedField === "institute")
           ? "text-xs -top-2 px-1"
           : "top-3"
       }
       ${
         errors.institute && touched.institute
           ? "text-red-500"
-          : floatCondition("department", formData.institute)
+          : floatCondition("department", formData.institute|| focusedField === "institute")
           ? "text-[#5a8f00] font-medium"
           : "text-gray-500"
       }
@@ -790,7 +790,7 @@ export default function RegisterForm() {
                     style={{
                       backgroundColor: floatCondition(
                         "institute",
-                        formData.institute
+                        formData.institute|| focusedField === "institute"
                       )
                         ? "#ffffff"
                         : "transparent",
@@ -862,14 +862,14 @@ export default function RegisterForm() {
                   <label
                     className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
       ${
-        floatCondition("department", formData.department)
+        floatCondition("department", formData.department|| focusedField === "department")
           ? "text-xs -top-2 px-1"
           : "top-3"
       }
       ${
         errors.department && touched.department
           ? "text-red-500"
-          : floatCondition("department", formData.department)
+          : floatCondition("department", formData.department|| focusedField === "department")
           ? "text-[#5a8f00] font-medium"
           : "text-gray-500"
       }
@@ -877,7 +877,7 @@ export default function RegisterForm() {
                     style={{
                       backgroundColor: floatCondition(
                         "department",
-                        formData.department
+                        formData.department|| focusedField === "department"
                       )
                         ? "#ffffff"
                         : "transparent",
@@ -949,20 +949,20 @@ export default function RegisterForm() {
                   <label
                     className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
       ${
-        floatCondition("department", formData.role)
+        floatCondition("department", formData.role|| focusedField === "role")
           ? "text-xs -top-2 px-1"
           : "top-3"
       }
       ${
         errors.role && touched.role
           ? "text-red-500"
-          : floatCondition("department", formData.role)
+          : floatCondition("department", formData.role|| focusedField === "role")
           ? "text-[#5a8f00] font-medium"
           : "text-gray-500"
       }
     `}
                     style={{
-                      backgroundColor: floatCondition("role", formData.role)
+                      backgroundColor: floatCondition("role", formData.role|| focusedField === "role")
                         ? "#ffffff"
                         : "transparent",
                     }}
@@ -989,7 +989,6 @@ export default function RegisterForm() {
                         e.target.style.boxShadow = "none";
                       }
                     }}
-                    // disabled={!formData.institute} // 🔴 disabled until institute selected
                     className={`w-full px-3 pt-4 pb-2 rounded-lg focus:outline-none bg-white appearance-none transition-all duration-200
                    ${
                      errors.role && touched.role
@@ -1035,14 +1034,14 @@ export default function RegisterForm() {
                   <label
                     className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
                     ${
-                      floatCondition("phoneNumber", formData.phoneNumber)
+                      floatCondition("phoneNumber", formData.phoneNumber|| focusedField === "phoneNumber")
                         ? "text-xs -top-2 px-1"
                         : "top-3"
                     }
                     ${
                       errors.phoneNumber && touched.phoneNumber
                         ? "text-red-500"
-                        : floatCondition("phoneNumber", formData.phoneNumber)
+                        : floatCondition("phoneNumber", formData.phoneNumber|| focusedField === "phoneNumber")
                         ? "text-[#5a8f00] font-medium"
                         : "text-gray-500"
                     }
@@ -1050,7 +1049,7 @@ export default function RegisterForm() {
                     style={{
                       backgroundColor: floatCondition(
                         "phoneNumber",
-                        formData.phoneNumber
+                        formData.phoneNumber|| focusedField === "phoneNumber"
                       )
                         ? "#ffffff"
                         : "transparent",
@@ -1118,20 +1117,20 @@ export default function RegisterForm() {
                   <label
                     className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
                     ${
-                      floatCondition("email", formData.email)
+                      floatCondition("email", formData.email|| focusedField === "email")
                         ? "text-xs -top-2 px-1"
                         : "top-3"
                     }
                     ${
                       errors.email && touched.email
                         ? "text-red-500"
-                        : floatCondition("email", formData.email)
+                        : floatCondition("email", formData.email|| focusedField === "email")
                         ? "text-[#5a8f00] font-medium"
                         : "text-gray-500"
                     }
                   `}
                     style={{
-                      backgroundColor: floatCondition("email", formData.email)
+                      backgroundColor: floatCondition("email", formData.email|| focusedField === "email")
                         ? "#ffffff"
                         : "transparent",
                     }}
@@ -1253,7 +1252,7 @@ export default function RegisterForm() {
                       type="button"
                       onClick={handleSubmit}
                       disabled={isSubmitting}
-                      className="flex-1 cursor-pointer text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 focus:outline-none shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 cursor-pointer text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 focus:outline-none shadow-lg hover:shadow-xl disabled:opacity-50"
                       style={{
                         backgroundColor: isSubmitting ? "#9ca3af" : "#76B900",
                       }}
@@ -1276,7 +1275,7 @@ export default function RegisterForm() {
                       type="button"
                       onClick={handleCancel}
                       disabled={isSubmitting}
-                      className="flex-1 cursor-pointer text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 focus:outline-none shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 cursor-pointer text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 focus:outline-none shadow-lg hover:shadow-xl disabled:opacity-50"
                       style={{
                         backgroundColor: isSubmitting ? "#9ca3af" : "#76B900",
                       }}

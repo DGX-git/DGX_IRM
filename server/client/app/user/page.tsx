@@ -612,6 +612,31 @@ function DGXDashboard() {
     fetchStatus();
   }, []);
 
+  const getUserName = (userId: number): string => {
+    if (!userId) return "Not Assigned";
+    const user = users.find((u) => u.user_id === userId);
+    if (!user) return `Unknown User (${userId})`;
+    const fullName = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
+    return fullName || "No Name";
+  };
+
+  const getInstituteName = (userId: number): string => {
+    if (!userId) return "Not Assigned";
+
+    const association = userInstituteAssociation.find(
+      (assoc: any) =>
+        assoc.user_id === userId && assoc.is_reg_institute === true
+    );
+
+    if (!association) return "No Registered Institute";
+
+    const institute = institutes.find(
+      (inst) => inst.institute_id === association.institute_id
+    );
+
+    return institute?.institute_name || "Unknown Institute";
+  };
+
   // Sorting logic
   const sortedRequests = useMemo(() => {
     let sortable = [...filteredRequests];
@@ -719,30 +744,6 @@ function DGXDashboard() {
     return users.find((u) => u.user_id === userId);
   };
 
-  const getUserName = (userId: number): string => {
-    if (!userId) return "Not Assigned";
-    const user = users.find((u) => u.user_id === userId);
-    if (!user) return `Unknown User (${userId})`;
-    const fullName = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
-    return fullName || "No Name";
-  };
-
-  const getInstituteName = (userId: number): string => {
-    if (!userId) return "Not Assigned";
-
-    const association = userInstituteAssociation.find(
-      (assoc: any) =>
-        assoc.user_id === userId && assoc.is_reg_institute === true
-    );
-
-    if (!association) return "No Registered Institute";
-
-    const institute = institutes.find(
-      (inst) => inst.institute_id === association.institute_id
-    );
-
-    return institute?.institute_name || "Unknown Institute";
-  };
 
   const getDepartmentName = (userId: number): string => {
     if (!userId) return "Not Assigned";
@@ -1072,10 +1073,10 @@ function DGXDashboard() {
                   {[
                     { key: "instance_request_id", label: "Request Id" },
                     { key: "user_id", label: "User Name" },
-                    { key: "status_id", label: "Institute Name" },
+                    { key: "institute_name", label: "Institute Name" },
                     { key: "created_timestamp", label: "Requested Date/Time" },
                     { key: "work_description", label: "Description" },
-                    { key: "status", label: "Status" },
+                    { key: "status_id", label: "Status" },
                     { key: "remarks", label: "Remarks" },
                     { key: "", label: "Users in Line" },
                     { key: "actions", label: "Actions" },

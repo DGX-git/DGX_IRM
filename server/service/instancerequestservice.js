@@ -403,6 +403,85 @@ const getInstanceRequestById = async(request, response) => {
 
 
 // Create new instance request
+// const createInstanceRequest = async(request, response) => {
+//     try {
+//         await sequelize.sync();
+        
+//         const {
+//             user_id,
+//             cpu_id,
+//             gpu_id,
+//             ram_id,
+//             gpu_vendor_id,
+//             gpu_partition_id,
+//             image_id,
+//             status_id,
+//             work_description,
+//             storage_volume,
+//             user_type_id,
+//             login_id,
+//             password,
+//             access_link,
+//             is_access_granted,
+//             additional_information,
+//             remarks,
+//             selected_date,
+//             created_by,
+//             updated_by
+//         } = request.body;
+
+//         // Validate required fields
+//         if (!user_id) {
+//             return response.status(400).json({ error: 'user_id is required' });
+//         }
+//         if (!cpu_id) {
+//             return response.status(400).json({ error: 'cpu_id is required' });
+//         }
+//         if (!ram_id) {
+//             return response.status(400).json({ error: 'ram_id is required' });
+//         }
+//         if (!image_id) {
+//             return response.status(400).json({ error: 'image_id is required' });
+//         }
+//         if (!user_type_id) {
+//             return response.status(400).json({ error: 'user_type_id is required' });
+//         }
+
+//         const newInstanceRequest = await InstanceRequest.create({
+//             user_id: user_id,
+//             cpu_id: cpu_id,
+//             gpu_id: gpu_id || 1, // Provide a default gpu_id since it's required
+//             ram_id: ram_id,
+//             gpu_vendor_id: gpu_vendor_id || null,
+//             gpu_partition_id: gpu_partition_id || null,
+//             image_id: image_id,
+//             status_id: status_id || 1,
+//             work_description: work_description || '',
+//             storage_volume: storage_volume || 10,
+//             user_type_id: user_type_id,
+//             login_id: login_id || 'pending', // Cannot be empty
+//             password: password || 'pending', // Cannot be empty
+//             access_link: access_link || '',
+//             is_access_granted: is_access_granted || false,
+//             additional_inforamation: additional_information || '',
+//             remarks: remarks || '',
+//             time_slot: selected_date || '',
+//             created_timestamp: new Date(),
+//             updated_timestamp: new Date(),
+//             created_by: created_by || user_id || 1,
+//             updated_by: updated_by || user_id || 1
+//         });
+
+//         response.status(201).json(newInstanceRequest);
+//     } catch (error) {
+//         console.error('Error creating instance request:', error);
+//         response.status(500).json({ error: 'Internal Server Error', details: error.message });
+//     }
+// };
+
+
+
+// Create new instance request
 const createInstanceRequest = async(request, response) => {
     try {
         await sequelize.sync();
@@ -425,7 +504,7 @@ const createInstanceRequest = async(request, response) => {
             is_access_granted,
             additional_information,
             remarks,
-            selected_date,
+            selected_date,  // This is the correct field
             created_by,
             updated_by
         } = request.body;
@@ -450,7 +529,7 @@ const createInstanceRequest = async(request, response) => {
         const newInstanceRequest = await InstanceRequest.create({
             user_id: user_id,
             cpu_id: cpu_id,
-            gpu_id: gpu_id || 1, // Provide a default gpu_id since it's required
+            gpu_id: gpu_id || 1,
             ram_id: ram_id,
             gpu_vendor_id: gpu_vendor_id || null,
             gpu_partition_id: gpu_partition_id || null,
@@ -459,13 +538,13 @@ const createInstanceRequest = async(request, response) => {
             work_description: work_description || '',
             storage_volume: storage_volume || 10,
             user_type_id: user_type_id,
-            login_id: login_id || 'pending', // Cannot be empty
-            password: password || 'pending', // Cannot be empty
+            login_id: login_id || 'pending',
+            password: password || 'pending',
             access_link: access_link || '',
             is_access_granted: is_access_granted || false,
-            additional_inforamation: additional_information || '',
+            additional_information: additional_information || '',  // Fixed typo
             remarks: remarks || '',
-            time_slot: selected_date || '',
+            selected_date: selected_date ? new Date(selected_date) : new Date(),  // Changed from time_slot to selected_date
             created_timestamp: new Date(),
             updated_timestamp: new Date(),
             created_by: created_by || user_id || 1,
@@ -549,6 +628,72 @@ const createInstanceRequest = async(request, response) => {
 
 
 // Update instance request by ID
+// const updateInstanceRequestById = async(request, response) => {
+//     try {
+//         await sequelize.sync();
+//         const instanceId = request.params.id;
+        
+//         const instanceRequest = await InstanceRequest.findByPk(instanceId);
+//         if (!instanceRequest) {
+//             return response.status(404).json({ error: 'Instance request not found' });
+//         }
+
+//         const {
+//             user_id,
+//             cpu_id,
+//             gpu_id,
+//             ram_id,
+//             gpu_vendor_id,
+//             gpu_partition_id,
+//             image_id,
+//             status_id,
+//             work_description,
+//             storage_volume,
+//             user_type_id,
+//             login_id,
+//             password,
+//             access_link,
+//             is_access_granted,
+//             additional_information,
+//             remarks,
+//             selected_date,
+//             updated_by
+//         } = request.body;
+
+//         await instanceRequest.update({
+//             user_id: user_id || instanceRequest.user_id,
+//             cpu_id: cpu_id || instanceRequest.cpu_id,
+//             gpu_id: gpu_id || instanceRequest.gpu_id,
+//             ram_id: ram_id || instanceRequest.ram_id,
+//             gpu_vendor_id: gpu_vendor_id || instanceRequest.gpu_vendor_id,
+//             gpu_partition_id: gpu_partition_id || instanceRequest.gpu_partition_id,
+//             image_id: image_id || instanceRequest.image_id,
+//             status_id: status_id || instanceRequest.status_id,
+//             work_description: work_description !== undefined ? work_description : instanceRequest.work_description,
+//             storage_volume: storage_volume || instanceRequest.storage_volume,
+//             user_type_id: user_type_id || instanceRequest.user_type_id,
+//             login_id: login_id || instanceRequest.login_id,
+//             password: password || instanceRequest.password,
+//             access_link: access_link || instanceRequest.access_link,
+//             is_access_granted: is_access_granted !== undefined ? is_access_granted : instanceRequest.is_access_granted,
+//             additional_inforamation: additional_information || instanceRequest.additional_inforamation,
+//             remarks: remarks || instanceRequest.remarks,
+//             time_slot: selected_date || instanceRequest.time_slot,
+//             updated_timestamp: new Date(),
+//             updated_by: updated_by || instanceRequest.updated_by
+//         });
+
+//         response.status(200).json(instanceRequest);
+//     } catch (error) {
+//         console.error('Error updating instance request:', error);
+//         response.status(500).json({ error: 'Internal Server Error', details: error.message });
+//     }
+// };
+
+
+
+
+// Update instance request by ID
 const updateInstanceRequestById = async(request, response) => {
     try {
         await sequelize.sync();
@@ -597,9 +742,9 @@ const updateInstanceRequestById = async(request, response) => {
             password: password || instanceRequest.password,
             access_link: access_link || instanceRequest.access_link,
             is_access_granted: is_access_granted !== undefined ? is_access_granted : instanceRequest.is_access_granted,
-            additional_inforamation: additional_information || instanceRequest.additional_inforamation,
+            additional_information: additional_information || instanceRequest.additional_information,  // Fixed typo
             remarks: remarks || instanceRequest.remarks,
-            time_slot: selected_date || instanceRequest.time_slot,
+            selected_date: selected_date ? new Date(selected_date) : instanceRequest.selected_date,  // Changed from time_slot to selected_date
             updated_timestamp: new Date(),
             updated_by: updated_by || instanceRequest.updated_by
         });
@@ -668,14 +813,57 @@ const getUserTimeSlots = async(request, response) => {
 };
 
 // Bulk insert user time slots
+// const saveUserTimeSlotsBulk = async(request, response) => {
+//     try {
+//         await sequelize.sync();
+        
+//         const { timeSlots } = request.body;
+        
+//         if (!Array.isArray(timeSlots) || timeSlots.length === 0) {
+//             return response.status(400).json({ error: 'Invalid timeSlots array' });
+//         }
+
+//         const createdSlots = await UserTimeSlot.bulkCreate(
+//             timeSlots.map(slot => ({
+//                 instance_request_id: slot.instance_request_id,
+//                 time_slot_id: slot.time_slot_id,
+//                 selected_date: slot.selected_date,
+//                 created_timestamp: new Date(),
+//                 updated_timestamp: new Date(),
+//                 created_by: slot.created_by || 1,
+//                 updated_by: slot.updated_by || 1
+//             }))
+//         );
+
+//         response.status(201).json(createdSlots);
+//     } catch (error) {
+//         console.error('Error saving user time slots:', error);
+//         response.status(500).json({ error: 'Internal Server Error', details: error.message });
+//     }
+// };
+
+
+
+// Bulk insert user time slots
 const saveUserTimeSlotsBulk = async(request, response) => {
     try {
         await sequelize.sync();
         
-        const { timeSlots } = request.body;
+        const { timeSlots, userId } = request.body;
         
         if (!Array.isArray(timeSlots) || timeSlots.length === 0) {
             return response.status(400).json({ error: 'Invalid timeSlots array' });
+        }
+
+        // Validate that userId is provided and exists
+        if (!userId) {
+            return response.status(400).json({ error: 'userId is required' });
+        }
+
+        // Check if user exists
+        const userExists = await User.findByPk(userId);
+        if (!userExists) {
+            return response.status(400).json({ error: 'User does not exist' });
         }
 
         const createdSlots = await UserTimeSlot.bulkCreate(
@@ -685,8 +873,8 @@ const saveUserTimeSlotsBulk = async(request, response) => {
                 selected_date: slot.selected_date,
                 created_timestamp: new Date(),
                 updated_timestamp: new Date(),
-                created_by: slot.created_by || 1,
-                updated_by: slot.updated_by || 1
+                created_by: userId,  // Use actual user ID from request
+                updated_by: userId   // Use actual user ID from request
             }))
         );
 
