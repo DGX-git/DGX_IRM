@@ -2743,6 +2743,18 @@ function DGXInstanceRequestFormContent() {
   };
 
 
+  // Add these helper functions near your other helper functions (around line 920)
+
+  // Helper function to sort arrays alphabetically for select lists
+  const sortByProperty = (array: any[], property: string): any[] => {
+    return [...array].sort((a, b) => {
+      const aVal = String(a[property] || "").toLowerCase();
+      const bVal = String(b[property] || "").toLowerCase();
+      return aVal.localeCompare(bVal);
+    });
+  };
+
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <div className="min-h-screen bg-gray-50">
@@ -2921,7 +2933,15 @@ function DGXInstanceRequestFormContent() {
                           disabled
                           hidden
                         ></option>
-                        {userType.map((type) => (
+                        {/* {userType.map((type) => (
+                          <option
+                            key={type.user_type_id}
+                            value={type.user_type_id || ""}
+                          >
+                            {type.user_type}
+                          </option>
+                        ))} */}
+                        {sortByProperty(userType, 'user_type').map((type) => (
                           <option
                             key={type.user_type_id}
                             value={type.user_type_id || ""}
@@ -3000,9 +3020,17 @@ function DGXInstanceRequestFormContent() {
                           disabled
                           hidden
                         ></option>
-                        {customImage.map((i) => (
+                        {/* {customImage.map((i) => (
                           <option key={i.image_id} value={i.image_id || ""}>
                             {i.image_name}
+                          </option>
+                        ))} */}
+                        {sortByProperty(customImage, 'image_name').map((img) => (
+                          <option
+                            key={img.image_id}
+                            value={img.image_id || ""}
+                          >
+                            {img.image_name}
                           </option>
                         ))}
                       </select>
@@ -3157,6 +3185,14 @@ function DGXInstanceRequestFormContent() {
                           {gp.gpu_partition}
                         </option>
                       ))}
+                      {/* {sortByProperty(gpuPartition, 'gpu_partition').map((gp) => (
+                        <option
+                          key={gp.gpu_partition_id}
+                          value={gp.gpu_partition_id || ""}
+                        >
+                          {gp.gpu_partition}
+                        </option>
+                      ))} */}
                     </select>
                     <ChevronDown
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 pointer-events-none"
@@ -3226,6 +3262,11 @@ function DGXInstanceRequestFormContent() {
                             {r.ram}
                           </option>
                         ))}
+                        {/* {sortByProperty(ram, 'ram').map((r) => (
+                          <option key={r.ram_id} value={r.ram_id || ""}>
+                            {r.ram}
+                          </option>
+                        ))} */}
                       </select>
                       <ChevronDown
                         className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 pointer-events-none"
