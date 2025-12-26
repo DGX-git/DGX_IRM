@@ -376,25 +376,29 @@ function DGXInstanceRequestFormContent() {
         }
         break;
 
+
       case "selectedDates":
-        const dates = formData.selectedDates || [];
-        if (dates.length === 0) {
-          // error = 'Please select at least one date';
-          error = " ";
-        } else {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
+  const dates = formData.selectedDates || [];
+  if (dates.length === 0) {
+    error = " ";
+  } else {
+    // Skip past date validation in edit mode (when instance_id is present in URL)
+    const isEditMode = !!searchParams.get("id");
+    if (!isEditMode) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-          const hasPastDate = dates.some((date) => {
-            const dateObj = new Date(date);
-            return dateObj < today;
-          });
+      const hasPastDate = dates.some((date) => {
+        const dateObj = new Date(date);
+        return dateObj < today;
+      });
 
-          if (hasPastDate) {
-            error = "One or more dates are in the past";
-          }
-        }
-        break;
+      if (hasPastDate) {
+        error = "One or more dates are in the past";
+      }
+    }
+  }
+  break;
 
       case "customImageId":
         if (!value || value === "") {
@@ -958,69 +962,55 @@ function DGXInstanceRequestFormContent() {
   };
 
 
-  // Update handleDateAdd function
+  
+
+
+
   const handleDateAdd = (dateValue: string) => {
-    if (!dateValue) return;
+  if (!dateValue) return;
 
-    const dateObj = new Date(dateValue);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const dateObj = new Date(dateValue);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-    if (dateObj < today) {
-      setErrors((prev) => ({
-        ...prev,
-        selectedDates: "Date cannot be in the past",
-      }));
-      return;
-    }
-
-    const currentDates = formData.selectedDates || [];
-
-    if (currentDates.includes(dateValue)) {
-      setErrors((prev) => ({
-        ...prev,
-        selectedDates: "This date is already selected",
-      }));
-      return;
-    }
-
-
-    const updatedDateTimeSlots = {
-      ...formData.dateTimeSlots,
-      [dateValue]: {
-        selectedSlots: [],
-        selectedRanges: []
-      }
-    };
-
-    setFormData(prev => ({
+  // Skip past date validation in edit mode (when instance_id is set)
+  if (!instance_id && dateObj < today) {
+    setErrors((prev) => ({
       ...prev,
-      selectedDates: [...currentDates, dateValue].sort(),
-      dateTimeSlots: updatedDateTimeSlots,  // Make sure this is set
+      selectedDates: "Date cannot be in the past",
+    }));
+    return;
+  }
+
+  const currentDates = formData.selectedDates || [];
+
+  if (currentDates.includes(dateValue)) {
+    setErrors((prev) => ({
+      ...prev,
+      selectedDates: "This date is already selected",
+    }));
+    return;
+  }
+
+  const updatedDateTimeSlots = {
+    ...formData.dateTimeSlots,
+    [dateValue]: {
       selectedSlots: [],
       selectedRanges: []
-    }));
-
-    setErrors((prev) => ({ ...prev, selectedDates: "" }));
-    setSelectedDate(dateValue); // Set as current working date
+    }
   };
 
-  // Update handleDateRemove function
-  // const handleDateRemove = (dateToRemove: string) => {
-  //   const updatedDates = formData.selectedDates.filter(
-  //     (date) => date !== dateToRemove
-  //   );
-  //   const updatedDateTimeSlots = { ...formData.dateTimeSlots };
-  //   delete updatedDateTimeSlots[dateToRemove];
+  setFormData(prev => ({
+    ...prev,
+    selectedDates: [...currentDates, dateValue].sort(),
+    dateTimeSlots: updatedDateTimeSlots,
+    selectedSlots: [],
+    selectedRanges: []
+  }));
 
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     selectedDates: updatedDates,
-  //     dateTimeSlots: updatedDateTimeSlots,
-  //     selectedSlots: selectedDate === dateToRemove ? [] : prev.selectedSlots,
-  //     selectedRanges: selectedDate === dateToRemove ? [] : prev.selectedRanges,
-  //   }));
-  // };
+  setErrors((prev) => ({ ...prev, selectedDates: "" }));
+  setSelectedDate(dateValue);
+};
 
 
 
@@ -1427,705 +1417,260 @@ function DGXInstanceRequestFormContent() {
     end: "",
   });
 
-  // Add this new function to handle date range selection
-  // const handleDateRangeAdd = () => {
-  //   if (!dateRange.start || !dateRange.end) {
-  //     showErrorSnackbarFunc("Please select both start and end dates");
-  //     return;
-  //   }
-
-  //   const startDate = new Date(dateRange.start);
-  //   const endDate = new Date(dateRange.end);
-  //   const today = new Date();
-  //   today.setHours(0, 0, 0, 0);
-
-  //   if (startDate < today || endDate < today) {
-  //     setErrors((prev) => ({
-  //       ...prev,
-  //       selectedDates: "Dates cannot be in the past",
-  //     }));
-  //     return;
-  //   }
-
-  //   if (endDate < startDate) {
-  //     setErrors((prev) => ({
-  //       ...prev,
-  //       selectedDates: "End date must be after start date",
-  //     }));
-  //     return;
-  //   }
-
-  //   const dates: string[] = [];
-  //   const currentDate = new Date(startDate);
-  //   while (currentDate <= endDate) {
-  //     const dateString = currentDate.toISOString().split("T")[0];
-  //     if (!formData.selectedDates.includes(dateString)) {
-  //       dates.push(dateString);
-  //     }
-  //     currentDate.setDate(currentDate.getDate() + 1);
-  //   }
-
-  //   // Initialize empty time slots for new dates
-  //   const updatedDateTimeSlots = { ...formData.dateTimeSlots };
-  //   dates.forEach((date) => {
-  //     updatedDateTimeSlots[date] = {
-  //       selectedSlots: [],
-  //       selectedRanges: [],
-  //     };
-  //   });
-
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     selectedDates: [...prev.selectedDates, ...dates].sort(),
-  //     dateTimeSlots: updatedDateTimeSlots,
-  //   }));
-
-  //   setDateRange({ start: "", end: "" });
-  //   setErrors((prev) => ({ ...prev, selectedDates: "" }));
-  // };
 
 
-    const handleDateRangeAdd = () => {
-    if (!dateRange.start || !dateRange.end) {
-      showErrorSnackbarFunc("Please select both start and end dates");
-      return;
-    }
+  const handleDateRangeAdd = () => {
+  if (!dateRange.start || !dateRange.end) {
+    showErrorSnackbarFunc("Please select both start and end dates");
+    return;
+  }
 
-    const startDate = new Date(dateRange.start);
-    const endDate = new Date(dateRange.end);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const startDate = new Date(dateRange.start);
+  const endDate = new Date(dateRange.end);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-    if (startDate < today || endDate < today) {
-      setErrors((prev) => ({
-        ...prev,
-        selectedDates: "Dates cannot be in the past",
-      }));
-      return;
-    }
-
-    if (endDate < startDate) {
-      setErrors((prev) => ({
-        ...prev,
-        selectedDates: "End date must be after start date",
-      }));
-      return;
-    }
-
-    const dates: string[] = [];
-    const currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
-      const dateString = currentDate.toISOString().split("T")[0];
-      if (!formData.selectedDates.includes(dateString)) {
-        dates.push(dateString);
-      }
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    // Initialize empty time slots for new dates
-    const updatedDateTimeSlots = { ...formData.dateTimeSlots };
-    dates.forEach((date) => {
-      updatedDateTimeSlots[date] = {
-        selectedSlots: [],
-        selectedRanges: [],
-      };
-    });
-
-    setFormData((prev) => ({
+  // Skip past date validation in edit mode (when instance_id is set)
+  if (!instance_id && (startDate < today || endDate < today)) {
+    setErrors((prev) => ({
       ...prev,
-      selectedDates: [...prev.selectedDates, ...dates].sort(),
-      dateTimeSlots: updatedDateTimeSlots,
+      selectedDates: "Dates cannot be in the past",
     }));
-
-    // Removed: setDateRange({ start: "", end: "" });
-    setErrors((prev) => ({ ...prev, selectedDates: "" }));
-
-    // ✅ Fetch booked slots for all new dates
-    dates.forEach(date => getUserTimeSlotsForDate(date));
-  };
-
-
-  // const handleDateRangeAdd = () => {
-  //   if (!dateRange.start || !dateRange.end) {
-  //     showErrorSnackbarFunc("Please select both start and end dates");
-  //     return;
-  //   }
-
-  //   const startDate = new Date(dateRange.start);
-  //   const endDate = new Date(dateRange.end);
-  //   const today = new Date();
-  //   today.setHours(0, 0, 0, 0);
-
-  //   if (startDate < today || endDate < today) {
-  //     setErrors((prev) => ({
-  //       ...prev,
-  //       selectedDates: "Dates cannot be in the past",
-  //     }));
-  //     return;
-  //   }
-
-  //   if (endDate < startDate) {
-  //     setErrors((prev) => ({
-  //       ...prev,
-  //       selectedDates: "End date must be after start date",
-  //     }));
-  //     return;
-  //   }
-
-  //   const dates: string[] = [];
-  //   const currentDate = new Date(startDate);
-  //   while (currentDate <= endDate) {
-  //     const dateString = currentDate.toISOString().split("T")[0];
-  //     if (!formData.selectedDates.includes(dateString)) {
-  //       dates.push(dateString);
-  //     }
-  //     currentDate.setDate(currentDate.getDate() + 1);
-  //   }
-
-  //   // Initialize empty time slots for new dates
-  //   const updatedDateTimeSlots = { ...formData.dateTimeSlots };
-  //   dates.forEach((date) => {
-  //     updatedDateTimeSlots[date] = {
-  //       selectedSlots: [],
-  //       selectedRanges: [],
-  //     };
-  //   });
-
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     selectedDates: [...prev.selectedDates, ...dates].sort(),
-  //     dateTimeSlots: updatedDateTimeSlots,
-  //   }));
-
-  //   // setDateRange({ start: "", end: "" });
-  //   setErrors((prev) => ({ ...prev, selectedDates: "" }));
-
-  //   // ✅ Fetch booked slots for all new dates
-  //   dates.forEach(date => getUserTimeSlotsForDate(date));
-  // };
-
-  // Update the handleReplicateSlots function
-  //   const handleReplicateSlots = async (sourceDate?: string) => {
-  //     setIsReplicating(true); // Start loading
-  //     try {
-  //       const src = sourceDate || selectedDate;
-  //       if (!src) {
-  //         showErrorSnackbarFunc("No source date available to replicate from");
-  //         return;
-  //       }
-
-  //       console.log("Replicating from date:", src);
-
-  //       // Prefer the explicitly stored per-date slots, fallback to current working slots
-  //       const sourceSlots =
-  //         formData.dateTimeSlots[src]?.selectedSlots?.slice() ||
-  //         formData.selectedSlots?.slice() ||
-  //         [];
-
-  //       if (sourceSlots.length === 0) {
-  //         showErrorSnackbarFunc("No slots selected to replicate");
-  //         setErrors((prev) => ({
-  //           ...prev,
-  //           selectedSlots: "No slots selected to replicate",
-  //         }));
-  //         return;
-  //       }
-
-  //       // Target dates are all selected dates except the source date
-  //       const targetDates = formData.selectedDates.filter((date) => date !== src);
-  //       if (targetDates.length === 0) {
-  //         showErrorSnackbarFunc("No other dates to replicate to");
-  //         return;
-  //       }
-
-  //       console.log("Target dates for replication:", targetDates);
-  //       console.log("Source slots to replicate:", sourceSlots);
-
-  //       // Check server-side conflicts for each target date
-  //       // const conflictDetails: { [key: string]: string[] } = {};
-  //       // for (const date of targetDates) {
-  //       //   console.log(`Checking conflicts for date: ${date}`);
-  //       //   const conflicts = await checkTimeSlotConflicts(date, sourceSlots);
-  //       //   if (conflicts.length > 0) {
-  //       //     conflictDetails[date] = conflicts;
-  //       //     console.log(`Conflicts found for ${date}:`, conflicts);
-  //       //   }
-  //       // }
-
-  //       // // If there are any conflicts, show detailed error message
-  //       // if (Object.keys(conflictDetails).length > 0) {
-  //       //   const conflictDatesArray = Object.keys(conflictDetails);
-  //       //   const conflictDates = conflictDatesArray
-  //       //     .map((date) => new Date(date).toLocaleDateString())
-  //       //     .join(", ");
-
-  //       //   // Get the conflicting slot times for more detailed error message
-  //       //   const conflictingSlotTimes: string[] = [];
-  //       //   Object.values(conflictDetails).forEach((slotIds) => {
-  //       //     slotIds.forEach((slotId) => {
-  //       //       const slot = timeSlot.find(
-  //       //         (ts) => ts.time_slot_id.toString() === slotId
-  //       //       );
-  //       //       if (slot && !conflictingSlotTimes.includes(slot.time_slot || "")) {
-  //       //         conflictingSlotTimes.push(slot.time_slot || "");
-  //       //       }
-  //       //     });
-  //       //   });
-
-  //       //   const errorMsg = `Cannot replicate slots to ${conflictDates}. Time slots [${conflictingSlotTimes.join(
-  //       //     ", "
-  //       //   )}] are already booked. Please select different time slots or dates.`;
-
-  //       //   console.error("Replication conflict error:", {
-  //       //     conflictDates,
-  //       //     conflictingSlots: conflictingSlotTimes,
-  //       //     affectedDates: conflictDatesArray,
-  //       //   });
-
-  //       //   // Show error in multiple ways for better visibility
-  //       //   setErrors((prev) => ({
-  //       //     ...prev,
-  //       //     selectedSlots: errorMsg,
-  //       //   }));
-
-  //       //   setTouched((prev) => ({
-  //       //     ...prev,
-  //       //     selectedSlots: true,
-  //       //   }));
-  //       //   // showErrorSnackbarFunc(errorMsg);
-  //       //   return;
-  //       // }
-
-
-
-  //       // Check server-side conflicts for each target date
-  // const conflictDetails: { [key: string]: string[] } = {};
-  // for (const date of targetDates) {
-  //   console.log(`Checking conflicts for date: ${date}`);
-  //   const conflicts = await checkTimeSlotConflicts(date, sourceSlots);
-  //   if (conflicts.length > 0) {
-  //     conflictDetails[date] = conflicts;
-  //     console.log(`Conflicts found for ${date}:`, conflicts);
-  //   }
-  // }
-
-  // // If there are any conflicts, show detailed error message
-  // if (Object.keys(conflictDetails).length > 0) {
-  //   const conflictDatesArray = Object.keys(conflictDetails);
-  //   const conflictDates = conflictDatesArray
-  //     .map((date) => new Date(date).toLocaleDateString())
-  //     .join(", ");
-
-  //   // Get the conflicting slot times for more detailed error message
-  //   const conflictingSlotTimes: string[] = [];
-  //   const slotsByDate: { [key: string]: string[] } = {};
-
-  //   Object.entries(conflictDetails).forEach(([date, slotIds]) => {
-  //     const slotsForDate: string[] = [];
-  //     slotIds.forEach((slotId) => {
-  //       const slot = timeSlot.find(
-  //         (ts) => ts.time_slot_id.toString() === slotId
-  //       );
-  //       if (slot && !conflictingSlotTimes.includes(slot.time_slot || "")) {
-  //         conflictingSlotTimes.push(slot.time_slot || "");
-  //         slotsForDate.push(slot.time_slot || "");
-  //       }
-  //     });
-  //     if (slotsForDate.length > 0) {
-  //       slotsByDate[date] = slotsForDate;
-  //     }
-  //   });
-
-  //   // Build detailed error message
-  //   let errorMsg = `Cannot replicate slots. The following dates have overlapping booked slots:\n\n`;
-
-  //   Object.entries(slotsByDate).forEach(([date, slots]) => {
-  //     const formattedDate = new Date(date).toLocaleDateString();
-  //     errorMsg += `📅 ${formattedDate}: Time slots [${slots.join(", ")}] are already booked (grey)\n`;
-  //   });
-
-  //   errorMsg += `\nPlease select different time slots or dates.`;
-
-  //   console.error("Replication conflict error:", {
-  //     conflictDates,
-  //     conflictingSlots: conflictingSlotTimes,
-  //     affectedDates: conflictDatesArray,
-  //     slotsByDate,
-  //   });
-
-  //   // Show error in multiple ways for better visibility
-  //   setErrors((prev) => ({
-  //     ...prev,
-  //     selectedSlots: errorMsg,
-  //   }));
-
-  //   setTouched((prev) => ({
-  //     ...prev,
-  //     selectedSlots: true,
-  //   }));
-
-  //   // Show error snackbar for immediate feedback
-  //   showErrorSnackbarFunc(`Cannot replicate: ${conflictDates} have overlapping booked slots`);
-
-  //   return;
-  // }
-
-  //       // Build ranges for the sourceSlots (by index in timeSlot)
-  //       const indices = sourceSlots
-  //         .map((id) => getSlotIndex(id))
-  //         .filter((i) => i >= 0)
-  //         .sort((a, b) => a - b);
-
-  //       const ranges: TimeSlotRange[] = [];
-  //       if (indices.length > 0) {
-  //         let rangeStart = indices[0];
-  //         let rangeEnd = indices[0];
-  //         for (let i = 1; i < indices.length; i++) {
-  //           if (indices[i] === rangeEnd + 1) {
-  //             rangeEnd = indices[i];
-  //           } else {
-  //             ranges.push({ start: rangeStart, end: rangeEnd });
-  //             rangeStart = indices[i];
-  //             rangeEnd = indices[i];
-  //           }
-  //         }
-  //         ranges.push({ start: rangeStart, end: rangeEnd });
-  //       }
-
-  //       console.log("Calculated ranges:", ranges);
-
-  //       // Update dateTimeSlots for all target dates
-  //       setFormData((prev) => {
-  //         const updatedDateTimeSlots = { ...prev.dateTimeSlots };
-  //         targetDates.forEach((date) => {
-  //           updatedDateTimeSlots[date] = {
-  //             selectedSlots: [...sourceSlots],
-  //             selectedRanges: ranges.map((r) => ({ start: r.start, end: r.end })),
-  //           };
-  //         });
-
-  //         // If the current selectedDate is one of the targets, also update current working selection
-  //         const updatedSelectedSlots =
-  //           prev.selectedDate && targetDates.includes(prev.selectedDate)
-  //             ? [...sourceSlots]
-  //             : prev.selectedSlots;
-
-  //         const updatedSelectedRanges =
-  //           prev.selectedDate && targetDates.includes(prev.selectedDate)
-  //             ? ranges.map((r) => ({ start: r.start, end: r.end }))
-  //             : prev.selectedRanges;
-
-  //         return {
-  //           ...prev,
-  //           dateTimeSlots: updatedDateTimeSlots,
-  //           selectedSlots: updatedSelectedSlots,
-  //           selectedRanges: updatedSelectedRanges,
-  //         };
-  //       });
-
-  //       // Clear any previous slot errors on success
-  //       setErrors((prev) => ({ ...prev, selectedSlots: "" }));
-
-  //       // Show brief success feedback
-  //       const successMsg = `Slots replicated to ${targetDates.length} date${targetDates.length > 1 ? "s" : ""
-  //         }`;
-  //       console.log("Replication successful:", successMsg);
-  //       showSuccessSnackbarFunc(successMsg);
-  //     } catch (error) {
-  //       console.error("Error replicating slots:", error);
-  //       const errorMsg =
-  //         error instanceof Error
-  //           ? error.message
-  //           : "Failed to replicate time slots. Please try again.";
-  //       showErrorSnackbarFunc(errorMsg);
-  //       setErrors((prev) => ({ ...prev, selectedSlots: errorMsg }));
-  //     } finally {
-  //       setIsReplicating(false); // Stop loading
-  //     }
-  //   };
-
-  const handleReplicateSlots = async (sourceDate?: string) => {
-    setIsReplicating(true);
-    try {
-      const src = sourceDate || selectedDate;
-      if (!src) {
-        showErrorSnackbarFunc("No source date available to replicate from");
-        return;
-      }
-
-      console.log("Replicating from date:", src);
-
-      // Prefer the explicitly stored per-date slots, fallback to current working slots
-      const sourceSlots =
-        formData.dateTimeSlots[src]?.selectedSlots?.slice() ||
-        formData.selectedSlots?.slice() ||
-        [];
-
-      if (sourceSlots.length === 0) {
-        showErrorSnackbarFunc("No slots selected to replicate");
-        setErrors((prev) => ({
-          ...prev,
-          selectedSlots: "No slots selected to replicate",
-        }));
-        return;
-      }
-
-      // Target dates are all selected dates except the source date
-      const targetDates = formData.selectedDates.filter((date) => date !== src);
-      if (targetDates.length === 0) {
-        showErrorSnackbarFunc("No other dates to replicate to");
-        return;
-      }
-
-      console.log("Target dates for replication:", targetDates);
-      console.log("Source slots to replicate:", sourceSlots);
-
-      // Check server-side conflicts for each target date
-      const conflictDetails: { [key: string]: string[] } = {};
-      for (const date of targetDates) {
-        console.log(`Checking conflicts for date: ${date}`);
-        const conflicts = await checkTimeSlotConflicts(date, sourceSlots);
-        if (conflicts.length > 0) {
-          conflictDetails[date] = conflicts;
-          console.log(`Conflicts found for ${date}:`, conflicts);
-        }
-      }
-
-      // // If there are any conflicts, show detailed error message
-      // if (Object.keys(conflictDetails).length > 0) {
-      //   const conflictDatesArray = Object.keys(conflictDetails).sort();
-
-      //   // Build detailed mapping of conflicts by date
-      //   const slotsByDate: { [key: string]: { slot: string; slotId: string }[] } = {};
-
-      //   Object.entries(conflictDetails).forEach(([date, slotIds]) => {
-      //     const slotsForDate: { slot: string; slotId: string }[] = [];
-      //     slotIds.forEach((slotId) => {
-      //       const slot = timeSlot.find(
-      //         (ts) => String(ts.time_slot_id) === String(slotId)
-      //       );
-      //       if (slot && slot.time_slot) {
-      //         slotsForDate.push({
-      //           slot: slot.time_slot,
-      //           slotId: String(slotId),
-      //         });
-      //       }
-      //     });
-      //     if (slotsForDate.length > 0) {
-      //       slotsByDate[date] = slotsForDate;
-      //     }
-      //   });
-
-      //   // Build comprehensive error message
-      //   let errorMsg = `❌ Cannot replicate slots - conflicts detected:\n\n`;
-
-      //   Object.entries(slotsByDate).forEach(([date, slotsInfo]) => {
-      //     // const formattedDate = new Date(date).toLocaleDateString("en-US", {
-      //     //   weekday: "short",
-      //     //   year: "numeric",
-      //     //   month: "short",
-      //     //   day: "numeric",
-      //     // });
-      //     const formattedDate = formatDateDDMMYYYY(date);
-      //     const slotNames = slotsInfo.map((s) => s.slot).join(", ");
-      //     errorMsg += `📅 ${formattedDate}\n`;
-      //     errorMsg += `   🔲 Grey slots (booked by others): ${slotNames}\n\n`;
-      //   });
-
-      //   errorMsg += `Please select different time slots or dates.`;
-
-      //   console.error("Replication conflict error:", {
-      //     affectedDates: conflictDatesArray,
-      //     conflictsByDate: slotsByDate,
-      //   });
-
-      //   // Show error in multiple ways for better visibility
-      //   setErrors((prev) => ({
-      //     ...prev,
-      //     selectedSlots: errorMsg,
-      //   }));
-
-      //   setTouched((prev) => ({
-      //     ...prev,
-      //     selectedSlots: true,
-      //   }));
-
-      //   // Show error snackbar for immediate feedback
-      //   const affectedCount = conflictDatesArray.length;
-      //   showErrorSnackbarFunc(
-      //     `Cannot replicate: ${affectedCount} date${affectedCount > 1 ? "s" : ""} have conflicting booked slots`
-      //   );
-
-      //   return;
-      // }
-
-      // If there are any conflicts, show detailed error message
-if (Object.keys(conflictDetails).length > 0) {
-  const conflictDatesArray = Object.keys(conflictDetails).sort();
-  const totalTargetDates = targetDates.length;
-  const conflictCount = conflictDatesArray.length;
-
-  // Build detailed mapping of conflicts by date
-  const slotsByDate: { [key: string]: { slot: string; slotId: string }[] } = {};
-
-  Object.entries(conflictDetails).forEach(([date, slotIds]) => {
-    const slotsForDate: { slot: string; slotId: string }[] = [];
-    slotIds.forEach((slotId) => {
-      const slot = timeSlot.find(
-        (ts) => String(ts.time_slot_id) === String(slotId)
-      );
-      if (slot && slot.time_slot) {
-        slotsForDate.push({
-          slot: slot.time_slot,
-          slotId: String(slotId),
-        });
-      }
-    });
-    if (slotsForDate.length > 0) {
-      slotsByDate[date] = slotsForDate;
+    return;
+  }
+
+  if (endDate < startDate) {
+    setErrors((prev) => ({
+      ...prev,
+      selectedDates: "End date must be after start date",
+    }));
+    return;
+  }
+
+  const dates: string[] = [];
+  const currentDate = new Date(startDate);
+  while (currentDate <= endDate) {
+    const dateString = currentDate.toISOString().split("T")[0];
+    if (!formData.selectedDates.includes(dateString)) {
+      dates.push(dateString);
     }
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  const updatedDateTimeSlots = { ...formData.dateTimeSlots };
+  dates.forEach((date) => {
+    updatedDateTimeSlots[date] = {
+      selectedSlots: [],
+      selectedRanges: [],
+    };
   });
 
-  // Build comprehensive error message with summary
-  let errorMsg = `❌ REPLICATION BLOCKED - Time Slot Conflicts Detected\n`;
-  errorMsg += `═══════════════════════════════════════════════════\n\n`;
-  errorMsg += `📊 Summary: ${conflictCount} out of ${totalTargetDates} target date${totalTargetDates > 1 ? "s" : ""} have overlapping booked slots.\n\n`;
-  errorMsg += `Conflicting Dates:\n`;
-  errorMsg += `─────────────────\n`;
-
-  Object.entries(slotsByDate).forEach(([date, slotsInfo]) => {
-    const formattedDate = formatDateDDMMYYYY(date);
-    const slotNames = slotsInfo.map((s) => s.slot).join(", ");
-    errorMsg += `📅 ${formattedDate}\n`;
-    errorMsg += `   ⚠️  Already booked: ${slotNames}\n`;
-  });
-
-  errorMsg += `\n═══════════════════════════════════════════════════\n`;
-  errorMsg += `💡 Solution:\n`;
-  errorMsg += `   • Select different time slots, OR\n`;
-  errorMsg += `   • Choose a date range without conflicts, OR\n`;
-  errorMsg += `   • Wait for other users to complete their bookings\n`;
-
-  console.error("Replication conflict error:", {
-    affectedDates: conflictDatesArray,
-    affectedCount: conflictCount,
-    totalTargetDates: totalTargetDates,
-    conflictsByDate: slotsByDate,
-  });
-
-  // Show error in multiple ways for better visibility
-  setErrors((prev) => ({
+  setFormData((prev) => ({
     ...prev,
-    selectedSlots: errorMsg,
+    selectedDates: [...prev.selectedDates, ...dates].sort(),
+    dateTimeSlots: updatedDateTimeSlots,
   }));
 
-  setTouched((prev) => ({
-    ...prev,
-    selectedSlots: true,
-  }));
+  setErrors((prev) => ({ ...prev, selectedDates: "" }));
 
-  // Show error snackbar for immediate feedback with clear summary
-  const summary = `Cannot replicate: ${conflictCount}/${totalTargetDates} dates have booked slots in your selected time range`;
-  showErrorSnackbarFunc(summary);
+  dates.forEach(date => getUserTimeSlotsForDate(date));
+};
 
-  return;
-}
 
-      // Build ranges for the sourceSlots (by index in timeSlot)
-      const indices = sourceSlots
-        .map((id) => getSlotIndex(id))
-        .filter((i) => i >= 0)
-        .sort((a, b) => a - b);
 
-      const ranges: TimeSlotRange[] = [];
-      if (indices.length > 0) {
-        let rangeStart = indices[0];
-        let rangeEnd = indices[0];
-        for (let i = 1; i < indices.length; i++) {
-          if (indices[i] === rangeEnd + 1) {
-            rangeEnd = indices[i];
-          } else {
-            ranges.push({ start: rangeStart, end: rangeEnd });
-            rangeStart = indices[i];
-            rangeEnd = indices[i];
-          }
-        }
-        ranges.push({ start: rangeStart, end: rangeEnd });
+
+const handleReplicateSlots = async (sourceDate?: string) => {
+  setIsReplicating(true);
+  try {
+    const src = sourceDate || selectedDate;
+    if (!src) {
+      showErrorSnackbarFunc("No source date available to replicate from");
+      return;
+    }
+
+    console.log("Replicating from date:", src);
+
+    // Prefer the explicitly stored per-date slots, fallback to current working slots
+    const sourceSlots =
+      formData.dateTimeSlots[src]?.selectedSlots?.slice() ||
+      formData.selectedSlots?.slice() ||
+      [];
+
+    if (sourceSlots.length === 0) {
+      showErrorSnackbarFunc("No slots selected to replicate");
+      setErrors((prev) => ({
+        ...prev,
+        selectedSlots: "No slots selected to replicate",
+      }));
+      return;
+    }
+
+    // Target dates are all selected dates except the source date
+    const targetDates = formData.selectedDates.filter((date) => date !== src);
+    if (targetDates.length === 0) {
+      showErrorSnackbarFunc("No other dates to replicate to");
+      return;
+    }
+
+    console.log("Target dates for replication:", targetDates);
+    console.log("Source slots to replicate:", sourceSlots);
+
+    // Check server-side conflicts for each target date
+    const replicationPlan: { [date: string]: { skip: boolean; conflicts: string[] } } = {};
+    let successfulDates: string[] = [];
+    let skippedDates: string[] = [];
+
+    for (const date of targetDates) {
+      console.log(`Checking conflicts for date: ${date}`);
+      const conflicts = await checkTimeSlotConflicts(date, sourceSlots);
+      
+      if (conflicts.length > 0) {
+        // ANY conflict found - skip entire date
+        skippedDates.push(date);
+        replicationPlan[date] = {
+          skip: true,
+          conflicts: conflicts,
+        };
+        console.log(`⚠️  Conflicts found for ${date}. Skipping entire date:`, conflicts);
+      } else {
+        // No conflicts - replicate all slots to this date
+        successfulDates.push(date);
+        replicationPlan[date] = {
+          skip: false,
+          conflicts: [],
+        };
+        console.log(`✅ No conflicts for ${date} - replicating all slots`);
+      }
+    }
+
+    // Build comprehensive error and warning message
+    let errorMessage = ``;
+    let hasSkipped = skippedDates.length > 0;
+
+    if (hasSkipped) {
+      // errorMessage = `  REPLICATION SUMMARY\n`;
+      
+
+      // Successfully replicated dates
+      if (successfulDates.length > 0) {
+        errorMessage += ` Successfully Replicated (${successfulDates.length}):\n`;
+        successfulDates.forEach((date) => {
+          errorMessage += `   📅 ${formatDateDDMMYYYY(date)}\n`;
+        });
+        errorMessage += `\n`;
       }
 
-      console.log("Calculated ranges:", ranges);
-
-      // Update dateTimeSlots for all target dates
-      setFormData((prev) => {
-        const updatedDateTimeSlots = { ...prev.dateTimeSlots };
-        targetDates.forEach((date) => {
-          updatedDateTimeSlots[date] = {
-            selectedSlots: [...sourceSlots],
-            selectedRanges: ranges.map((r) => ({ start: r.start, end: r.end })),
-          };
+      // Skipped dates (due to any conflict)
+      if (skippedDates.length > 0) {
+        errorMessage += ` Skipped Due to Conflicts (${skippedDates.length}):\n`;
+        skippedDates.forEach((date) => {
+          const plan = replicationPlan[date];
+          const conflictSlots = plan.conflicts
+            .map((slotId) => {
+              const slot = timeSlot.find((ts) => String(ts.time_slot_id) === String(slotId));
+              return slot?.time_slot;
+            })
+            .filter(Boolean);
+          
+          errorMessage += `${formatDateDDMMYYYY(date)}\n`;
+          errorMessage += `Already booked: ${conflictSlots.join(", ")}\n`;
         });
+        errorMessage += `\n`;
+      }
 
-        // If the current selectedDate is one of the targets, also update current working selection
-        const updatedSelectedSlots =
-          prev.selectedDate && targetDates.includes(prev.selectedDate)
-            ? [...sourceSlots]
-            : prev.selectedSlots;
+      // errorMessage += `═══════════════════════════════════════════════════\n`;
 
-        const updatedSelectedRanges =
-          prev.selectedDate && targetDates.includes(prev.selectedDate)
-            ? ranges.map((r) => ({ start: r.start, end: r.end }))
-            : prev.selectedRanges;
+      // Show error/warning message
+      setErrors((prev) => ({
+        ...prev,
+        selectedSlots: errorMessage,
+      }));
 
-        return {
-          ...prev,
-          dateTimeSlots: updatedDateTimeSlots,
-          selectedSlots: updatedSelectedSlots,
-          selectedRanges: updatedSelectedRanges,
+      setTouched((prev) => ({
+        ...prev,
+        selectedSlots: true,
+      }));
+    }
+
+    // If all dates have conflicts, stop here
+    if (successfulDates.length === 0) {
+      showErrorSnackbarFunc(` Cannot replicate - all target dates have conflicts`);
+      return;
+    }
+
+    // Build ranges for the sourceSlots
+    const indices = sourceSlots
+      .map((id) => getSlotIndex(id))
+      .filter((i) => i >= 0)
+      .sort((a, b) => a - b);
+
+    const ranges: TimeSlotRange[] = [];
+    if (indices.length > 0) {
+      let rangeStart = indices[0];
+      let rangeEnd = indices[0];
+      for (let i = 1; i < indices.length; i++) {
+        if (indices[i] === rangeEnd + 1) {
+          rangeEnd = indices[i];
+        } else {
+          ranges.push({ start: rangeStart, end: rangeEnd });
+          rangeStart = indices[i];
+          rangeEnd = indices[i];
+        }
+      }
+      ranges.push({ start: rangeStart, end: rangeEnd });
+    }
+
+    console.log("Calculated ranges:", ranges);
+
+    // Proceed with replication only to successful dates
+    setFormData((prev) => {
+      const updatedDateTimeSlots = { ...prev.dateTimeSlots };
+      
+      // Replicate only to successful dates (non-conflicting)
+      successfulDates.forEach((date) => {
+        updatedDateTimeSlots[date] = {
+          selectedSlots: [...sourceSlots],
+          selectedRanges: ranges.map((r) => ({ start: r.start, end: r.end })),
         };
       });
 
-      // Clear any previous slot errors on success
-      setErrors((prev) => ({ ...prev, selectedSlots: "" }));
+      // If the current selectedDate is one of the successful dates, update current working selection
+      let updatedSelectedSlots = prev.selectedSlots;
+      let updatedSelectedRanges = prev.selectedRanges;
 
-      // Clear any previous slot errors on success
-      setErrors((prev) => ({ ...prev, selectedSlots: "" }));
+      if (selectedDate && successfulDates.includes(selectedDate)) {
+        updatedSelectedSlots = [...sourceSlots];
+        updatedSelectedRanges = ranges.map((r) => ({ start: r.start, end: r.end }));
+      }
 
-      // Show brief success feedback with list of dates
-      // const formattedDates = targetDates.map((date) =>
-      //   new Date(date).toLocaleDateString("en-US", {
-      //     day: "numeric",
-      //     month: "numeric",
-      //     year: "numeric",
-      //   })
-      // );
-      const formattedDates = targetDates.map((date) =>
-        formatDateDDMMYYYY(date)
-      );
-      const successMsg = `Slots replicated to ${targetDates.length} date${targetDates.length > 1 ? "s" : ""
-        }: ${formattedDates.join(", ")}`;
-      console.log("Replication successful:", successMsg);
-      showSuccessSnackbarFunc(successMsg);
+      return {
+        ...prev,
+        dateTimeSlots: updatedDateTimeSlots,
+        selectedSlots: updatedSelectedSlots,
+        selectedRanges: updatedSelectedRanges,
+      };
+    });
 
-      // Show brief success feedback
-      // const successMsg = `Slots replicated to ${targetDates.length + 1} date${
-      //   targetDates.length > 1 ? "s" : ""
-      // }`;
-      console.log("Replication successful:", successMsg);
-      showSuccessSnackbarFunc(successMsg);
-    } catch (error) {
-      console.error("Error replicating slots:", error);
-      const errorMsg =
-        error instanceof Error
-          ? error.message
-          : "Failed to replicate time slots. Please try again.";
-      showErrorSnackbarFunc(errorMsg);
-      setErrors((prev) => ({ ...prev, selectedSlots: errorMsg }));
-    } finally {
-      setIsReplicating(false);
+    // Show appropriate success/warning message
+    if (successfulDates.length > 0 && skippedDates.length > 0) {
+      // Mixed result - some replicated, some skipped
+      showErrorSnackbarFunc(`Replicated to ${successfulDates.length}/${targetDates.length} dates. ${skippedDates.length} date${skippedDates.length > 1 ? "s" : ""} skipped due to conflicts`);
+    } else if (successfulDates.length === targetDates.length) {
+      // All successful
+      showSuccessSnackbarFunc(`Slots replicated to all ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""}`);
     }
-  };
-
-
+  } catch (error) {
+    console.error("Error replicating slots:", error);
+    const errorMsg =
+      error instanceof Error
+        ? error.message
+        : "Failed to replicate time slots. Please try again.";
+    showErrorSnackbarFunc(errorMsg);
+    setErrors((prev) => ({ ...prev, selectedSlots: errorMsg }));
+  } finally {
+    setIsReplicating(false);
+  }
+};
 
 
   const handleTimeSlotClick = async (slotId: string) => {
@@ -2281,7 +1826,7 @@ if (Object.keys(conflictDetails).length > 0) {
       }));
 
       setUserTimeSlot(processedData);
-      console.log('📋 Booked slots for', selectedDate, ':', processedData);
+      console.log('Booked slots for', selectedDate, ':', processedData);
     } catch (error) {
       console.error('Error fetching user time slots:', error);
       showErrorSnackbarFunc('Failed to load time slots');
@@ -2344,23 +1889,41 @@ if (Object.keys(conflictDetails).length > 0) {
   };
 
   // 4. checkTimeSlotConflicts - CORRECTED PARAM NAMES
+  // const checkTimeSlotConflicts = async (date: string, slotIds: string[]) => {
+  //   try {
+  //     const params = new URLSearchParams();
+  //     params.append('date', date);
+  //     if (instance_id) params.append('instanceId', instance_id);
+
+  //     const data = await fetchAPI(`/userTimeSlots/conflicts?${params.toString()}`);
+
+  //     const conflicts = slotIds.filter((slotId) =>
+  //       data.some((existing: any) => existing.time_slot_id === slotId)
+  //     );
+  //     return conflicts;
+  //   } catch (error) {
+  //     console.error('Error checking time slot conflicts:', error);
+  //     return [];
+  //   }
+  // };
+
   const checkTimeSlotConflicts = async (date: string, slotIds: string[]) => {
-    try {
-      const params = new URLSearchParams();
-      params.append('date', date);
-      if (instance_id) params.append('instanceId', instance_id);
+  try {
+    const params = new URLSearchParams();
+    params.append('date', date);
+    if (instance_id) params.append('instanceId', instance_id);
 
-      const data = await fetchAPI(`/userTimeSlots/conflicts?${params.toString()}`);
+    const data = await fetchAPI(`/userTimeSlots/conflicts?${params.toString()}`);
 
-      const conflicts = slotIds.filter((slotId) =>
-        data.some((existing: any) => existing.time_slot_id === slotId)
-      );
-      return conflicts;
-    } catch (error) {
-      console.error('Error checking time slot conflicts:', error);
-      return [];
-    }
-  };
+    const conflicts = slotIds.filter((slotId) =>
+      data.some((existing: any) => String(existing.time_slot_id) === String(slotId))
+    );
+    return conflicts;
+  } catch (error) {
+    console.error('Error checking time slot conflicts:', error);
+    return [];
+  }
+};
 
 
   // Helper function to detect if dates form a consecutive range
@@ -2747,7 +2310,7 @@ const isConsecutiveDateRange = (dates: string[]): boolean => {
               {/* Close Button */}
               <button
                 onClick={() => {
-                  router.replace("/user");
+                  router.push("/user");
                 }} // replace with your own function
                 className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 transition"
                 aria-label="Close"
@@ -3398,7 +2961,8 @@ const isConsecutiveDateRange = (dates: string[]): boolean => {
                           <input
                             type="date"
                             value={selectedDate}
-                            min={getTodayDate()}
+                            // min={getTodayDate()}
+                            min={instance_id ? "" : getTodayDate()}
                             onChange={(e) => {
                               setSelectedDate(e.target.value);
                               if (e.target.value) {
@@ -3494,7 +3058,8 @@ const isConsecutiveDateRange = (dates: string[]): boolean => {
                           <input
                             type="date"
                             value={dateRange.start}
-                            min={getTodayDate()}
+                            // min={getTodayDate()}
+                            min={instance_id ? "" : getTodayDate()}
                             onChange={(e) => {
                               setDateRange((prev) => ({
                                 ...prev,
@@ -3532,7 +3097,8 @@ const isConsecutiveDateRange = (dates: string[]): boolean => {
                           <input
                             type="date"
                             value={dateRange.end}
-                            min={dateRange.start || getTodayDate()}
+                            // min={dateRange.start || getTodayDate()}
+                            min={dateRange.start || (instance_id ? "" : getTodayDate())}
                             onChange={(e) => {
                               setDateRange((prev) => ({
                                 ...prev,
