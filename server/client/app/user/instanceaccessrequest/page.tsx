@@ -715,7 +715,40 @@ function DGXInstanceRequestFormContent() {
   //   }
   // };
 
-  const handleReset = () => {
+  // const handleReset = () => {
+  //   if (instance_id) {
+  //     getInstanceRequestByUserId();
+  //     return;
+  //   }
+
+  //   if (!instance_id) {
+  //     setFormData({
+  //       userTypeId: "",
+  //       selectedDate: "",
+  //       dateTimeSlots: {},
+  //       selectedDates: [],
+  //       customImageId: "",
+  //       cpuId: "",
+  //       statusId: "",
+  //       gpuPartitionId: "",
+  //       storageVolume: "10",
+  //       ramId: "",
+  //       gpuSlotId: "",
+  //       workDescription: "",
+  //       selectedSlots: [],
+  //       selectedRanges: [],
+  //     });
+  //     setSelectedDate("");
+  //     setErrors({});
+  //     setTouched({});
+
+  //     // ✅ Clear booked slots on reset
+  //     setUserTimeSlot([]);
+  //   }
+  // };
+
+
+    const handleReset = () => {
     if (instance_id) {
       getInstanceRequestByUserId();
       return;
@@ -741,6 +774,11 @@ function DGXInstanceRequestFormContent() {
       setSelectedDate("");
       setErrors({});
       setTouched({});
+      
+      // ✅ Reset date range states
+      setDateRange({ start: "", end: "" });
+      setDateRangeErrors({});
+      setDateSelectionMode("individual");
 
       // ✅ Clear booked slots on reset
       setUserTimeSlot([]);
@@ -1036,18 +1074,69 @@ function DGXInstanceRequestFormContent() {
   };
 
   // Update the submit function
+  // const submit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+
+
+  //   // Validate date range if in range mode
+  //   if (dateSelectionMode === "range") {
+  //     if (!validateDateRange()) {
+  //       return;
+  //     }
+  //   }
+
+  //   if (!validateForm()) {
+  //     return;
+  //   }
+
+  //   // Check for conflicts on all selected dates before submission
+  //   for (const date of formData.selectedDates) {
+  //     const conflicts = await checkTimeSlotConflicts(
+  //       date,
+  //       formData.selectedSlots
+  //     );
+  //     if (conflicts.length > 0) {
+  //       showErrorSnackbarFunc(
+  //         `Some time slots are already booked for date ${formatDateDDMMYYYY(date)}`
+  //       );
+  //       return;
+  //     }
+  //   }
+
+  //   setIsSubmitting(true);
+
+  //   try {
+  //     if (instance_id) {
+  //       await updateInstanceRequest();
+  //     } else {
+  //       await saveInstanceRequest();
+  //     }
+  //   } catch (error) {
+  //     console.error("Submission failed:", error);
+  //     showErrorSnackbarFunc(
+  //       "Error submitting request. Please try again later."
+  //     );
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+
+
+    // Update the submit function
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-
-    // Validate date range if in range mode
+    // Validate date range if in range mode AND form validation together
+    let hasDateRangeErrors = false;
     if (dateSelectionMode === "range") {
-      if (!validateDateRange()) {
-        return;
-      }
+      hasDateRangeErrors = !validateDateRange();
     }
 
-    if (!validateForm()) {
+    // Always validate the full form
+    const hasFormErrors = !validateForm();
+
+    // If either has errors, stop here
+    if (hasDateRangeErrors || hasFormErrors) {
       return;
     }
 
@@ -1479,6 +1568,201 @@ function DGXInstanceRequestFormContent() {
 
 
 
+// const handleReplicateSlots = async (sourceDate?: string) => {
+//   setIsReplicating(true);
+//   try {
+//     const src = sourceDate || selectedDate;
+//     if (!src) {
+//       showErrorSnackbarFunc("No source date available to replicate from");
+//       return;
+//     }
+
+//     console.log("Replicating from date:", src);
+
+//     // Prefer the explicitly stored per-date slots, fallback to current working slots
+//     const sourceSlots =
+//       formData.dateTimeSlots[src]?.selectedSlots?.slice() ||
+//       formData.selectedSlots?.slice() ||
+//       [];
+
+//     if (sourceSlots.length === 0) {
+//       showErrorSnackbarFunc("No slots selected to replicate");
+//       setErrors((prev) => ({
+//         ...prev,
+//         selectedSlots: "No slots selected to replicate",
+//       }));
+//       return;
+//     }
+
+//     // Target dates are all selected dates except the source date
+//     const targetDates = formData.selectedDates.filter((date) => date !== src);
+//     if (targetDates.length === 0) {
+//       showErrorSnackbarFunc("No other dates to replicate to");
+//       return;
+//     }
+
+//     console.log("Target dates for replication:", targetDates);
+//     console.log("Source slots to replicate:", sourceSlots);
+
+//     // Check server-side conflicts for each target date
+//     const replicationPlan: { [date: string]: { skip: boolean; conflicts: string[] } } = {};
+//     let successfulDates: string[] = [];
+//     let skippedDates: string[] = [];
+
+//     for (const date of targetDates) {
+//       console.log(`Checking conflicts for date: ${date}`);
+//       const conflicts = await checkTimeSlotConflicts(date, sourceSlots);
+      
+//       if (conflicts.length > 0) {
+//         // ANY conflict found - skip entire date
+//         skippedDates.push(date);
+//         replicationPlan[date] = {
+//           skip: true,
+//           conflicts: conflicts,
+//         };
+//         console.log(`⚠️  Conflicts found for ${date}. Skipping entire date:`, conflicts);
+//       } else {
+//         // No conflicts - replicate all slots to this date
+//         successfulDates.push(date);
+//         replicationPlan[date] = {
+//           skip: false,
+//           conflicts: [],
+//         };
+//         console.log(`✅ No conflicts for ${date} - replicating all slots`);
+//       }
+//     }
+
+//     // Build comprehensive error and warning message
+//     let errorMessage = ``;
+//     let hasSkipped = skippedDates.length > 0;
+
+//     if (hasSkipped) {
+//       // errorMessage = `  REPLICATION SUMMARY\n`;
+      
+
+//       // Successfully replicated dates
+//       if (successfulDates.length > 0) {
+//         errorMessage += ` Successfully Replicated (${successfulDates.length}):\n`;
+//         successfulDates.forEach((date) => {
+//           errorMessage += ` ${formatDateDDMMYYYY(date)}\n`;
+//         });
+//         errorMessage += `\n`;
+//       }
+
+//       // Skipped dates (due to any conflict)
+//       if (skippedDates.length > 0) {
+//         errorMessage += ` Skipped Due to Conflicts (${skippedDates.length}):\n`;
+//         skippedDates.forEach((date) => {
+//           const plan = replicationPlan[date];
+//           const conflictSlots = plan.conflicts
+//             .map((slotId) => {
+//               const slot = timeSlot.find((ts) => String(ts.time_slot_id) === String(slotId));
+//               return slot?.time_slot;
+//             })
+//             .filter(Boolean);
+          
+//           errorMessage += `${formatDateDDMMYYYY(date)}\n`;
+//           errorMessage += `Already booked: ${conflictSlots.join(", ")}\n`;
+//         });
+//         errorMessage += `\n`;
+//       }
+
+//       // errorMessage += `═══════════════════════════════════════════════════\n`;
+
+//       // Show error/warning message
+//       setErrors((prev) => ({
+//         ...prev,
+//         selectedSlots: errorMessage,
+//       }));
+
+//       setTouched((prev) => ({
+//         ...prev,
+//         selectedSlots: true,
+//       }));
+//     }
+
+//     // If all dates have conflicts, stop here
+//     if (successfulDates.length === 0) {
+//       showErrorSnackbarFunc(` Cannot replicate - all target dates have conflicts`);
+//       return;
+//     }
+
+//     // Build ranges for the sourceSlots
+//     const indices = sourceSlots
+//       .map((id) => getSlotIndex(id))
+//       .filter((i) => i >= 0)
+//       .sort((a, b) => a - b);
+
+//     const ranges: TimeSlotRange[] = [];
+//     if (indices.length > 0) {
+//       let rangeStart = indices[0];
+//       let rangeEnd = indices[0];
+//       for (let i = 1; i < indices.length; i++) {
+//         if (indices[i] === rangeEnd + 1) {
+//           rangeEnd = indices[i];
+//         } else {
+//           ranges.push({ start: rangeStart, end: rangeEnd });
+//           rangeStart = indices[i];
+//           rangeEnd = indices[i];
+//         }
+//       }
+//       ranges.push({ start: rangeStart, end: rangeEnd });
+//     }
+
+//     console.log("Calculated ranges:", ranges);
+
+//     // Proceed with replication only to successful dates
+//     setFormData((prev) => {
+//       const updatedDateTimeSlots = { ...prev.dateTimeSlots };
+      
+//       // Replicate only to successful dates (non-conflicting)
+//       successfulDates.forEach((date) => {
+//         updatedDateTimeSlots[date] = {
+//           selectedSlots: [...sourceSlots],
+//           selectedRanges: ranges.map((r) => ({ start: r.start, end: r.end })),
+//         };
+//       });
+
+//       // If the current selectedDate is one of the successful dates, update current working selection
+//       let updatedSelectedSlots = prev.selectedSlots;
+//       let updatedSelectedRanges = prev.selectedRanges;
+
+//       if (selectedDate && successfulDates.includes(selectedDate)) {
+//         updatedSelectedSlots = [...sourceSlots];
+//         updatedSelectedRanges = ranges.map((r) => ({ start: r.start, end: r.end }));
+//       }
+
+//       return {
+//         ...prev,
+//         dateTimeSlots: updatedDateTimeSlots,
+//         selectedSlots: updatedSelectedSlots,
+//         selectedRanges: updatedSelectedRanges,
+//       };
+//     });
+
+//     // Show appropriate success/warning message
+//     if (successfulDates.length > 0 && skippedDates.length > 0) {
+//       // Mixed result - some replicated, some skipped
+//       showErrorSnackbarFunc(`Replicated to ${successfulDates.length}/${targetDates.length} dates. ${skippedDates.length} date${skippedDates.length > 1 ? "s" : ""} skipped due to conflicts`);
+//     } else if (successfulDates.length === targetDates.length) {
+//       // All successful
+//       showSuccessSnackbarFunc(`Slots replicated to all ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""}`);
+//     }
+//   } catch (error) {
+//     console.error("Error replicating slots:", error);
+//     const errorMsg =
+//       error instanceof Error
+//         ? error.message
+//         : "Failed to replicate time slots. Please try again.";
+//     showErrorSnackbarFunc(errorMsg);
+//     setErrors((prev) => ({ ...prev, selectedSlots: errorMsg }));
+//   } finally {
+//     setIsReplicating(false);
+//   }
+// };
+
+
+
 const handleReplicateSlots = async (sourceDate?: string) => {
   setIsReplicating(true);
   try {
@@ -1498,10 +1782,6 @@ const handleReplicateSlots = async (sourceDate?: string) => {
 
     if (sourceSlots.length === 0) {
       showErrorSnackbarFunc("No slots selected to replicate");
-      setErrors((prev) => ({
-        ...prev,
-        selectedSlots: "No slots selected to replicate",
-      }));
       return;
     }
 
@@ -1543,53 +1823,26 @@ const handleReplicateSlots = async (sourceDate?: string) => {
       }
     }
 
-    // Build comprehensive error and warning message
-    let errorMessage = ``;
+    // Build comprehensive snackbar message with color-coded summary
+    let snackbarMessage = ``;
     let hasSkipped = skippedDates.length > 0;
 
     if (hasSkipped) {
-      // errorMessage = `  REPLICATION SUMMARY\n`;
-      
-
-      // Successfully replicated dates
+      // Successfully replicated dates (GREEN)
       if (successfulDates.length > 0) {
-        errorMessage += ` Successfully Replicated (${successfulDates.length}):\n`;
-        successfulDates.forEach((date) => {
-          errorMessage += `   📅 ${formatDateDDMMYYYY(date)}\n`;
-        });
-        errorMessage += `\n`;
+        snackbarMessage += `✓ Successfully Replicated (${successfulDates.length}): `;
+        snackbarMessage += successfulDates.map((date) => formatDateDDMMYYYY(date)).join(", ");
+        snackbarMessage += `\n\n`;
       }
 
-      // Skipped dates (due to any conflict)
+      // Skipped dates (RED)
       if (skippedDates.length > 0) {
-        errorMessage += ` Skipped Due to Conflicts (${skippedDates.length}):\n`;
-        skippedDates.forEach((date) => {
-          const plan = replicationPlan[date];
-          const conflictSlots = plan.conflicts
-            .map((slotId) => {
-              const slot = timeSlot.find((ts) => String(ts.time_slot_id) === String(slotId));
-              return slot?.time_slot;
-            })
-            .filter(Boolean);
-          
-          errorMessage += `${formatDateDDMMYYYY(date)}\n`;
-          errorMessage += `Already booked: ${conflictSlots.join(", ")}\n`;
-        });
-        errorMessage += `\n`;
+        snackbarMessage += `✗ Skipped Due to Conflicts (${skippedDates.length}): `;
+        snackbarMessage += skippedDates.map((date) => formatDateDDMMYYYY(date)).join(", ");
       }
 
-      // errorMessage += `═══════════════════════════════════════════════════\n`;
-
-      // Show error/warning message
-      setErrors((prev) => ({
-        ...prev,
-        selectedSlots: errorMessage,
-      }));
-
-      setTouched((prev) => ({
-        ...prev,
-        selectedSlots: true,
-      }));
+      // Show warning message in snackbar
+      showErrorSnackbarFunc(snackbarMessage);
     }
 
     // If all dates have conflicts, stop here
@@ -1653,8 +1906,7 @@ const handleReplicateSlots = async (sourceDate?: string) => {
 
     // Show appropriate success/warning message
     if (successfulDates.length > 0 && skippedDates.length > 0) {
-      // Mixed result - some replicated, some skipped
-      showErrorSnackbarFunc(`Replicated to ${successfulDates.length}/${targetDates.length} dates. ${skippedDates.length} date${skippedDates.length > 1 ? "s" : ""} skipped due to conflicts`);
+      // Mixed result - some replicated, some skipped (already shown above)
     } else if (successfulDates.length === targetDates.length) {
       // All successful
       showSuccessSnackbarFunc(`Slots replicated to all ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""}`);
@@ -1666,12 +1918,10 @@ const handleReplicateSlots = async (sourceDate?: string) => {
         ? error.message
         : "Failed to replicate time slots. Please try again.";
     showErrorSnackbarFunc(errorMsg);
-    setErrors((prev) => ({ ...prev, selectedSlots: errorMsg }));
   } finally {
     setIsReplicating(false);
   }
 };
-
 
   const handleTimeSlotClick = async (slotId: string) => {
     // Initial validation checks
