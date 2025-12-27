@@ -919,6 +919,14 @@ function DGXInstanceRequestFormContent() {
     return `${day}-${month}-${year}`;
   };
 
+  const formatDatesForDisplay = (dates: string[]): string => {
+    if (dates.length === 0) return '';
+    const formattedDates = dates.map(date => formatDateDDMMYYYY(date));
+    if (dates.length === 1) return formattedDates[0];
+    if (dates.length === 2) return `${formattedDates[0]} and ${formattedDates[1]}`;
+    return `${formattedDates.slice(0, -1).join(', ')} and ${formattedDates[formattedDates.length - 1]}`;
+  };
+
   const areSlotsConsecutive = (slots: any) => {
     if (slots.length <= 1) return true;
 
@@ -1131,54 +1139,54 @@ function DGXInstanceRequestFormContent() {
 
 
   // Update the submit function
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // const submit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
 
-    // Validate date range if in range mode AND form validation together
-    let hasDateRangeErrors = false;
-    if (dateSelectionMode === "range") {
-      hasDateRangeErrors = !validateDateRange();
-    }
+  //   // Validate date range if in range mode AND form validation together
+  //   let hasDateRangeErrors = false;
+  //   if (dateSelectionMode === "range") {
+  //     hasDateRangeErrors = !validateDateRange();
+  //   }
 
-    // Always validate the full form
-    const hasFormErrors = !validateForm();
+  //   // Always validate the full form
+  //   const hasFormErrors = !validateForm();
 
-    // If either has errors, stop here
-    if (hasDateRangeErrors || hasFormErrors) {
-      return;
-    }
+  //   // If either has errors, stop here
+  //   if (hasDateRangeErrors || hasFormErrors) {
+  //     return;
+  //   }
 
-    // Check for conflicts on all selected dates before submission
-    for (const date of formData.selectedDates) {
-      const conflicts = await checkTimeSlotConflicts(
-        date,
-        formData.selectedSlots
-      );
-      if (conflicts.length > 0) {
-        showErrorSnackbarFunc(
-          `Some time slots are already booked for date ${formatDateDDMMYYYY(date)}`
-        );
-        return;
-      }
-    }
+  //   // Check for conflicts on all selected dates before submission
+  //   for (const date of formData.selectedDates) {
+  //     const conflicts = await checkTimeSlotConflicts(
+  //       date,
+  //       formData.selectedSlots
+  //     );
+  //     if (conflicts.length > 0) {
+  //       showErrorSnackbarFunc(
+  //         `Some time slots are already booked for date ${formatDateDDMMYYYY(date)}`
+  //       );
+  //       return;
+  //     }
+  //   }
 
-    setIsSubmitting(true);
+  //   setIsSubmitting(true);
 
-    try {
-      if (instance_id) {
-        await updateInstanceRequest();
-      } else {
-        await saveInstanceRequest();
-      }
-    } catch (error) {
-      console.error("Submission failed:", error);
-      showErrorSnackbarFunc(
-        "Error submitting request. Please try again later."
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  //   try {
+  //     if (instance_id) {
+  //       await updateInstanceRequest();
+  //     } else {
+  //       await saveInstanceRequest();
+  //     }
+  //   } catch (error) {
+  //     console.error("Submission failed:", error);
+  //     showErrorSnackbarFunc(
+  //       "Error submitting request. Please try again later."
+  //     );
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
 
 
   // First, update the DateTimeSlots interface to track slots per date
@@ -1701,7 +1709,9 @@ function DGXInstanceRequestFormContent() {
         };
       });
 
-      showSuccessSnackbarFunc(`Slots replicated to all ${targetDates.length} date${targetDates.length > 1 ? "s" : ""}`);
+      // showSuccessSnackbarFunc(`Slots replicated to all ${targetDates.length} date${targetDates.length > 1 ? "s" : ""}`);
+      showSuccessSnackbarFunc(`Slots replicated to ${targetDates.length} date${targetDates.length > 1 ? "s" : ""}: ${formatDatesForDisplay(targetDates)}`);
+    
     } catch (error) {
       console.error("Error replicating slots:", error);
       const errorMsg =
@@ -1785,7 +1795,8 @@ function DGXInstanceRequestFormContent() {
       });
 
       // Show summary message
-      showSuccessSnackbarFunc(`Slots replicated to ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""}`);
+      // showSuccessSnackbarFunc(`Slots replicated to ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""}`);
+      showSuccessSnackbarFunc(`Slots replicated to ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""}: ${formatDatesForDisplay(successfulDates)}`);
       setReplicationConflictData(null);
     } catch (error) {
       console.error("Error during replication:", error);
@@ -2366,43 +2377,43 @@ function DGXInstanceRequestFormContent() {
 
 
   // Also ensure selected_date is being sent with dates in time slots
-  const saveUserTimeSlots = async (instanceRequestId: string) => {
-    try {
-      const timeSlots: any[] = [];
+  // const saveUserTimeSlots = async (instanceRequestId: string) => {
+  //   try {
+  //     const timeSlots: any[] = [];
 
-      Object.entries(formData.dateTimeSlots).forEach(
-        ([date, { selectedSlots }]) => {
-          if (selectedSlots && selectedSlots.length > 0) {
-            selectedSlots.forEach((slotId) => {
-              timeSlots.push({
-                instance_request_id: instanceRequestId,
-                time_slot_id: slotId,
-                selected_date: date,  // This is correct - each slot has its own date
-              });
-            });
-          }
-        }
-      );
+  //     Object.entries(formData.dateTimeSlots).forEach(
+  //       ([date, { selectedSlots }]) => {
+  //         if (selectedSlots && selectedSlots.length > 0) {
+  //           selectedSlots.forEach((slotId) => {
+  //             timeSlots.push({
+  //               instance_request_id: instanceRequestId,
+  //               time_slot_id: slotId,
+  //               selected_date: date,  // This is correct - each slot has its own date
+  //             });
+  //           });
+  //         }
+  //       }
+  //     );
 
-      // Ensure timeSlots is not empty
-      if (timeSlots.length === 0) {
-        throw new Error('No time slots to save');
-      }
+  //     // Ensure timeSlots is not empty
+  //     if (timeSlots.length === 0) {
+  //       throw new Error('No time slots to save');
+  //     }
 
-      await fetchAPI('/userTimeSlots/bulk', {
-        method: 'POST',
-        body: JSON.stringify({
-          timeSlots,
-          userId: userId || loggedInUserId  // Pass actual user ID
-        }),
-      });
+  //     await fetchAPI('/userTimeSlots/bulk', {
+  //       method: 'POST',
+  //       body: JSON.stringify({
+  //         timeSlots,
+  //         userId: userId || loggedInUserId  // Pass actual user ID
+  //       }),
+  //     });
 
-      console.log('Time slots saved successfully:', timeSlots);
-    } catch (error) {
-      console.error('Error saving time slots:', error);
-      throw error;
-    }
-  };
+  //     console.log('Time slots saved successfully:', timeSlots);
+  //   } catch (error) {
+  //     console.error('Error saving time slots:', error);
+  //     throw error;
+  //   }
+  // };
 
   // 3. deleteUserTimeSlots - CORRECTED PARAM NAME
   const deleteUserTimeSlots = async (instanceRequestId: string) => {
@@ -2755,11 +2766,451 @@ function DGXInstanceRequestFormContent() {
   };
 
 
+
+
+  const [showPastDatesDialog, setShowPastDatesDialog] = useState(false);
+const [pastDatesInfo, setPastDatesInfo] = useState<{
+  pastDates: string[];
+  futureDates: string[];
+} | null>(null);
+
+// Add this helper function (around line 920, with other helper functions)
+const getPastDates = (dates: string[]): { pastDates: string[]; futureDates: string[] } => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const pastDates: string[] = [];
+  const futureDates: string[] = [];
+  
+  dates.forEach(date => {
+    const dateObj = new Date(date);
+    dateObj.setHours(0, 0, 0, 0);
+    
+    if (dateObj < today) {
+      pastDates.push(date);
+    } else {
+      futureDates.push(date);
+    }
+  });
+  
+  return { pastDates, futureDates };
+};
+
+// Add this dialog component (before the return statement, around line 2755)
+const PastDatesDialog = () => {
+  if (!showPastDatesDialog || !pastDatesInfo) return null;
+
+  const { pastDates, futureDates } = pastDatesInfo;
+
+
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 pointer-events-auto">
+      <div className="bg-white rounded-lg shadow-2xl max-w-lg w-11/12 p-6 relative z-50">
+        <div className="flex items-center gap-3 mb-4">
+          <AlertCircle className="w-6 h-6 text-orange-600" />
+          <h2 className="text-lg font-bold text-gray-800">
+            Past Dates Will Be Removed
+          </h2>
+        </div>
+
+        <div className="mb-4 max-h-96 overflow-y-auto">
+          {/* Past dates that will be deleted */}
+          {pastDates.length > 0 && (
+            <div className="mb-4">
+              <h3 className="font-semibold text-orange-700 mb-2">
+                ⚠️ Dates to be Deleted ({pastDates.length}):
+              </h3>
+              <div className="bg-orange-50 border border-orange-200 rounded p-3 space-y-2">
+                {pastDates.map((date) => (
+                  <div key={date} className="text-orange-700 text-sm py-1">
+                    📅 {formatDateDDMMYYYY(date)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Future dates that will be kept */}
+          {futureDates.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-green-700 mb-2">
+                ✓ Dates to be Kept ({futureDates.length}):
+              </h3>
+              <div className="bg-green-50 border border-green-200 rounded p-3 space-y-2">
+                {futureDates.map((date) => (
+                  <div key={date} className="text-green-700 text-sm py-1">
+                    📅 {formatDateDDMMYYYY(date)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="border-t pt-4 mt-4">
+          <p className="text-gray-700 text-sm mb-4">
+            All selected dates that are in the past will be automatically removed when you update the request. This action cannot be undone.
+          </p>
+
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={() => {
+                setShowPastDatesDialog(false);
+                setPastDatesInfo(null);
+              }}
+              className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                setShowPastDatesDialog(false);
+                setPastDatesInfo(null);
+                // Proceed with the update
+                proceedWithUpdate();
+              }}
+              className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 font-medium transition"
+            >
+              Continue with Update
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+
+// Modify the submit function to handle past dates check in edit mode (around line 1130)
+// Replace the existing submit function with this updated version:
+const submit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  // Validate date range if in range mode AND form validation together
+  let hasDateRangeErrors = false;
+  if (dateSelectionMode === "range") {
+    hasDateRangeErrors = !validateDateRange();
+  }
+
+  // Always validate the full form
+  const hasFormErrors = !validateForm();
+
+  // If either has errors, stop here
+  if (hasDateRangeErrors || hasFormErrors) {
+    return;
+  }
+
+  // Check for conflicts on all selected dates before submission
+  for (const date of formData.selectedDates) {
+    const conflicts = await checkTimeSlotConflicts(
+      date,
+      formData.selectedSlots
+    );
+    if (conflicts.length > 0) {
+      showErrorSnackbarFunc(
+        `Some time slots are already booked for date ${formatDateDDMMYYYY(date)}`
+      );
+      return;
+    }
+  }
+
+  // In edit mode, check for past dates
+  if (instance_id) {
+    const { pastDates, futureDates } = getPastDates(formData.selectedDates);
+    
+    if (pastDates.length > 0) {
+      // Show dialog with past dates warning
+      setPastDatesInfo({ pastDates, futureDates });
+      setShowPastDatesDialog(true);
+      return;
+    }
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    if (instance_id) {
+      await updateInstanceRequest();
+    } else {
+      await saveInstanceRequest();
+    }
+  } catch (error) {
+    console.error("Submission failed:", error);
+    showErrorSnackbarFunc(
+      "Error submitting request. Please try again later."
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+// Add this function to proceed with update after confirmation
+// const proceedWithUpdate = async () => {
+//   setIsSubmitting(true);
+
+//   try {
+//     if (instance_id) {
+//       await updateInstanceRequest();
+//     } else {
+//       await saveInstanceRequest();
+//     }
+//   } catch (error) {
+//     console.error("Submission failed:", error);
+//     showErrorSnackbarFunc(
+//       "Error submitting request. Please try again later."
+//     );
+//   } finally {
+//     setIsSubmitting(false);
+//   }
+// };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Add this new function after deleteUserTimeSlots (around line 2410)
+const deleteUserTimeSlotsForDates = async (instanceRequestId: string, dates: string[]) => {
+  try {
+    for (const date of dates) {
+      await fetchAPI(
+        `/userTimeSlots?instanceRequestId=${instanceRequestId}&date=${date}`,
+        { method: 'DELETE' }
+      );
+    }
+    console.log('Time slots for past dates deleted successfully');
+  } catch (error) {
+    console.error('Error deleting time slots for specific dates:', error);
+    throw error;
+  }
+};
+
+// Update the proceedWithUpdate function to handle past date deletion
+const proceedWithUpdate = async () => {
+  setIsSubmitting(true);
+
+  try {
+    // Get past dates that need to be removed
+    const { pastDates, futureDates } = getPastDates(formData.selectedDates);
+
+    // Delete time slots for past dates from database
+    if (pastDates.length > 0) {
+      await deleteUserTimeSlotsForDates(instance_id, pastDates);
+      console.log('Deleted time slots for past dates:', pastDates);
+    }
+
+    // Filter formData to only include future dates
+    const filteredFormData = {
+      ...formData,
+      selectedDates: futureDates,
+      dateTimeSlots: Object.fromEntries(
+        Object.entries(formData.dateTimeSlots).filter(([date]) =>
+          futureDates.includes(date)
+        )
+      ),
+    };
+
+    // Update formData in state
+    setFormData(filteredFormData);
+
+    // Proceed with update using only future dates
+    if (instance_id) {
+      await updateInstanceRequestWithFilteredDates(filteredFormData);
+    } else {
+      await saveInstanceRequest();
+    }
+  } catch (error) {
+    console.error("Submission failed:", error);
+    // showErrorSnackbarFunc(
+    //   error.message || "Error submitting request. Please try again later."
+    // );
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+// Add this new function to handle update with filtered dates
+const updateInstanceRequestWithFilteredDates = async (filteredData: any) => {
+  try {
+    // Validate that at least one future date remains
+    if (filteredData.selectedDates.length === 0) {
+      throw new Error('No future dates remaining after removing past dates');
+    }
+
+    // Validate time slots for remaining dates
+    for (const date of filteredData.selectedDates) {
+      const dateSlots = filteredData.dateTimeSlots[date]?.selectedSlots || [];
+      if (dateSlots.length === 0) {
+        throw new Error(
+          `Please select time slots for ${formatDateDDMMYYYY(date)}`
+        );
+      }
+    }
+
+    const payload = {
+      user_id: userId || loggedInUserId,
+      cpu_id: filteredData.cpuId,
+      gpu_id: Number(filteredData.gpuSlotId) || 1,
+      ram_id: filteredData.ramId,
+      gpu_vendor_id: filteredData.gpuSlotId || null,
+      gpu_partition_id: filteredData.gpuPartitionId || null,
+      image_id: filteredData.customImageId,
+      status_id: 1,
+      work_description: filteredData.workDescription,
+      storage_volume: parseInt(filteredData.storageVolume || '10'),
+      user_type_id: filteredData.userTypeId,
+      login_id: '',
+      password: '',
+      access_link: '',
+      is_access_granted: false,
+      additional_information: '',
+      remarks: '',
+      selected_date: filteredData.selectedDates && filteredData.selectedDates.length > 0
+        ? filteredData.selectedDates[0]
+        : new Date().toISOString().split('T')[0],
+      updated_by: loggedInUserId || userId || 1
+    };
+
+    const response = await fetchAPI(`/instanceRequests/${instance_id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+
+    console.log('Update response:', response);
+
+    if (response && response.instance_request_id) {
+      console.log('Instance updated with ID:', response.instance_request_id);
+
+      // Don't delete all time slots - only delete the past ones (already done above)
+      // Save only the future date time slots
+      await saveUserTimeSlots(instance_id, filteredData);
+      showSuccessSnackbar();
+      handleReset();
+    } else {
+      throw new Error('No instance ID returned from server');
+    }
+  } catch (error: any) {
+    console.error('Error updating instance request:', error);
+    showErrorSnackbarFunc(
+      error.message || 'Error updating request. Please try again later.'
+    );
+  }
+};
+
+// Update saveUserTimeSlots to accept optional filteredData parameter
+const saveUserTimeSlots = async (instanceRequestId: string, filteredData?: any) => {
+  try {
+    const dataToUse = filteredData || formData;
+    const timeSlots: any[] = [];
+
+    Object.entries(dataToUse.dateTimeSlots).forEach(
+      ([date, { selectedSlots }]: [string, any]) => {
+        if (selectedSlots && selectedSlots.length > 0) {
+          selectedSlots.forEach((slotId: string) => {
+            timeSlots.push({
+              instance_request_id: instanceRequestId,
+              time_slot_id: slotId,
+              selected_date: date,
+            });
+          });
+        }
+      }
+    );
+
+    // Ensure timeSlots is not empty
+    if (timeSlots.length === 0) {
+      throw new Error('No time slots to save');
+    }
+
+    await fetchAPI('/userTimeSlots/bulk', {
+      method: 'POST',
+      body: JSON.stringify({
+        timeSlots,
+        userId: userId || loggedInUserId
+      }),
+    });
+
+    console.log('Time slots saved successfully:', timeSlots);
+  } catch (error) {
+    console.error('Error saving time slots:', error);
+    throw error;
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <div className="min-h-screen bg-gray-50">
         <Header />
         <ReplicationConflictDialog />
+        <PastDatesDialog />
         <div
           className={`fixed inset-x-0 bottom-5 flex justify-center z-50 transition-all duration-500 ${showErrorSnackbar
             ? "transform translate-y-0 opacity-100"
