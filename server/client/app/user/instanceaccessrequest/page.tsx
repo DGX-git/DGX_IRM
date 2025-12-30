@@ -756,42 +756,42 @@ function DGXInstanceRequestFormContent() {
   // };
 
 
-  const handleReset = () => {
-    if (instance_id) {
-      getInstanceRequestByUserId();
-      return;
-    }
+  // const handleReset = () => {
+  //   if (instance_id) {
+  //     getInstanceRequestByUserId();
+  //     return;
+  //   }
 
-    if (!instance_id) {
-      setFormData({
-        userTypeId: "",
-        selectedDate: "",
-        dateTimeSlots: {},
-        selectedDates: [],
-        customImageId: "",
-        cpuId: "",
-        statusId: "",
-        gpuPartitionId: "",
-        storageVolume: "10",
-        ramId: "",
-        gpuSlotId: "",
-        workDescription: "",
-        selectedSlots: [],
-        selectedRanges: [],
-      });
-      setSelectedDate("");
-      setErrors({});
-      setTouched({});
+  //   if (!instance_id) {
+  //     setFormData({
+  //       userTypeId: "",
+  //       selectedDate: "",
+  //       dateTimeSlots: {},
+  //       selectedDates: [],
+  //       customImageId: "",
+  //       cpuId: "",
+  //       statusId: "",
+  //       gpuPartitionId: "",
+  //       storageVolume: "10",
+  //       ramId: "",
+  //       gpuSlotId: "",
+  //       workDescription: "",
+  //       selectedSlots: [],
+  //       selectedRanges: [],
+  //     });
+  //     setSelectedDate("");
+  //     setErrors({});
+  //     setTouched({});
 
-      // ✅ Reset date range states
-      setDateRange({ start: "", end: "" });
-      setDateRangeErrors({});
-      setDateSelectionMode("individual");
+  //     // ✅ Reset date range states
+  //     setDateRange({ start: "", end: "" });
+  //     setDateRangeErrors({});
+  //     setDateSelectionMode("individual");
 
-      // ✅ Clear booked slots on reset
-      setUserTimeSlot([]);
-    }
-  };
+  //     // ✅ Clear booked slots on reset
+  //     setUserTimeSlot([]);
+  //   }
+  // };
 
   // Replace the useEffect that handles instance_id with this:
 
@@ -1725,12 +1725,94 @@ function DGXInstanceRequestFormContent() {
   };
 
   // Function to handle user confirmation from dialog
+  // const handleReplicationConfirm = async (confirm: boolean) => {
+  //   setShowReplicationConflictDialog(false);
+
+  //   if (!confirm || !replicationConflictData) {
+  //     setReplicationConflictData(null);
+  //     return;
+  //   }
+
+  //   // User confirmed - proceed with replication to successful dates only
+  //   setIsReplicating(true);
+  //   try {
+  //     const { successfulDates, sourceDate } = replicationConflictData;
+
+  //     const sourceSlots =
+  //       formData.dateTimeSlots[sourceDate]?.selectedSlots?.slice() ||
+  //       formData.selectedSlots?.slice() ||
+  //       [];
+
+  //     // Build ranges for the sourceSlots
+  //     const indices = sourceSlots
+  //       .map((id) => getSlotIndex(id))
+  //       .filter((i) => i >= 0)
+  //       .sort((a, b) => a - b);
+
+  //     const ranges: TimeSlotRange[] = [];
+  //     if (indices.length > 0) {
+  //       let rangeStart = indices[0];
+  //       let rangeEnd = indices[0];
+  //       for (let i = 1; i < indices.length; i++) {
+  //         if (indices[i] === rangeEnd + 1) {
+  //           rangeEnd = indices[i];
+  //         } else {
+  //           ranges.push({ start: rangeStart, end: rangeEnd });
+  //           rangeStart = indices[i];
+  //           rangeEnd = indices[i];
+  //         }
+  //       }
+  //       ranges.push({ start: rangeStart, end: rangeEnd });
+  //     }
+
+  //     // Proceed with replication only to successful dates
+  //     setFormData((prev) => {
+  //       const updatedDateTimeSlots = { ...prev.dateTimeSlots };
+
+  //       // Replicate only to successful dates (non-conflicting)
+  //       successfulDates.forEach((date) => {
+  //         updatedDateTimeSlots[date] = {
+  //           selectedSlots: [...sourceSlots],
+  //           selectedRanges: ranges.map((r) => ({ start: r.start, end: r.end })),
+  //         };
+  //       });
+
+  //       // If the current selectedDate is one of the successful dates, update current working selection
+  //       let updatedSelectedSlots = prev.selectedSlots;
+  //       let updatedSelectedRanges = prev.selectedRanges;
+
+  //       if (selectedDate && successfulDates.includes(selectedDate)) {
+  //         updatedSelectedSlots = [...sourceSlots];
+  //         updatedSelectedRanges = ranges.map((r) => ({ start: r.start, end: r.end }));
+  //       }
+
+  //       return {
+  //         ...prev,
+  //         dateTimeSlots: updatedDateTimeSlots,
+  //         selectedSlots: updatedSelectedSlots,
+  //         selectedRanges: updatedSelectedRanges,
+  //       };
+  //     });
+
+  //     // Show summary message
+  //     // showSuccessSnackbarFunc(`Slots replicated to ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""}`);
+  //     showSuccessSnackbarFunc(`Slots replicated to ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""}: ${formatDatesForDisplay(successfulDates)}`);
+  //     setReplicationConflictData(null);
+  //   } catch (error) {
+  //     console.error("Error during replication:", error);
+  //     showErrorSnackbarFunc("Failed to replicate time slots. Please try again.");
+  //   } finally {
+  //     setIsReplicating(false);
+  //   }
+  // };
+
+    // Function to handle user confirmation from dialog
   const handleReplicationConfirm = async (confirm: boolean) => {
     setShowReplicationConflictDialog(false);
 
     if (!confirm || !replicationConflictData) {
       setReplicationConflictData(null);
-      return;
+      return; // Exit without showing snackbar
     }
 
     // User confirmed - proceed with replication to successful dates only
@@ -1795,7 +1877,6 @@ function DGXInstanceRequestFormContent() {
       });
 
       // Show summary message
-      // showSuccessSnackbarFunc(`Slots replicated to ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""}`);
       showSuccessSnackbarFunc(`Slots replicated to ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""}: ${formatDatesForDisplay(successfulDates)}`);
       setReplicationConflictData(null);
     } catch (error) {
@@ -2119,7 +2200,8 @@ function DGXInstanceRequestFormContent() {
             className="text-sm mb-6"
             style={{ color: "#2d4a00" }}
           >
-            Proceed with replicating to {successfulDates.length} date{successfulDates.length > 1 ? "s" : ""} without conflicts?
+            {/* Proceed with replicating to {successfulDates.length} date{successfulDates.length > 1 ? "s" : ""} without conflicts? */}
+                        Proceed without replicating to above listed dates?
           </p>
 
           {/* Actions */}
@@ -2885,66 +2967,66 @@ const PastDatesDialog = () => {
 
 // Modify the submit function to handle past dates check in edit mode (around line 1130)
 // Replace the existing submit function with this updated version:
-const submit = async (e: React.FormEvent) => {
-  e.preventDefault();
+// const submit = async (e: React.FormEvent) => {
+//   e.preventDefault();
 
-  // Validate date range if in range mode AND form validation together
-  let hasDateRangeErrors = false;
-  if (dateSelectionMode === "range") {
-    hasDateRangeErrors = !validateDateRange();
-  }
+//   // Validate date range if in range mode AND form validation together
+//   let hasDateRangeErrors = false;
+//   if (dateSelectionMode === "range") {
+//     hasDateRangeErrors = !validateDateRange();
+//   }
 
-  // Always validate the full form
-  const hasFormErrors = !validateForm();
+//   // Always validate the full form
+//   const hasFormErrors = !validateForm();
 
-  // If either has errors, stop here
-  if (hasDateRangeErrors || hasFormErrors) {
-    return;
-  }
+//   // If either has errors, stop here
+//   if (hasDateRangeErrors || hasFormErrors) {
+//     return;
+//   }
 
-  // Check for conflicts on all selected dates before submission
-  for (const date of formData.selectedDates) {
-    const conflicts = await checkTimeSlotConflicts(
-      date,
-      formData.selectedSlots
-    );
-    if (conflicts.length > 0) {
-      showErrorSnackbarFunc(
-        `Some time slots are already booked for date ${formatDateDDMMYYYY(date)}`
-      );
-      return;
-    }
-  }
+//   // Check for conflicts on all selected dates before submission
+//   for (const date of formData.selectedDates) {
+//     const conflicts = await checkTimeSlotConflicts(
+//       date,
+//       formData.selectedSlots
+//     );
+//     if (conflicts.length > 0) {
+//       showErrorSnackbarFunc(
+//         `Some time slots are already booked for date ${formatDateDDMMYYYY(date)}`
+//       );
+//       return;
+//     }
+//   }
 
-  // In edit mode, check for past dates
-  if (instance_id) {
-    const { pastDates, futureDates } = getPastDates(formData.selectedDates);
+//   // In edit mode, check for past dates
+//   if (instance_id) {
+//     const { pastDates, futureDates } = getPastDates(formData.selectedDates);
     
-    if (pastDates.length > 0) {
-      // Show dialog with past dates warning
-      setPastDatesInfo({ pastDates, futureDates });
-      setShowPastDatesDialog(true);
-      return;
-    }
-  }
+//     if (pastDates.length > 0) {
+//       // Show dialog with past dates warning
+//       setPastDatesInfo({ pastDates, futureDates });
+//       setShowPastDatesDialog(true);
+//       return;
+//     }
+//   }
 
-  setIsSubmitting(true);
+//   setIsSubmitting(true);
 
-  try {
-    if (instance_id) {
-      await updateInstanceRequest();
-    } else {
-      await saveInstanceRequest();
-    }
-  } catch (error) {
-    console.error("Submission failed:", error);
-    showErrorSnackbarFunc(
-      "Error submitting request. Please try again later."
-    );
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+//   try {
+//     if (instance_id) {
+//       await updateInstanceRequest();
+//     } else {
+//       await saveInstanceRequest();
+//     }
+//   } catch (error) {
+//     console.error("Submission failed:", error);
+//     showErrorSnackbarFunc(
+//       "Error submitting request. Please try again later."
+//     );
+//   } finally {
+//     setIsSubmitting(false);
+//   }
+// };
 
 // Add this function to proceed with update after confirmation
 // const proceedWithUpdate = async () => {
@@ -3174,18 +3256,120 @@ const saveUserTimeSlots = async (instanceRequestId: string, filteredData?: any) 
 
 
 
+// Add this new state variable near your other state declarations (around line 80)
+const [submittedWithRangeMode, setSubmittedWithRangeMode] = useState(false);
 
+// Update the handleReset function to preserve dateSelectionMode after submit:
+const handleReset = () => {
+  if (instance_id) {
+    getInstanceRequestByUserId();
+    return;
+  }
 
+  if (!instance_id) {
+    setFormData({
+      userTypeId: "",
+      selectedDate: "",
+      dateTimeSlots: {},
+      selectedDates: [],
+      customImageId: "",
+      cpuId: "",
+      statusId: "",
+      gpuPartitionId: "",
+      storageVolume: "10",
+      ramId: "",
+      gpuSlotId: "",
+      workDescription: "",
+      selectedSlots: [],
+      selectedRanges: [],
+    });
+    setSelectedDate("");
+    setErrors({});
+    setTouched({});
 
+    // ✅ Reset date range states
+    setDateRange({ start: "", end: "" });
+    setDateRangeErrors({});
+    
+    // ✅ Only reset to individual if NOT in submit+reset flow
+    if (!submittedWithRangeMode) {
+      setDateSelectionMode("individual");
+    }
+    // If submittedWithRangeMode is true, keep the current dateSelectionMode
 
+    // ✅ Clear booked slots on reset
+    setUserTimeSlot([]);
+  }
+};
 
+// Update the submit function to set the flag before validation:
+const submit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
+  // Track that we're submitting with range mode (will be cleared on successful submission)
+  if (dateSelectionMode === "range") {
+    setSubmittedWithRangeMode(true);
+  }
 
+  // Validate date range if in range mode AND form validation together
+  let hasDateRangeErrors = false;
+  if (dateSelectionMode === "range") {
+    hasDateRangeErrors = !validateDateRange();
+  }
 
+  // Always validate the full form
+  const hasFormErrors = !validateForm();
 
+  // If either has errors, stop here
+  if (hasDateRangeErrors || hasFormErrors) {
+    return;
+  }
 
+  // Check for conflicts on all selected dates before submission
+  for (const date of formData.selectedDates) {
+    const conflicts = await checkTimeSlotConflicts(
+      date,
+      formData.selectedSlots
+    );
+    if (conflicts.length > 0) {
+      showErrorSnackbarFunc(
+        `Some time slots are already booked for date ${formatDateDDMMYYYY(date)}`
+      );
+      return;
+    }
+  }
 
+  // In edit mode, check for past dates
+  if (instance_id) {
+    const { pastDates, futureDates } = getPastDates(formData.selectedDates);
+    
+    if (pastDates.length > 0) {
+      // Show dialog with past dates warning
+      setPastDatesInfo({ pastDates, futureDates });
+      setShowPastDatesDialog(true);
+      return;
+    }
+  }
 
+  setIsSubmitting(true);
+
+  try {
+    if (instance_id) {
+      await updateInstanceRequest();
+    } else {
+      await saveInstanceRequest();
+    }
+    // ✅ Clear the flag on successful submission
+    setSubmittedWithRangeMode(false);
+  } catch (error) {
+    console.error("Submission failed:", error);
+    showErrorSnackbarFunc(
+      "Error submitting request. Please try again later."
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
 
 
@@ -3929,7 +4113,7 @@ const saveUserTimeSlots = async (instanceRequestId: string, filteredData?: any) 
                           id="individual"
                           name="dateMode"
                           checked={dateSelectionMode === "individual"}
-                          onChange={() => setDateSelectionMode("individual")}
+                          onChange={() => {setDateSelectionMode("individual");  setSubmittedWithRangeMode(false);}}
                           className="text-green-600 focus:ring-green-500"
                         />
                         <label
@@ -3945,7 +4129,7 @@ const saveUserTimeSlots = async (instanceRequestId: string, filteredData?: any) 
                           id="range"
                           name="dateMode"
                           checked={dateSelectionMode === "range"}
-                          onChange={() => setDateSelectionMode("range")}
+                          onChange={() => {setDateSelectionMode("range");  setSubmittedWithRangeMode(false);}}
                           className="text-green-600 focus:ring-green-500"
                         />
                         <label
