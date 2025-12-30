@@ -2194,14 +2194,15 @@ function DGXInstanceRequestFormContent() {
 
           {/* Divider */}
           <div style={{ borderTop: "1px solid #e8f5d0", margin: "1.5rem 0" }} />
-
           {/* Message */}
           <p
             className="text-sm mb-6"
             style={{ color: "#2d4a00" }}
           >
-            {/* Proceed with replicating to {successfulDates.length} date{successfulDates.length > 1 ? "s" : ""} without conflicts? */}
-                        Proceed without replicating to above listed dates?
+            {successfulDates.length === 0 
+              ? "Proceed without replicating to above listed dates?" 
+              : `Proceed with replicating to ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""} without conflicts?`
+            }
           </p>
 
           {/* Actions */}
