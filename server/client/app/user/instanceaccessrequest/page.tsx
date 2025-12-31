@@ -919,6 +919,12 @@ function DGXInstanceRequestFormContent() {
     return `${day}-${month}-${year}`;
   };
 
+  // Helper function to check if a date is Sunday (0 = Sunday)
+const isSunday = (dateString: string): boolean => {
+  const date = new Date(dateString);
+  return date.getDay() === 0;
+};
+
   const formatDatesForDisplay = (dates: string[]): string => {
     if (dates.length === 0) return '';
     const formattedDates = dates.map(date => formatDateDDMMYYYY(date));
@@ -1524,64 +1530,275 @@ function DGXInstanceRequestFormContent() {
 
 
 
-  const handleDateRangeAdd = () => {
-    if (!dateRange.start || !dateRange.end) {
-      showErrorSnackbarFunc("Please select both start and end dates");
-      return;
-    }
+  // const handleDateRangeAdd = () => {
+  //   if (!dateRange.start || !dateRange.end) {
+  //     showErrorSnackbarFunc("Please select both start and end dates");
+  //     return;
+  //   }
 
-    const startDate = new Date(dateRange.start);
-    const endDate = new Date(dateRange.end);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  //   const startDate = new Date(dateRange.start);
+  //   const endDate = new Date(dateRange.end);
+  //   const today = new Date();
+  //   today.setHours(0, 0, 0, 0);
 
-    // Skip past date validation in edit mode (when instance_id is set)
-    if (!instance_id && (startDate < today || endDate < today)) {
-      setErrors((prev) => ({
-        ...prev,
-        selectedDates: "Dates cannot be in the past",
-      }));
-      return;
-    }
+  //   // Skip past date validation in edit mode (when instance_id is set)
+  //   if (!instance_id && (startDate < today || endDate < today)) {
+  //     setErrors((prev) => ({
+  //       ...prev,
+  //       selectedDates: "Dates cannot be in the past",
+  //     }));
+  //     return;
+  //   }
 
-    if (endDate < startDate) {
-      setErrors((prev) => ({
-        ...prev,
-        selectedDates: "End date must be after start date",
-      }));
-      return;
-    }
+  //   if (endDate < startDate) {
+  //     setErrors((prev) => ({
+  //       ...prev,
+  //       selectedDates: "End date must be after start date",
+  //     }));
+  //     return;
+  //   }
 
-    const dates: string[] = [];
-    const currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
-      const dateString = currentDate.toISOString().split("T")[0];
-      if (!formData.selectedDates.includes(dateString)) {
-        dates.push(dateString);
-      }
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
+  //   const dates: string[] = [];
+  //   const currentDate = new Date(startDate);
+  //   while (currentDate <= endDate) {
+  //     const dateString = currentDate.toISOString().split("T")[0];
+  //     if (!formData.selectedDates.includes(dateString)) {
+  //       dates.push(dateString);
+  //     }
+  //     currentDate.setDate(currentDate.getDate() + 1);
+  //   }
 
-    const updatedDateTimeSlots = { ...formData.dateTimeSlots };
-    dates.forEach((date) => {
+  //   const updatedDateTimeSlots = { ...formData.dateTimeSlots };
+  //   dates.forEach((date) => {
+  //     updatedDateTimeSlots[date] = {
+  //       selectedSlots: [],
+  //       selectedRanges: [],
+  //     };
+  //   });
+
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     selectedDates: [...prev.selectedDates, ...dates].sort(),
+  //     dateTimeSlots: updatedDateTimeSlots,
+  //   }));
+
+  //   setErrors((prev) => ({ ...prev, selectedDates: "" }));
+
+  //   dates.forEach(date => getUserTimeSlotsForDate(date));
+  // };
+
+
+//   const handleDateRangeAdd = () => {
+//   if (!dateRange.start || !dateRange.end) {
+//     showErrorSnackbarFunc("Please select both start and end dates");
+//     return;
+//   }
+
+//   const startDate = new Date(dateRange.start);
+//   const endDate = new Date(dateRange.end);
+//   const today = new Date();
+//   today.setHours(0, 0, 0, 0);
+
+//   // Skip past date validation in edit mode (when instance_id is set)
+//   if (!instance_id && (startDate < today || endDate < today)) {
+//     setErrors((prev) => ({
+//       ...prev,
+//       selectedDates: "Dates cannot be in the past",
+//     }));
+//     return;
+//   }
+
+//   if (endDate < startDate) {
+//     setErrors((prev) => ({
+//       ...prev,
+//       selectedDates: "End date must be after start date",
+//     }));
+//     return;
+//   }
+
+//   const dates: string[] = [];
+//   const currentDate = new Date(startDate);
+//   while (currentDate <= endDate) {
+//     const dateString = currentDate.toISOString().split("T")[0];
+//     dates.push(dateString);
+//     currentDate.setDate(currentDate.getDate() + 1);
+//   }
+
+//   const updatedDateTimeSlots = { ...formData.dateTimeSlots };
+//   dates.forEach((date) => {
+//     updatedDateTimeSlots[date] = {
+//       selectedSlots: [],
+//       selectedRanges: [],
+//     };
+//   });
+
+//   setFormData((prev) => ({
+//     ...prev,
+//     selectedDates: dates.sort(), // FIXED: Replace with new dates instead of appending
+//     dateTimeSlots: updatedDateTimeSlots,
+//   }));
+
+//   setErrors((prev) => ({ ...prev, selectedDates: "" }));
+
+//   dates.forEach(date => getUserTimeSlotsForDate(date));
+// };
+
+
+// const handleDateRangeAdd = () => {
+//   if (!dateRange.start || !dateRange.end) {
+//     showErrorSnackbarFunc("Please select both start and end dates");
+//     return;
+//   }
+
+//   const startDate = new Date(dateRange.start);
+//   const endDate = new Date(dateRange.end);
+//   const today = new Date();
+//   today.setHours(0, 0, 0, 0);
+
+//   // Skip past date validation in edit mode (when instance_id is set)
+//   if (!instance_id && (startDate < today || endDate < today)) {
+//     setErrors((prev) => ({
+//       ...prev,
+//       selectedDates: "Dates cannot be in the past",
+//     }));
+//     return;
+//   }
+
+//   if (endDate < startDate) {
+//     setErrors((prev) => ({
+//       ...prev,
+//       selectedDates: "End date must be after start date",
+//     }));
+//     return;
+//   }
+
+//   const dates: string[] = [];
+//   const currentDate = new Date(startDate);
+//   while (currentDate <= endDate) {
+//     const dateString = currentDate.toISOString().split("T")[0];
+//     dates.push(dateString);
+//     currentDate.setDate(currentDate.getDate() + 1);
+//   }
+
+//   const updatedDateTimeSlots = { ...formData.dateTimeSlots };
+//   dates.forEach((date) => {
+//     updatedDateTimeSlots[date] = {
+//       selectedSlots: [],
+//       selectedRanges: [],
+//     };
+//   });
+
+//   // Set the first date as selected
+//   const firstDate = dates[0];
+
+//   setFormData((prev) => ({
+//     ...prev,
+//     selectedDates: dates.sort(), // FIXED: Replace with new dates instead of appending
+//     dateTimeSlots: updatedDateTimeSlots,
+//     selectedSlots: [], // Clear slots when date range changes
+//     selectedRanges: [], // Clear ranges when date range changes
+//   }));
+
+//   // Clear all errors related to dates and time slots
+//   setErrors((prev) => ({
+//     ...prev,
+//     selectedDates: "",
+//     selectedSlots: "", // Clear the "Please select time slots" error
+//   }));
+
+//   // Clear touched state for these fields
+//   setTouched((prev) => ({
+//     ...prev,
+//     selectedSlots: false,
+//   }));
+
+//   // Set the first date as the selected date for time slot selection
+//   setSelectedDate(firstDate);
+
+//   dates.forEach(date => getUserTimeSlotsForDate(date));
+// };
+
+
+
+const handleDateRangeAdd = () => {
+  if (!dateRange.start || !dateRange.end) {
+    showErrorSnackbarFunc("Please select both start and end dates");
+    return;
+  }
+
+  const startDate = new Date(dateRange.start);
+  const endDate = new Date(dateRange.end);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Skip past date validation in edit mode (when instance_id is set)
+  if (!instance_id && (startDate < today || endDate < today)) {
+    setErrors((prev) => ({
+      ...prev,
+      selectedDates: "Dates cannot be in the past",
+    }));
+    return;
+  }
+
+  if (endDate < startDate) {
+    setErrors((prev) => ({
+      ...prev,
+      selectedDates: "End date must be after start date",
+    }));
+    return;
+  }
+
+  const dates: string[] = [];
+  const currentDate = new Date(startDate);
+  while (currentDate <= endDate) {
+    const dateString = currentDate.toISOString().split("T")[0];
+    dates.push(dateString);
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  // In edit mode, preserve existing time slots for dates that are still in the new range
+  const updatedDateTimeSlots = { ...formData.dateTimeSlots };
+  dates.forEach((date) => {
+    // Only initialize new dates with empty slots, preserve existing ones
+    if (!updatedDateTimeSlots[date]) {
       updatedDateTimeSlots[date] = {
         selectedSlots: [],
         selectedRanges: [],
       };
-    });
+    }
+  });
 
-    setFormData((prev) => ({
-      ...prev,
-      selectedDates: [...prev.selectedDates, ...dates].sort(),
-      dateTimeSlots: updatedDateTimeSlots,
-    }));
+  // Set the first date as selected
+  const firstDate = dates[0];
 
-    setErrors((prev) => ({ ...prev, selectedDates: "" }));
+  setFormData((prev) => ({
+    ...prev,
+    selectedDates: dates.sort(), // FIXED: Replace with new dates instead of appending
+    dateTimeSlots: updatedDateTimeSlots,
+    selectedSlots: updatedDateTimeSlots[firstDate]?.selectedSlots || [], // Load existing slots for first date
+    selectedRanges: updatedDateTimeSlots[firstDate]?.selectedRanges || [], // Load existing ranges for first date
+  }));
 
-    dates.forEach(date => getUserTimeSlotsForDate(date));
-  };
+  // Clear all errors related to dates and time slots
+  setErrors((prev) => ({
+    ...prev,
+    selectedDates: "",
+    selectedSlots: "", // Clear the "Please select time slots" error
+  }));
 
+  // Clear touched state for these fields
+  setTouched((prev) => ({
+    ...prev,
+    selectedSlots: false,
+  }));
 
+  // Set the first date as the selected date for time slot selection
+  setSelectedDate(firstDate);
+
+  // Fetch booked slots only for new dates (dates that weren't previously loaded)
+  const newDates = dates.filter(date => !formData.selectedDates.includes(date));
+  newDates.forEach(date => getUserTimeSlotsForDate(date));
+};
 
 
   const handleReplicateSlots = async (sourceDate?: string) => {
@@ -1807,85 +2024,85 @@ function DGXInstanceRequestFormContent() {
   // };
 
     // Function to handle user confirmation from dialog
-  const handleReplicationConfirm = async (confirm: boolean) => {
-    setShowReplicationConflictDialog(false);
+  // const handleReplicationConfirm = async (confirm: boolean) => {
+  //   setShowReplicationConflictDialog(false);
 
-    if (!confirm || !replicationConflictData) {
-      setReplicationConflictData(null);
-      return; // Exit without showing snackbar
-    }
+  //   if (!confirm || !replicationConflictData) {
+  //     setReplicationConflictData(null);
+  //     return; // Exit without showing snackbar
+  //   }
 
-    // User confirmed - proceed with replication to successful dates only
-    setIsReplicating(true);
-    try {
-      const { successfulDates, sourceDate } = replicationConflictData;
+  //   // User confirmed - proceed with replication to successful dates only
+  //   setIsReplicating(true);
+  //   try {
+  //     const { successfulDates, sourceDate } = replicationConflictData;
 
-      const sourceSlots =
-        formData.dateTimeSlots[sourceDate]?.selectedSlots?.slice() ||
-        formData.selectedSlots?.slice() ||
-        [];
+  //     const sourceSlots =
+  //       formData.dateTimeSlots[sourceDate]?.selectedSlots?.slice() ||
+  //       formData.selectedSlots?.slice() ||
+  //       [];
 
-      // Build ranges for the sourceSlots
-      const indices = sourceSlots
-        .map((id) => getSlotIndex(id))
-        .filter((i) => i >= 0)
-        .sort((a, b) => a - b);
+  //     // Build ranges for the sourceSlots
+  //     const indices = sourceSlots
+  //       .map((id) => getSlotIndex(id))
+  //       .filter((i) => i >= 0)
+  //       .sort((a, b) => a - b);
 
-      const ranges: TimeSlotRange[] = [];
-      if (indices.length > 0) {
-        let rangeStart = indices[0];
-        let rangeEnd = indices[0];
-        for (let i = 1; i < indices.length; i++) {
-          if (indices[i] === rangeEnd + 1) {
-            rangeEnd = indices[i];
-          } else {
-            ranges.push({ start: rangeStart, end: rangeEnd });
-            rangeStart = indices[i];
-            rangeEnd = indices[i];
-          }
-        }
-        ranges.push({ start: rangeStart, end: rangeEnd });
-      }
+  //     const ranges: TimeSlotRange[] = [];
+  //     if (indices.length > 0) {
+  //       let rangeStart = indices[0];
+  //       let rangeEnd = indices[0];
+  //       for (let i = 1; i < indices.length; i++) {
+  //         if (indices[i] === rangeEnd + 1) {
+  //           rangeEnd = indices[i];
+  //         } else {
+  //           ranges.push({ start: rangeStart, end: rangeEnd });
+  //           rangeStart = indices[i];
+  //           rangeEnd = indices[i];
+  //         }
+  //       }
+  //       ranges.push({ start: rangeStart, end: rangeEnd });
+  //     }
 
-      // Proceed with replication only to successful dates
-      setFormData((prev) => {
-        const updatedDateTimeSlots = { ...prev.dateTimeSlots };
+  //     // Proceed with replication only to successful dates
+  //     setFormData((prev) => {
+  //       const updatedDateTimeSlots = { ...prev.dateTimeSlots };
 
-        // Replicate only to successful dates (non-conflicting)
-        successfulDates.forEach((date) => {
-          updatedDateTimeSlots[date] = {
-            selectedSlots: [...sourceSlots],
-            selectedRanges: ranges.map((r) => ({ start: r.start, end: r.end })),
-          };
-        });
+  //       // Replicate only to successful dates (non-conflicting)
+  //       successfulDates.forEach((date) => {
+  //         updatedDateTimeSlots[date] = {
+  //           selectedSlots: [...sourceSlots],
+  //           selectedRanges: ranges.map((r) => ({ start: r.start, end: r.end })),
+  //         };
+  //       });
 
-        // If the current selectedDate is one of the successful dates, update current working selection
-        let updatedSelectedSlots = prev.selectedSlots;
-        let updatedSelectedRanges = prev.selectedRanges;
+  //       // If the current selectedDate is one of the successful dates, update current working selection
+  //       let updatedSelectedSlots = prev.selectedSlots;
+  //       let updatedSelectedRanges = prev.selectedRanges;
 
-        if (selectedDate && successfulDates.includes(selectedDate)) {
-          updatedSelectedSlots = [...sourceSlots];
-          updatedSelectedRanges = ranges.map((r) => ({ start: r.start, end: r.end }));
-        }
+  //       if (selectedDate && successfulDates.includes(selectedDate)) {
+  //         updatedSelectedSlots = [...sourceSlots];
+  //         updatedSelectedRanges = ranges.map((r) => ({ start: r.start, end: r.end }));
+  //       }
 
-        return {
-          ...prev,
-          dateTimeSlots: updatedDateTimeSlots,
-          selectedSlots: updatedSelectedSlots,
-          selectedRanges: updatedSelectedRanges,
-        };
-      });
+  //       return {
+  //         ...prev,
+  //         dateTimeSlots: updatedDateTimeSlots,
+  //         selectedSlots: updatedSelectedSlots,
+  //         selectedRanges: updatedSelectedRanges,
+  //       };
+  //     });
 
-      // Show summary message
-      showSuccessSnackbarFunc(`Slots replicated to ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""}: ${formatDatesForDisplay(successfulDates)}`);
-      setReplicationConflictData(null);
-    } catch (error) {
-      console.error("Error during replication:", error);
-      showErrorSnackbarFunc("Failed to replicate time slots. Please try again.");
-    } finally {
-      setIsReplicating(false);
-    }
-  };
+  //     // Show summary message
+  //     showSuccessSnackbarFunc(`Slots replicated to ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""}: ${formatDatesForDisplay(successfulDates)}`);
+  //     setReplicationConflictData(null);
+  //   } catch (error) {
+  //     console.error("Error during replication:", error);
+  //     showErrorSnackbarFunc("Failed to replicate time slots. Please try again.");
+  //   } finally {
+  //     setIsReplicating(false);
+  //   }
+  // };
 
   // Add this dialog component before the return statement
   // const ReplicationConflictDialog = () => {
@@ -1958,6 +2175,95 @@ function DGXInstanceRequestFormContent() {
   //     </div>
   //   );
   // };
+
+
+  // Function to handle user confirmation from dialog
+const handleReplicationConfirm = async (confirm: boolean) => {
+  setShowReplicationConflictDialog(false);
+
+  if (!confirm || !replicationConflictData) {
+    setReplicationConflictData(null);
+    return; // Exit without showing snackbar
+  }
+
+  // User confirmed - proceed with replication to successful dates only
+  setIsReplicating(true);
+  try {
+    const { successfulDates, sourceDate } = replicationConflictData;
+
+    // If there are no successful dates, don't proceed
+    if (successfulDates.length === 0) {
+      showErrorSnackbarFunc("All dates have conflicts. No slots were replicated.");
+      setReplicationConflictData(null);
+      return;
+    }
+
+    const sourceSlots =
+      formData.dateTimeSlots[sourceDate]?.selectedSlots?.slice() ||
+      formData.selectedSlots?.slice() ||
+      [];
+
+    // Build ranges for the sourceSlots
+    const indices = sourceSlots
+      .map((id) => getSlotIndex(id))
+      .filter((i) => i >= 0)
+      .sort((a, b) => a - b);
+
+    const ranges: TimeSlotRange[] = [];
+    if (indices.length > 0) {
+      let rangeStart = indices[0];
+      let rangeEnd = indices[0];
+      for (let i = 1; i < indices.length; i++) {
+        if (indices[i] === rangeEnd + 1) {
+          rangeEnd = indices[i];
+        } else {
+          ranges.push({ start: rangeStart, end: rangeEnd });
+          rangeStart = indices[i];
+          rangeEnd = indices[i];
+        }
+      }
+      ranges.push({ start: rangeStart, end: rangeEnd });
+    }
+
+    // Proceed with replication only to successful dates
+    setFormData((prev) => {
+      const updatedDateTimeSlots = { ...prev.dateTimeSlots };
+
+      // Replicate only to successful dates (non-conflicting)
+      successfulDates.forEach((date) => {
+        updatedDateTimeSlots[date] = {
+          selectedSlots: [...sourceSlots],
+          selectedRanges: ranges.map((r) => ({ start: r.start, end: r.end })),
+        };
+      });
+
+      // If the current selectedDate is one of the successful dates, update current working selection
+      let updatedSelectedSlots = prev.selectedSlots;
+      let updatedSelectedRanges = prev.selectedRanges;
+
+      if (selectedDate && successfulDates.includes(selectedDate)) {
+        updatedSelectedSlots = [...sourceSlots];
+        updatedSelectedRanges = ranges.map((r) => ({ start: r.start, end: r.end }));
+      }
+
+      return {
+        ...prev,
+        dateTimeSlots: updatedDateTimeSlots,
+        selectedSlots: updatedSelectedSlots,
+        selectedRanges: updatedSelectedRanges,
+      };
+    });
+
+    // Show summary message only if there are successful replications
+    showSuccessSnackbarFunc(`Slots replicated to ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""}: ${formatDatesForDisplay(successfulDates)}`);
+    setReplicationConflictData(null);
+  } catch (error) {
+    console.error("Error during replication:", error);
+    showErrorSnackbarFunc("Failed to replicate time slots. Please try again.");
+  } finally {
+    setIsReplicating(false);
+  }
+};
 
 
 
@@ -3375,6 +3681,35 @@ const submit = async (e: React.FormEvent) => {
 
 
 
+useEffect(() => {
+  if (selectedDate) {
+    // Load existing slots for the selected date
+    const dateSlots = formData.dateTimeSlots[selectedDate];
+    console.log(`📅 Date switched to ${selectedDate}, loading slots:`, dateSlots?.selectedSlots);
+
+    setFormData((prev) => ({
+      ...prev,
+      selectedSlots: dateSlots?.selectedSlots || [],
+      selectedRanges: dateSlots?.selectedRanges || [],
+    }));
+
+    // ✅ Clear the selectedSlots error when date changes
+    setErrors((prev) => ({
+      ...prev,
+      selectedSlots: "",
+    }));
+
+    // ✅ Use getUserTimeSlotsForDate instead of getUserTimeSlots
+    getUserTimeSlotsForDate(selectedDate);
+  } else {
+    // ✅ Clear booked slots when no date is selected
+    setUserTimeSlot([]);
+  }
+}, [selectedDate, instance_id]);
+
+
+
+
 
 
 
@@ -4169,12 +4504,23 @@ const submit = async (e: React.FormEvent) => {
                             value={selectedDate}
                             // min={getTodayDate()}
                             min={instance_id ? "" : getTodayDate()}
+                            // onChange={(e) => {
+                            //   setSelectedDate(e.target.value);
+                            //   if (e.target.value) {
+                            //     handleDateAdd(e.target.value);
+                            //   }
+                            // }}
                             onChange={(e) => {
-                              setSelectedDate(e.target.value);
-                              if (e.target.value) {
-                                handleDateAdd(e.target.value);
-                              }
-                            }}
+  if (e.target.value && isSunday(e.target.value)) {
+    showErrorSnackbarFunc("Sundays are not available for selection");
+    setSelectedDate(""); // Clear the input
+    return;
+  }
+  setSelectedDate(e.target.value);
+  if (e.target.value) {
+    handleDateAdd(e.target.value);
+  }
+}}
                             className="w-full px-3 pt-2 pb-2 text-sm rounded-lg focus:outline-none bg-white transition-all duration-200 hover:border-green-200 cursor-pointer"
                             style={{
                               color: "#2d4a00",
