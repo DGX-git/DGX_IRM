@@ -1756,11 +1756,19 @@ const handleDateRangeAdd = () => {
     currentDate.setDate(currentDate.getDate() + 1);
   }
 
-  // In edit mode, preserve existing time slots for dates that are still in the new range
-  const updatedDateTimeSlots = { ...formData.dateTimeSlots };
+
+
+
+  // In edit mode, remove dates that are outside the new range and preserve those within it
+  const updatedDateTimeSlots: DateTimeSlots = {};
+  
+  // Only keep dates that are in the new range
   dates.forEach((date) => {
-    // Only initialize new dates with empty slots, preserve existing ones
-    if (!updatedDateTimeSlots[date]) {
+    // Preserve existing slots for dates still in the range
+    if (formData.dateTimeSlots[date]) {
+      updatedDateTimeSlots[date] = formData.dateTimeSlots[date];
+    } else {
+      // Initialize new dates with empty slots
       updatedDateTimeSlots[date] = {
         selectedSlots: [],
         selectedRanges: [],
@@ -1773,8 +1781,8 @@ const handleDateRangeAdd = () => {
 
   setFormData((prev) => ({
     ...prev,
-    selectedDates: dates.sort(), // FIXED: Replace with new dates instead of appending
-    dateTimeSlots: updatedDateTimeSlots,
+    selectedDates: dates.sort(), // Replace with new dates, removing old ones
+    dateTimeSlots: updatedDateTimeSlots, // Only contains dates within the new range
     selectedSlots: updatedDateTimeSlots[firstDate]?.selectedSlots || [], // Load existing slots for first date
     selectedRanges: updatedDateTimeSlots[firstDate]?.selectedRanges || [], // Load existing ranges for first date
   }));
@@ -1799,6 +1807,50 @@ const handleDateRangeAdd = () => {
   const newDates = dates.filter(date => !formData.selectedDates.includes(date));
   newDates.forEach(date => getUserTimeSlotsForDate(date));
 };
+
+  // In edit mode, preserve existing time slots for dates that are still in the new range
+//   const updatedDateTimeSlots = { ...formData.dateTimeSlots };
+//   dates.forEach((date) => {
+//     // Only initialize new dates with empty slots, preserve existing ones
+//     if (!updatedDateTimeSlots[date]) {
+//       updatedDateTimeSlots[date] = {
+//         selectedSlots: [],
+//         selectedRanges: [],
+//       };
+//     }
+//   });
+
+//   // Set the first date as selected
+//   const firstDate = dates[0];
+
+//   setFormData((prev) => ({
+//     ...prev,
+//     selectedDates: dates.sort(), // FIXED: Replace with new dates instead of appending
+//     dateTimeSlots: updatedDateTimeSlots,
+//     selectedSlots: updatedDateTimeSlots[firstDate]?.selectedSlots || [], // Load existing slots for first date
+//     selectedRanges: updatedDateTimeSlots[firstDate]?.selectedRanges || [], // Load existing ranges for first date
+//   }));
+
+//   // Clear all errors related to dates and time slots
+//   setErrors((prev) => ({
+//     ...prev,
+//     selectedDates: "",
+//     selectedSlots: "", // Clear the "Please select time slots" error
+//   }));
+
+//   // Clear touched state for these fields
+//   setTouched((prev) => ({
+//     ...prev,
+//     selectedSlots: false,
+//   }));
+
+//   // Set the first date as the selected date for time slot selection
+//   setSelectedDate(firstDate);
+
+//   // Fetch booked slots only for new dates (dates that weren't previously loaded)
+//   const newDates = dates.filter(date => !formData.selectedDates.includes(date));
+//   newDates.forEach(date => getUserTimeSlotsForDate(date));
+// };
 
 
   const handleReplicateSlots = async (sourceDate?: string) => {
