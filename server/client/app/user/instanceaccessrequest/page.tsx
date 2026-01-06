@@ -911,19 +911,50 @@ function DGXInstanceRequestFormContent() {
   };
 
   // Helper function to format date as dd-mm-yyyy
-  const formatDateDDMMYYYY = (date: string | Date): string => {
-    const d = typeof date === 'string' ? new Date(date) : date;
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}-${month}-${year}`;
-  };
+  // const formatDateDDMMYYYY = (date: string | Date): string => {
+  //   const d = typeof date === 'string' ? new Date(date) : date;
+  //   const day = String(d.getDate()).padStart(2, '0');
+  //   const month = String(d.getMonth() + 1).padStart(2, '0');
+  //   const year = d.getFullYear();
+  //   return `${day}-${month}-${year}`;
+  // };
+
+  // Helper function to format date as dd-mm-yyyy
+// FIXED: Now handles timezone issues correctly
+const formatDateDDMMYYYY = (date: string | Date): string => {
+  let day: string;
+  let month: string;
+  let year: string;
+  
+  if (typeof date === 'string') {
+    // For ISO string format (YYYY-MM-DD), parse directly without timezone conversion
+    const parts = date.split('T')[0].split('-'); // Get YYYY-MM-DD part
+    if (parts.length === 3) {
+      year = parts[0];
+      month = String(parseInt(parts[1])).padStart(2, '0'); // Remove leading zero, then pad
+      day = String(parseInt(parts[2])).padStart(2, '0');
+    } else {
+      // Fallback for Date object
+      const d = new Date(date);
+      day = String(d.getDate()).padStart(2, '0');
+      month = String(d.getMonth() + 1).padStart(2, '0');
+      year = String(d.getFullYear());
+    }
+  } else {
+    // For Date object, use UTC methods to avoid timezone issues
+    day = String(date.getUTCDate()).padStart(2, '0');
+    month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    year = String(date.getUTCFullYear());
+  }
+  
+  return `${day}-${month}-${year}`;
+};
 
   // Helper function to check if a date is Sunday (0 = Sunday)
-const isSunday = (dateString: string): boolean => {
-  const date = new Date(dateString);
-  return date.getDay() === 0;
-};
+// const isSunday = (dateString: string): boolean => {
+//   const date = new Date(dateString);
+//   return date.getDay() === 0;
+// };
 
   const formatDatesForDisplay = (dates: string[]): string => {
     if (dates.length === 0) return '';
@@ -1408,9 +1439,7 @@ const isSunday = (dateString: string): boolean => {
       if (conflicts.length > 0) {
         setErrors((prev) => ({
           ...prev,
-          selectedSlots: `Some selected time slots are already booked for ${new Date(
-            selectedDate
-          ).toLocaleDateString()}`,
+          selectedSlots: `Some selected time slots are already booked for ${formatDateDDMMYYYY(selectedDate)}`,
         }));
         return;
       }
@@ -1492,10 +1521,10 @@ const isSunday = (dateString: string): boolean => {
   }>({});
 
   // Add this helper function to get today's date in YYYY-MM-DD format
-  const getTodayDate = () => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
-  };
+  // const getTodayDate = () => {
+  //   const today = new Date();
+  //   return today.toISOString().split("T")[0];
+  // };
 
 
 
@@ -4555,24 +4584,24 @@ useEffect(() => {
                             type="date"
                             value={selectedDate}
                             // min={getTodayDate()}
-                            min={instance_id ? "" : getTodayDate()}
-                            // onChange={(e) => {
-                            //   setSelectedDate(e.target.value);
-                            //   if (e.target.value) {
-                            //     handleDateAdd(e.target.value);
-                            //   }
-                            // }}
+                            // min={instance_id ? "" : getTodayDate()}
                             onChange={(e) => {
-  if (e.target.value && isSunday(e.target.value)) {
-    showErrorSnackbarFunc("Sundays are not available for selection");
-    setSelectedDate(""); // Clear the input
-    return;
-  }
-  setSelectedDate(e.target.value);
-  if (e.target.value) {
-    handleDateAdd(e.target.value);
-  }
-}}
+                              setSelectedDate(e.target.value);
+                              if (e.target.value) {
+                                handleDateAdd(e.target.value);
+                              }
+                            }}
+//                             onChange={(e) => {
+//   if (e.target.value && isSunday(e.target.value)) {
+//     showErrorSnackbarFunc("Sundays are not available for selection");
+//     setSelectedDate(""); // Clear the input
+//     return;
+//   }
+//   setSelectedDate(e.target.value);
+//   if (e.target.value) {
+//     handleDateAdd(e.target.value);
+//   }
+// }}
                             className="w-full px-3 pt-2 pb-2 text-sm rounded-lg focus:outline-none bg-white transition-all duration-200 hover:border-green-200 cursor-pointer"
                             style={{
                               color: "#2d4a00",
@@ -4663,7 +4692,7 @@ useEffect(() => {
                             type="date"
                             value={dateRange.start}
                             // min={getTodayDate()}
-                            min={instance_id ? "" : getTodayDate()}
+                            // min={instance_id ? "" : getTodayDate()}
                             onChange={(e) => {
                               setDateRange((prev) => ({
                                 ...prev,
@@ -4673,6 +4702,23 @@ useEffect(() => {
                                 setDateRangeErrors((prev) => ({ ...prev, start: "" }));
                               }
                             }}
+//                             onChange={(e) => {
+//   if (e.target.value && isSunday(e.target.value)) {
+//     showErrorSnackbarFunc("Sundays are not available for selection");
+//     setDateRange((prev) => ({
+//       ...prev,
+//       start: "",
+//     }));
+//     return;
+//   }
+//   setDateRange((prev) => ({
+//     ...prev,
+//     start: e.target.value,
+//   }));
+//   if (dateRangeErrors.start) {
+//     setDateRangeErrors((prev) => ({ ...prev, start: "" }));
+//   }
+// }}
                             onFocus={(e) => {
                               e.target.style.borderColor = "#5A8F00";
                               e.target.style.boxShadow = "0 0 0 3px rgba(118, 185, 0, 0.1)";
@@ -4702,7 +4748,7 @@ useEffect(() => {
                             type="date"
                             value={dateRange.end}
                             // min={dateRange.start || getTodayDate()}
-                            min={dateRange.start || (instance_id ? "" : getTodayDate())}
+                            // min={dateRange.start || (instance_id ? "" : getTodayDate())}
                             onChange={(e) => {
                               setDateRange((prev) => ({
                                 ...prev,
@@ -4712,6 +4758,23 @@ useEffect(() => {
                                 setDateRangeErrors((prev) => ({ ...prev, end: "" }));
                               }
                             }}
+//                             onChange={(e) => {
+//   if (e.target.value && isSunday(e.target.value)) {
+//     showErrorSnackbarFunc("Sundays are not available for selection");
+//     setDateRange((prev) => ({
+//       ...prev,
+//       end: "",
+//     }));
+//     return;
+//   }
+//   setDateRange((prev) => ({
+//     ...prev,
+//     end: e.target.value,
+//   }));
+//   if (dateRangeErrors.end) {
+//     setDateRangeErrors((prev) => ({ ...prev, end: "" }));
+//   }
+// }}
                             onFocus={(e) => {
                               e.target.style.borderColor = "#5A8F00";
                               e.target.style.boxShadow = "0 0 0 3px rgba(118, 185, 0, 0.1)";
