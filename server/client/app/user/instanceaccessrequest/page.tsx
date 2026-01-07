@@ -1521,10 +1521,10 @@ const formatDateDDMMYYYY = (date: string | Date): string => {
   }>({});
 
   // Add this helper function to get today's date in YYYY-MM-DD format
-  // const getTodayDate = () => {
-  //   const today = new Date();
-  //   return today.toISOString().split("T")[0];
-  // };
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
 
 
 
@@ -4583,8 +4583,9 @@ useEffect(() => {
                           <input
                             type="date"
                             value={selectedDate}
+                            lang="en-GB"
                             // min={getTodayDate()}
-                            // min={instance_id ? "" : getTodayDate()}
+                            min={instance_id ? "" : getTodayDate()}
                             onChange={(e) => {
                               setSelectedDate(e.target.value);
                               if (e.target.value) {
@@ -4691,8 +4692,9 @@ useEffect(() => {
                           <input
                             type="date"
                             value={dateRange.start}
+                            lang="en-GB"
                             // min={getTodayDate()}
-                            // min={instance_id ? "" : getTodayDate()}
+                            min={instance_id ? "" : getTodayDate()}
                             onChange={(e) => {
                               setDateRange((prev) => ({
                                 ...prev,
@@ -4747,8 +4749,9 @@ useEffect(() => {
                           <input
                             type="date"
                             value={dateRange.end}
+                            lang= "en-GB"
                             // min={dateRange.start || getTodayDate()}
-                            // min={dateRange.start || (instance_id ? "" : getTodayDate())}
+                            min={dateRange.start || (instance_id ? "" : getTodayDate())}
                             onChange={(e) => {
                               setDateRange((prev) => ({
                                 ...prev,
