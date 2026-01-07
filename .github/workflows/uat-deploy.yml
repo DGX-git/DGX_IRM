@@ -1,0 +1,38 @@
+name: Build and Deploy of Uat
+
+on:
+  push:
+    branches:
+      - uat
+    paths:
+      - '/server/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkoout code from repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install Frontend Dependeacy
+        working-directory: ./server/client
+        run: npm ci
+
+      - name: Build Frontend
+        working-directory: ./server/client
+        run: ci=false npm run build
+
+      - name: Install Backend Dependancy
+        working-directory: ./server
+        run: npm ci
+
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@0.9.1
+        with:
+          ssh-private-key:
