@@ -24,7 +24,7 @@ jobs:
       # ---------- FRONTEND ----------
       - name: Install Frontend Dependencies
         working-directory: server/client
-        run: npm ci
+        run: npm install
 
       - name: Build Frontend
         working-directory: server/client
@@ -33,7 +33,7 @@ jobs:
       # ---------- BACKEND ----------
       - name: Install Backend Dependencies
         working-directory: server
-        run: npm ci
+        run: npm install
 
       # ---------- SSH ----------
       - name: Setup SSH Agent
@@ -55,7 +55,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
               cd ${{ secrets.APP_DIR }}
-              npm ci --omit=dev
+              npm install --omit=dev
               pm2 delete uat-app || true
               pm2 start npm --name "uat-app" -- start
               pm2 save
