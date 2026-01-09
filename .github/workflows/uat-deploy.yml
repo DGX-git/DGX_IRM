@@ -1,55 +1,62 @@
-name: Build and Deploy of Uat
+name: Build and Deploy to UAT
 
 on:
   push:
     branches:
       - uat
     paths:
-      - '/server/**'
+      - 'server/**'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkoout code from repo
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
-      - name: install Frontend Dependeacy
-        working-directory: ./server/client
+      # ---------- FRONTEND ----------
+      - name: Install Frontend Dependencies
+        working-directory: server/client
         run: npm ci
 
       - name: Build Frontend
-        working-directory: ./server/client
-        run: ci=false npm run build
+        working-directory: server/client
+        run: npm run build
 
-      - name: Install Backend Dependancy
-        working-directory: ./server
+      # ---------- BACKEND ----------
+      - name: Install Backend Dependencies
+        working-directory: server
         run: npm ci
 
+      # ---------- SSH ----------
       - name: Setup SSH Agent
         uses: webfactory/ssh-agent@0.9.1
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_UAT }}
 
-      - name: Add Host to KnownHost
+      - name: Deploy code to UAT server
         run: |
-          rsync -avz --delete  \
-            --exclude="node_modules"  \
-            --exclude=".git"  \
-            -e "ssh -o StrictHostKeyChecking=no"  \
-            ./server/ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.APP_DIR }}/
+          rsync -avz --delete \
+            --exclude="node_modules" \
+            --exclude=".git" \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            server/ \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.APP_DIR }}/
 
-      - name: Restart Application on server
+      - name: Restart UAT Application
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_HOST }}  << 'EOF'
-            cd ${{ secrets.APP_DIR }}
-            npm ci --production
-            pm2 del all
-            pm2 start npm -- start
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+              cd ${{ secrets.APP_DIR }}
+              npm ci --omit=dev
+              pm2 delete uat-app || true
+              pm2 start npm --name "uat-app" -- start
+              pm2 save
           EOF
