@@ -1126,104 +1126,7 @@ const formatDateDDMMYYYY = (date: string | Date): string => {
     }
   };
 
-  // Update the submit function
-  // const submit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
 
-
-  //   // Validate date range if in range mode
-  //   if (dateSelectionMode === "range") {
-  //     if (!validateDateRange()) {
-  //       return;
-  //     }
-  //   }
-
-  //   if (!validateForm()) {
-  //     return;
-  //   }
-
-  //   // Check for conflicts on all selected dates before submission
-  //   for (const date of formData.selectedDates) {
-  //     const conflicts = await checkTimeSlotConflicts(
-  //       date,
-  //       formData.selectedSlots
-  //     );
-  //     if (conflicts.length > 0) {
-  //       showErrorSnackbarFunc(
-  //         `Some time slots are already booked for date ${formatDateDDMMYYYY(date)}`
-  //       );
-  //       return;
-  //     }
-  //   }
-
-  //   setIsSubmitting(true);
-
-  //   try {
-  //     if (instance_id) {
-  //       await updateInstanceRequest();
-  //     } else {
-  //       await saveInstanceRequest();
-  //     }
-  //   } catch (error) {
-  //     console.error("Submission failed:", error);
-  //     showErrorSnackbarFunc(
-  //       "Error submitting request. Please try again later."
-  //     );
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
-
-
-  // Update the submit function
-  // const submit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-
-  //   // Validate date range if in range mode AND form validation together
-  //   let hasDateRangeErrors = false;
-  //   if (dateSelectionMode === "range") {
-  //     hasDateRangeErrors = !validateDateRange();
-  //   }
-
-  //   // Always validate the full form
-  //   const hasFormErrors = !validateForm();
-
-  //   // If either has errors, stop here
-  //   if (hasDateRangeErrors || hasFormErrors) {
-  //     return;
-  //   }
-
-  //   // Check for conflicts on all selected dates before submission
-  //   for (const date of formData.selectedDates) {
-  //     const conflicts = await checkTimeSlotConflicts(
-  //       date,
-  //       formData.selectedSlots
-  //     );
-  //     if (conflicts.length > 0) {
-  //       showErrorSnackbarFunc(
-  //         `Some time slots are already booked for date ${formatDateDDMMYYYY(date)}`
-  //       );
-  //       return;
-  //     }
-  //   }
-
-  //   setIsSubmitting(true);
-
-  //   try {
-  //     if (instance_id) {
-  //       await updateInstanceRequest();
-  //     } else {
-  //       await saveInstanceRequest();
-  //     }
-  //   } catch (error) {
-  //     console.error("Submission failed:", error);
-  //     showErrorSnackbarFunc(
-  //       "Error submitting request. Please try again later."
-  //     );
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
 
 
   // First, update the DateTimeSlots interface to track slots per date
@@ -1296,40 +1199,7 @@ const formatDateDDMMYYYY = (date: string | Date): string => {
 
 
 
-  // useEffect(() => {
-  //   if (selectedDate) {
-  //     // Load existing slots for the selected date
-  //     const dateSlots = formData.dateTimeSlots[selectedDate];
-  //     console.log(`📅 Date switched to ${selectedDate}, loading slots:`, dateSlots?.selectedSlots);
 
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       selectedSlots: dateSlots?.selectedSlots || [],
-  //       selectedRanges: dateSlots?.selectedRanges || [],
-  //     }));
-
-  //     // Also load booked slots for this date
-  //     getUserTimeSlots();
-  //   }
-  // }, [selectedDate, instance_id]);
-
-
-  //   useEffect(() => {
-  //   if (selectedDate) {
-  //     // Load existing slots for the selected date
-  //     const dateSlots = formData.dateTimeSlots[selectedDate];
-  //     console.log(`📅 Date switched to ${selectedDate}, loading slots:`, dateSlots?.selectedSlots);
-
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       selectedSlots: dateSlots?.selectedSlots || [],
-  //       selectedRanges: dateSlots?.selectedRanges || [],
-  //     }));
-
-  //     // ✅ Use getUserTimeSlotsForDate instead of getUserTimeSlots
-  //     getUserTimeSlotsForDate(selectedDate);
-  //   }
-  // }, [selectedDate, instance_id]);
 
   useEffect(() => {
     if (selectedDate) {
@@ -1352,21 +1222,6 @@ const formatDateDDMMYYYY = (date: string | Date): string => {
   }, [selectedDate, instance_id]);
 
 
-  // New function to fetch user time slots with proper date parameter
-  // const getUserTimeSlotsForDate = async (date: string) => {
-  //   try {
-  //     const params = new URLSearchParams();
-  //     if (date) params.append('selectedDate', date);
-  //     if (instance_id) params.append('excludeInstanceId', instance_id);
-
-  //     const data = await fetchAPI(`/userTimeSlots?${params.toString()}`);
-  //     setUserTimeSlot(data);
-  //     console.log("📋 Booked slots for", date, ":", data);
-  //   } catch (error) {
-  //     console.error('Error fetching user time slots:', error);
-  //     showErrorSnackbarFunc('Failed to load time slots');
-  //   }
-  // };
 
   const getUserTimeSlotsForDate = async (date: string) => {
     try {
@@ -1528,14 +1383,6 @@ const formatDateDDMMYYYY = (date: string | Date): string => {
 
 
 
-  // const isSlotBooked = (slotId: string) => {
-  //   // If in edit mode, don't consider slots from the current instance as booked
-  //   return userTimeSlot.some(
-  //     (uslot) =>
-  //       uslot.time_slot_id === slotId &&
-  //       (!instance_id || uslot.instance_request_id !== instance_id)
-  //   );
-  // };
 
   const isSlotBooked = (slotId: string) => {
     // If in edit mode, don't consider slots from the current instance as booked
@@ -1559,194 +1406,7 @@ const formatDateDDMMYYYY = (date: string | Date): string => {
 
 
 
-  // const handleDateRangeAdd = () => {
-  //   if (!dateRange.start || !dateRange.end) {
-  //     showErrorSnackbarFunc("Please select both start and end dates");
-  //     return;
-  //   }
-
-  //   const startDate = new Date(dateRange.start);
-  //   const endDate = new Date(dateRange.end);
-  //   const today = new Date();
-  //   today.setHours(0, 0, 0, 0);
-
-  //   // Skip past date validation in edit mode (when instance_id is set)
-  //   if (!instance_id && (startDate < today || endDate < today)) {
-  //     setErrors((prev) => ({
-  //       ...prev,
-  //       selectedDates: "Dates cannot be in the past",
-  //     }));
-  //     return;
-  //   }
-
-  //   if (endDate < startDate) {
-  //     setErrors((prev) => ({
-  //       ...prev,
-  //       selectedDates: "End date must be after start date",
-  //     }));
-  //     return;
-  //   }
-
-  //   const dates: string[] = [];
-  //   const currentDate = new Date(startDate);
-  //   while (currentDate <= endDate) {
-  //     const dateString = currentDate.toISOString().split("T")[0];
-  //     if (!formData.selectedDates.includes(dateString)) {
-  //       dates.push(dateString);
-  //     }
-  //     currentDate.setDate(currentDate.getDate() + 1);
-  //   }
-
-  //   const updatedDateTimeSlots = { ...formData.dateTimeSlots };
-  //   dates.forEach((date) => {
-  //     updatedDateTimeSlots[date] = {
-  //       selectedSlots: [],
-  //       selectedRanges: [],
-  //     };
-  //   });
-
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     selectedDates: [...prev.selectedDates, ...dates].sort(),
-  //     dateTimeSlots: updatedDateTimeSlots,
-  //   }));
-
-  //   setErrors((prev) => ({ ...prev, selectedDates: "" }));
-
-  //   dates.forEach(date => getUserTimeSlotsForDate(date));
-  // };
-
-
-//   const handleDateRangeAdd = () => {
-//   if (!dateRange.start || !dateRange.end) {
-//     showErrorSnackbarFunc("Please select both start and end dates");
-//     return;
-//   }
-
-//   const startDate = new Date(dateRange.start);
-//   const endDate = new Date(dateRange.end);
-//   const today = new Date();
-//   today.setHours(0, 0, 0, 0);
-
-//   // Skip past date validation in edit mode (when instance_id is set)
-//   if (!instance_id && (startDate < today || endDate < today)) {
-//     setErrors((prev) => ({
-//       ...prev,
-//       selectedDates: "Dates cannot be in the past",
-//     }));
-//     return;
-//   }
-
-//   if (endDate < startDate) {
-//     setErrors((prev) => ({
-//       ...prev,
-//       selectedDates: "End date must be after start date",
-//     }));
-//     return;
-//   }
-
-//   const dates: string[] = [];
-//   const currentDate = new Date(startDate);
-//   while (currentDate <= endDate) {
-//     const dateString = currentDate.toISOString().split("T")[0];
-//     dates.push(dateString);
-//     currentDate.setDate(currentDate.getDate() + 1);
-//   }
-
-//   const updatedDateTimeSlots = { ...formData.dateTimeSlots };
-//   dates.forEach((date) => {
-//     updatedDateTimeSlots[date] = {
-//       selectedSlots: [],
-//       selectedRanges: [],
-//     };
-//   });
-
-//   setFormData((prev) => ({
-//     ...prev,
-//     selectedDates: dates.sort(), // FIXED: Replace with new dates instead of appending
-//     dateTimeSlots: updatedDateTimeSlots,
-//   }));
-
-//   setErrors((prev) => ({ ...prev, selectedDates: "" }));
-
-//   dates.forEach(date => getUserTimeSlotsForDate(date));
-// };
-
-
-// const handleDateRangeAdd = () => {
-//   if (!dateRange.start || !dateRange.end) {
-//     showErrorSnackbarFunc("Please select both start and end dates");
-//     return;
-//   }
-
-//   const startDate = new Date(dateRange.start);
-//   const endDate = new Date(dateRange.end);
-//   const today = new Date();
-//   today.setHours(0, 0, 0, 0);
-
-//   // Skip past date validation in edit mode (when instance_id is set)
-//   if (!instance_id && (startDate < today || endDate < today)) {
-//     setErrors((prev) => ({
-//       ...prev,
-//       selectedDates: "Dates cannot be in the past",
-//     }));
-//     return;
-//   }
-
-//   if (endDate < startDate) {
-//     setErrors((prev) => ({
-//       ...prev,
-//       selectedDates: "End date must be after start date",
-//     }));
-//     return;
-//   }
-
-//   const dates: string[] = [];
-//   const currentDate = new Date(startDate);
-//   while (currentDate <= endDate) {
-//     const dateString = currentDate.toISOString().split("T")[0];
-//     dates.push(dateString);
-//     currentDate.setDate(currentDate.getDate() + 1);
-//   }
-
-//   const updatedDateTimeSlots = { ...formData.dateTimeSlots };
-//   dates.forEach((date) => {
-//     updatedDateTimeSlots[date] = {
-//       selectedSlots: [],
-//       selectedRanges: [],
-//     };
-//   });
-
-//   // Set the first date as selected
-//   const firstDate = dates[0];
-
-//   setFormData((prev) => ({
-//     ...prev,
-//     selectedDates: dates.sort(), // FIXED: Replace with new dates instead of appending
-//     dateTimeSlots: updatedDateTimeSlots,
-//     selectedSlots: [], // Clear slots when date range changes
-//     selectedRanges: [], // Clear ranges when date range changes
-//   }));
-
-//   // Clear all errors related to dates and time slots
-//   setErrors((prev) => ({
-//     ...prev,
-//     selectedDates: "",
-//     selectedSlots: "", // Clear the "Please select time slots" error
-//   }));
-
-//   // Clear touched state for these fields
-//   setTouched((prev) => ({
-//     ...prev,
-//     selectedSlots: false,
-//   }));
-
-//   // Set the first date as the selected date for time slot selection
-//   setSelectedDate(firstDate);
-
-//   dates.forEach(date => getUserTimeSlotsForDate(date));
-// };
-
+  
 
 
 const handleDateRangeAdd = () => {
@@ -1837,49 +1497,7 @@ const handleDateRangeAdd = () => {
   newDates.forEach(date => getUserTimeSlotsForDate(date));
 };
 
-  // In edit mode, preserve existing time slots for dates that are still in the new range
-//   const updatedDateTimeSlots = { ...formData.dateTimeSlots };
-//   dates.forEach((date) => {
-//     // Only initialize new dates with empty slots, preserve existing ones
-//     if (!updatedDateTimeSlots[date]) {
-//       updatedDateTimeSlots[date] = {
-//         selectedSlots: [],
-//         selectedRanges: [],
-//       };
-//     }
-//   });
-
-//   // Set the first date as selected
-//   const firstDate = dates[0];
-
-//   setFormData((prev) => ({
-//     ...prev,
-//     selectedDates: dates.sort(), // FIXED: Replace with new dates instead of appending
-//     dateTimeSlots: updatedDateTimeSlots,
-//     selectedSlots: updatedDateTimeSlots[firstDate]?.selectedSlots || [], // Load existing slots for first date
-//     selectedRanges: updatedDateTimeSlots[firstDate]?.selectedRanges || [], // Load existing ranges for first date
-//   }));
-
-//   // Clear all errors related to dates and time slots
-//   setErrors((prev) => ({
-//     ...prev,
-//     selectedDates: "",
-//     selectedSlots: "", // Clear the "Please select time slots" error
-//   }));
-
-//   // Clear touched state for these fields
-//   setTouched((prev) => ({
-//     ...prev,
-//     selectedSlots: false,
-//   }));
-
-//   // Set the first date as the selected date for time slot selection
-//   setSelectedDate(firstDate);
-
-//   // Fetch booked slots only for new dates (dates that weren't previously loaded)
-//   const newDates = dates.filter(date => !formData.selectedDates.includes(date));
-//   newDates.forEach(date => getUserTimeSlotsForDate(date));
-// };
+  
 
 
   const handleReplicateSlots = async (sourceDate?: string) => {
@@ -2022,240 +1640,6 @@ const handleDateRangeAdd = () => {
     }
   };
 
-  // Function to handle user confirmation from dialog
-  // const handleReplicationConfirm = async (confirm: boolean) => {
-  //   setShowReplicationConflictDialog(false);
-
-  //   if (!confirm || !replicationConflictData) {
-  //     setReplicationConflictData(null);
-  //     return;
-  //   }
-
-  //   // User confirmed - proceed with replication to successful dates only
-  //   setIsReplicating(true);
-  //   try {
-  //     const { successfulDates, sourceDate } = replicationConflictData;
-
-  //     const sourceSlots =
-  //       formData.dateTimeSlots[sourceDate]?.selectedSlots?.slice() ||
-  //       formData.selectedSlots?.slice() ||
-  //       [];
-
-  //     // Build ranges for the sourceSlots
-  //     const indices = sourceSlots
-  //       .map((id) => getSlotIndex(id))
-  //       .filter((i) => i >= 0)
-  //       .sort((a, b) => a - b);
-
-  //     const ranges: TimeSlotRange[] = [];
-  //     if (indices.length > 0) {
-  //       let rangeStart = indices[0];
-  //       let rangeEnd = indices[0];
-  //       for (let i = 1; i < indices.length; i++) {
-  //         if (indices[i] === rangeEnd + 1) {
-  //           rangeEnd = indices[i];
-  //         } else {
-  //           ranges.push({ start: rangeStart, end: rangeEnd });
-  //           rangeStart = indices[i];
-  //           rangeEnd = indices[i];
-  //         }
-  //       }
-  //       ranges.push({ start: rangeStart, end: rangeEnd });
-  //     }
-
-  //     // Proceed with replication only to successful dates
-  //     setFormData((prev) => {
-  //       const updatedDateTimeSlots = { ...prev.dateTimeSlots };
-
-  //       // Replicate only to successful dates (non-conflicting)
-  //       successfulDates.forEach((date) => {
-  //         updatedDateTimeSlots[date] = {
-  //           selectedSlots: [...sourceSlots],
-  //           selectedRanges: ranges.map((r) => ({ start: r.start, end: r.end })),
-  //         };
-  //       });
-
-  //       // If the current selectedDate is one of the successful dates, update current working selection
-  //       let updatedSelectedSlots = prev.selectedSlots;
-  //       let updatedSelectedRanges = prev.selectedRanges;
-
-  //       if (selectedDate && successfulDates.includes(selectedDate)) {
-  //         updatedSelectedSlots = [...sourceSlots];
-  //         updatedSelectedRanges = ranges.map((r) => ({ start: r.start, end: r.end }));
-  //       }
-
-  //       return {
-  //         ...prev,
-  //         dateTimeSlots: updatedDateTimeSlots,
-  //         selectedSlots: updatedSelectedSlots,
-  //         selectedRanges: updatedSelectedRanges,
-  //       };
-  //     });
-
-  //     // Show summary message
-  //     // showSuccessSnackbarFunc(`Slots replicated to ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""}`);
-  //     showSuccessSnackbarFunc(`Slots replicated to ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""}: ${formatDatesForDisplay(successfulDates)}`);
-  //     setReplicationConflictData(null);
-  //   } catch (error) {
-  //     console.error("Error during replication:", error);
-  //     showErrorSnackbarFunc("Failed to replicate time slots. Please try again.");
-  //   } finally {
-  //     setIsReplicating(false);
-  //   }
-  // };
-
-    // Function to handle user confirmation from dialog
-  // const handleReplicationConfirm = async (confirm: boolean) => {
-  //   setShowReplicationConflictDialog(false);
-
-  //   if (!confirm || !replicationConflictData) {
-  //     setReplicationConflictData(null);
-  //     return; // Exit without showing snackbar
-  //   }
-
-  //   // User confirmed - proceed with replication to successful dates only
-  //   setIsReplicating(true);
-  //   try {
-  //     const { successfulDates, sourceDate } = replicationConflictData;
-
-  //     const sourceSlots =
-  //       formData.dateTimeSlots[sourceDate]?.selectedSlots?.slice() ||
-  //       formData.selectedSlots?.slice() ||
-  //       [];
-
-  //     // Build ranges for the sourceSlots
-  //     const indices = sourceSlots
-  //       .map((id) => getSlotIndex(id))
-  //       .filter((i) => i >= 0)
-  //       .sort((a, b) => a - b);
-
-  //     const ranges: TimeSlotRange[] = [];
-  //     if (indices.length > 0) {
-  //       let rangeStart = indices[0];
-  //       let rangeEnd = indices[0];
-  //       for (let i = 1; i < indices.length; i++) {
-  //         if (indices[i] === rangeEnd + 1) {
-  //           rangeEnd = indices[i];
-  //         } else {
-  //           ranges.push({ start: rangeStart, end: rangeEnd });
-  //           rangeStart = indices[i];
-  //           rangeEnd = indices[i];
-  //         }
-  //       }
-  //       ranges.push({ start: rangeStart, end: rangeEnd });
-  //     }
-
-  //     // Proceed with replication only to successful dates
-  //     setFormData((prev) => {
-  //       const updatedDateTimeSlots = { ...prev.dateTimeSlots };
-
-  //       // Replicate only to successful dates (non-conflicting)
-  //       successfulDates.forEach((date) => {
-  //         updatedDateTimeSlots[date] = {
-  //           selectedSlots: [...sourceSlots],
-  //           selectedRanges: ranges.map((r) => ({ start: r.start, end: r.end })),
-  //         };
-  //       });
-
-  //       // If the current selectedDate is one of the successful dates, update current working selection
-  //       let updatedSelectedSlots = prev.selectedSlots;
-  //       let updatedSelectedRanges = prev.selectedRanges;
-
-  //       if (selectedDate && successfulDates.includes(selectedDate)) {
-  //         updatedSelectedSlots = [...sourceSlots];
-  //         updatedSelectedRanges = ranges.map((r) => ({ start: r.start, end: r.end }));
-  //       }
-
-  //       return {
-  //         ...prev,
-  //         dateTimeSlots: updatedDateTimeSlots,
-  //         selectedSlots: updatedSelectedSlots,
-  //         selectedRanges: updatedSelectedRanges,
-  //       };
-  //     });
-
-  //     // Show summary message
-  //     showSuccessSnackbarFunc(`Slots replicated to ${successfulDates.length} date${successfulDates.length > 1 ? "s" : ""}: ${formatDatesForDisplay(successfulDates)}`);
-  //     setReplicationConflictData(null);
-  //   } catch (error) {
-  //     console.error("Error during replication:", error);
-  //     showErrorSnackbarFunc("Failed to replicate time slots. Please try again.");
-  //   } finally {
-  //     setIsReplicating(false);
-  //   }
-  // };
-
-  // Add this dialog component before the return statement
-  // const ReplicationConflictDialog = () => {
-  //   if (!showReplicationConflictDialog || !replicationConflictData) return null;
-
-  //   const { successfulDates, skippedDates } = replicationConflictData;
-
-  //   return (
-  //     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
-  //       <div className="bg-white rounded-lg shadow-xl max-w-lg w-11/12 p-6">
-  //         <h2 className="text-lg font-bold text-gray-800 mb-4">
-  //           Replication Conflict Detected
-  //         </h2>
-
-  //         <div className="mb-4 max-h-96 overflow-y-auto">
-  //           {/* Successfully replicated dates */}
-  //           {successfulDates.length > 0 && (
-  //             <div className="mb-4">
-  //               <h3 className="font-semibold text-green-700 mb-2">
-  //                 ✓ Can Replicate ({successfulDates.length}):
-  //               </h3>
-  //               <div className="bg-green-50 border border-green-200 rounded p-3">
-  //                 {successfulDates.map((date) => (
-  //                   <div key={date} className="text-green-700 text-sm py-1">
-  //                     📅 {formatDateDDMMYYYY(date)}
-  //                   </div>
-  //                 ))}
-  //               </div>
-  //             </div>
-  //           )}
-
-  //           {/* Skipped dates with conflicts */}
-  //           {skippedDates.length > 0 && (
-  //             <div>
-  //               <h3 className="font-semibold text-red-700 mb-2">
-  //                 ✗ Conflicts Detected ({skippedDates.length}):
-  //               </h3>
-  //               <div className="bg-red-50 border border-red-200 rounded p-3">
-  //                 {skippedDates.map((date) => (
-  //                   <div key={date} className="text-red-700 text-sm py-1">
-  //                     📅 {formatDateDDMMYYYY(date)} - Already has booked slots
-  //                   </div>
-  //                 ))}
-  //               </div>
-  //             </div>
-  //           )}
-  //         </div>
-
-  //         <div className="border-t pt-4 mt-4">
-  //           <p className="text-gray-700 text-sm mb-4">
-  //             Would you like to proceed with replicating slots to the {successfulDates.length} date{successfulDates.length > 1 ? "s" : ""} without conflicts?
-  //           </p>
-
-  //           <div className="flex gap-3 justify-end">
-  //             <button
-  //               onClick={() => handleReplicationConfirm(false)}
-  //               className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium"
-  //             >
-  //               Cancel
-  //             </button>
-  //             <button
-  //               onClick={() => handleReplicationConfirm(true)}
-  //               className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 font-medium"
-  //             >
-  //               Replicate Anyway
-  //             </button>
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // };
 
 
   // Function to handle user confirmation from dialog
@@ -2349,150 +1733,6 @@ const handleReplicationConfirm = async (confirm: boolean) => {
 
 
 
-  // Add this dialog component before the return statement
-  // const ReplicationConflictDialog = () => {
-  //   if (!showReplicationConflictDialog || !replicationConflictData) return null;
-
-  //   const { successfulDates, skippedDates } = replicationConflictData;
-
-  //   return (
-  //     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
-  //       <div className="bg-white rounded-lg shadow-xl max-w-lg w-11/12 p-6">
-  //         <h2 className="text-lg font-bold text-gray-800 mb-4">
-  //           Replication Conflict Detected
-  //         </h2>
-
-  //         <div className="mb-4 max-h-96 overflow-y-auto">
-  //           {/* Successfully replicated dates */}
-  //           {successfulDates.length > 0 && (
-  //             <div className="mb-4">
-  //               <h3 className="font-semibold text-green-700 mb-2">
-  //                 ✓ Can Replicate ({successfulDates.length}):
-  //               </h3>
-  //               <div className="bg-green-50 border border-green-200 rounded p-3">
-  //                 {successfulDates.map((date) => (
-  //                   <div key={date} className="text-green-700 text-sm py-1">
-  //                     📅 {formatDateDDMMYYYY(date)}
-  //                   </div>
-  //                 ))}
-  //               </div>
-  //             </div>
-  //           )}
-
-  //           {/* Skipped dates with conflicts */}
-  //           {skippedDates.length > 0 && (
-  //             <div>
-  //               <h3 className="font-semibold text-red-700 mb-2">
-  //                 ✗ Conflicts Detected ({skippedDates.length}):
-  //               </h3>
-  //               <div className="bg-red-50 border border-red-200 rounded p-3">
-  //                 {skippedDates.map((date) => (
-  //                   <div key={date} className="text-red-700 text-sm py-1">
-  //                     📅 {formatDateDDMMYYYY(date)} - Already has booked slots
-  //                   </div>
-  //                 ))}
-  //               </div>
-  //             </div>
-  //           )}
-  //         </div>
-
-  //         <div className="border-t pt-4 mt-4">
-  //           <p className="text-gray-700 text-sm mb-4">
-  //             Would you like to proceed with replicating slots to the {successfulDates.length} date{successfulDates.length > 1 ? "s" : ""} without conflicts?
-  //           </p>
-
-  //           <div className="flex gap-3 justify-end">
-  //             <button
-  //               onClick={() => handleReplicationConfirm(false)}
-  //               className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium"
-  //             >
-  //               Cancel
-  //             </button>
-  //             <button
-  //               onClick={() => handleReplicationConfirm(true)}
-  //               className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 font-medium"
-  //             >
-  //               Replicate Anyway
-  //             </button>
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // };
-
-
-
-  // const ReplicationConflictDialog = () => {
-  //   if (!showReplicationConflictDialog || !replicationConflictData) return null;
-
-  //   const { successfulDates, skippedDates } = replicationConflictData;
-
-  //   return (
-  //     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 pointer-events-auto">
-  //       <div className="bg-white rounded-lg shadow-2xl max-w-lg w-11/12 p-6 relative z-50">
-  //         <h2 className="text-lg font-bold text-gray-800 mb-4">
-  //           Replication Conflict Detected
-  //         </h2>
-
-  //         <div className="mb-4 max-h-96 overflow-y-auto">
-  //           {/* Successfully replicated dates */}
-  //           {successfulDates.length > 0 && (
-  //             <div className="mb-4">
-  //               <h3 className="font-semibold text-green-700 mb-2">
-  //                 ✓ Can Replicate ({successfulDates.length}):
-  //               </h3>
-  //               <div className="bg-green-50 border border-green-200 rounded p-3">
-  //                 {successfulDates.map((date) => (
-  //                   <div key={date} className="text-green-700 text-sm py-1">
-  //                     📅 {formatDateDDMMYYYY(date)}
-  //                   </div>
-  //                 ))}
-  //               </div>
-  //             </div>
-  //           )}
-
-  //           {/* Skipped dates with conflicts */}
-  //           {skippedDates.length > 0 && (
-  //             <div>
-  //               <h3 className="font-semibold text-red-700 mb-2">
-  //                 ✗ Conflicts Detected ({skippedDates.length}):
-  //               </h3>
-  //               <div className="bg-red-50 border border-red-200 rounded p-3">
-  //                 {skippedDates.map((date) => (
-  //                   <div key={date} className="text-red-700 text-sm py-1">
-  //                     📅 {formatDateDDMMYYYY(date)} - Already has booked slots
-  //                   </div>
-  //                 ))}
-  //               </div>
-  //             </div>
-  //           )}
-  //         </div>
-
-  //         <div className="border-t pt-4 mt-4">
-  //           <p className="text-gray-700 text-sm mb-4">
-  //             Would you like to proceed with replicating slots to the {successfulDates.length} date{successfulDates.length > 1 ? "s" : ""} without conflicts?
-  //           </p>
-
-  //           <div className="flex gap-3 justify-end">
-  //             <button
-  //               onClick={() => handleReplicationConfirm(false)}
-  //               className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium transition"
-  //             >
-  //               Cancel
-  //             </button>
-  //             <button
-  //               onClick={() => handleReplicationConfirm(true)}
-  //               className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 font-medium transition"
-  //             >
-  //               Proceed
-  //             </button>
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // };
 
 
 
@@ -2594,23 +1834,6 @@ const handleReplicationConfirm = async (confirm: boolean) => {
 
           {/* Actions */}
           <div className="flex gap-3 justify-end">
-            {/* <button
-            onClick={() => handleReplicationConfirm(false)}
-            className="px-5 py-2 rounded-lg font-medium transition-all duration-200 text-sm"
-            style={{
-              color: "#2d4a00",
-              backgroundColor: "#e8f5d0",
-              border: "1px solid #d1e7b0",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#d1e7b0";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#e8f5d0";
-            }}
-          >
-            Cancel
-          </button> */}
 
             <button
               type="button"
@@ -2636,24 +1859,6 @@ const handleReplicationConfirm = async (confirm: boolean) => {
               Cancel
             </button>
 
-
-
-            {/* <button
-            onClick={() => handleReplicationConfirm(true)}
-            className="px-5 py-2 rounded-lg font-medium transition-all duration-200 text-sm text-white"
-            style={{
-              backgroundColor: "#76B900",
-              border: "1px solid #5A8F00",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#5A8F00";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#76B900";
-            }}
-          >
-            Replicate Anyway
-          </button> */}
             <button
               type="button"
               onClick={() => handleReplicationConfirm(true)}
@@ -3139,7 +2344,7 @@ const handleReplicationConfirm = async (confirm: boolean) => {
   };
 
   // 7. updateInstanceRequest - CORRECTED ENDPOINT & PAYLOAD
-  const updateInstanceRequest = async () => {
+  const updateInstanceRequest = async () => {  
     try {
       for (const date of formData.selectedDates) {
         const dateSlots = formData.dateTimeSlots[date]?.selectedSlots || [];
@@ -3350,120 +2555,6 @@ const PastDatesDialog = () => {
     </div>
   );
 };
-
-
-
-// Modify the submit function to handle past dates check in edit mode (around line 1130)
-// Replace the existing submit function with this updated version:
-// const submit = async (e: React.FormEvent) => {
-//   e.preventDefault();
-
-//   // Validate date range if in range mode AND form validation together
-//   let hasDateRangeErrors = false;
-//   if (dateSelectionMode === "range") {
-//     hasDateRangeErrors = !validateDateRange();
-//   }
-
-//   // Always validate the full form
-//   const hasFormErrors = !validateForm();
-
-//   // If either has errors, stop here
-//   if (hasDateRangeErrors || hasFormErrors) {
-//     return;
-//   }
-
-//   // Check for conflicts on all selected dates before submission
-//   for (const date of formData.selectedDates) {
-//     const conflicts = await checkTimeSlotConflicts(
-//       date,
-//       formData.selectedSlots
-//     );
-//     if (conflicts.length > 0) {
-//       showErrorSnackbarFunc(
-//         `Some time slots are already booked for date ${formatDateDDMMYYYY(date)}`
-//       );
-//       return;
-//     }
-//   }
-
-//   // In edit mode, check for past dates
-//   if (instance_id) {
-//     const { pastDates, futureDates } = getPastDates(formData.selectedDates);
-    
-//     if (pastDates.length > 0) {
-//       // Show dialog with past dates warning
-//       setPastDatesInfo({ pastDates, futureDates });
-//       setShowPastDatesDialog(true);
-//       return;
-//     }
-//   }
-
-//   setIsSubmitting(true);
-
-//   try {
-//     if (instance_id) {
-//       await updateInstanceRequest();
-//     } else {
-//       await saveInstanceRequest();
-//     }
-//   } catch (error) {
-//     console.error("Submission failed:", error);
-//     showErrorSnackbarFunc(
-//       "Error submitting request. Please try again later."
-//     );
-//   } finally {
-//     setIsSubmitting(false);
-//   }
-// };
-
-// Add this function to proceed with update after confirmation
-// const proceedWithUpdate = async () => {
-//   setIsSubmitting(true);
-
-//   try {
-//     if (instance_id) {
-//       await updateInstanceRequest();
-//     } else {
-//       await saveInstanceRequest();
-//     }
-//   } catch (error) {
-//     console.error("Submission failed:", error);
-//     showErrorSnackbarFunc(
-//       "Error submitting request. Please try again later."
-//     );
-//   } finally {
-//     setIsSubmitting(false);
-//   }
-// };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -4582,10 +3673,9 @@ useEffect(() => {
                           </label>
                           <input
                             type="date"
-                            value={selectedDate}
-                            lang="en-GB"
-                            // min={getTodayDate()}
-                            min={instance_id ? "" : getTodayDate()}
+                            value={instance_id ? getTodayDate() : selectedDate}
+                            lang="en-IN"
+                            min={getTodayDate()}
                             onChange={(e) => {
                               setSelectedDate(e.target.value);
                               if (e.target.value) {
@@ -4691,10 +3781,9 @@ useEffect(() => {
                           </label>
                           <input
                             type="date"
-                            value={dateRange.start}
-                            lang="en-GB"
-                            // min={getTodayDate()}
-                            min={instance_id ? "" : getTodayDate()}
+                            value={instance_id ? getTodayDate() : dateRange.start}
+                            lang="en-IN"
+                            min={getTodayDate()}
                             onChange={(e) => {
                               setDateRange((prev) => ({
                                 ...prev,
@@ -4749,9 +3838,8 @@ useEffect(() => {
                           <input
                             type="date"
                             value={dateRange.end}
-                            lang= "en-GB"
-                            // min={dateRange.start || getTodayDate()}
-                            min={dateRange.start || (instance_id ? "" : getTodayDate())}
+                            lang= "en-IN"
+                            min={getTodayDate()}
                             onChange={(e) => {
                               setDateRange((prev) => ({
                                 ...prev,

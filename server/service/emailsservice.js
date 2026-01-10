@@ -1,16 +1,6 @@
 const sequelize = require("../config/sequelize.config"); // backend/services/emailService.js
 const nodemailer = require("nodemailer");
 
-// Configure Zoho transporter
-// const transporter = nodemailer.createTransport({
-//   host: 'smtp.zoho.in',
-//   port: 465,
-//   secure: true,
-//   auth: {
-//     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_APP_PASSWORD,
-//   },
-// });
 
 const transporter = nodemailer.createTransport({
   host: "smtp.zoho.in",
@@ -254,10 +244,8 @@ function formatRequestDetailsHtml(requestData, type) {
 
 // Email template generators
 function generateApprovalEmailText(requestData, credentials) {
-  const userName =
-    `${requestData.user?.firstname || ""} ${
-      requestData.user?.lastname || ""
-    }`.trim() || "User";
+  const userName = requestData.loggedInUserName || "User";
+    
 
   return `Dear ${userName},
 
@@ -284,10 +272,8 @@ DGX Administration Team`;
 }
 
 function generateApprovalEmailHtml(requestData, credentials) {
-  const userName =
-    `${requestData.user?.firstname || ""} ${
-      requestData.user?.lastname || ""
-    }`.trim() || "User";
+  const userName = requestData.loggedInUserName || "User";
+    
 
   return `
   <html>
@@ -318,10 +304,7 @@ function generateApprovalEmailHtml(requestData, credentials) {
 }
 
 function generateRejectionEmailText(requestData, remarks, type) {
-  const userName =
-    `${requestData.user?.firstname || ""} ${
-      requestData.user?.lastname || ""
-    }`.trim() || "User";
+  const userName = requestData.loggedInUserName || "User";
   const isRevoke = type === "revoke";
   const admin = requestData.admin || "Administrator";
 
@@ -348,10 +331,7 @@ DGX Administration Team`;
 }
 
 function generateRejectionEmailHtml(requestData, remarks, type) {
-  const userName =
-    `${requestData.user?.firstname || ""} ${
-      requestData.user?.lastname || ""
-    }`.trim() || "User";
+  const userName = requestData.loggedInUserName || "User";
   const isRevoke = type === "revoke";
   const admin = requestData.admin || "Administrator";
 
@@ -389,11 +369,7 @@ function generateRejectionEmailHtml(requestData, remarks, type) {
 }
 
 function generateGrantAccessEmailText(requestData) {
-  const userName =
-    `${requestData.user?.firstname || ""} ${
-      requestData.user?.lastname || ""
-    }`.trim() || "User";
-
+  const userName = requestData.loggedInUserName || "User";
   return `Dear ${userName},
 
 This is to inform you that technical access has been granted for your DGX H200 instance request Id ${
@@ -409,10 +385,8 @@ DGX Administration Team`;
 }
 
 function generateGrantAccessEmailHtml(requestData) {
-  const userName =
-    `${requestData.user?.firstname || ""} ${
-      requestData.user?.lastname || ""
-    }`.trim() || "User";
+  const userName = requestData.loggedInUserName || "User";
+  
 
   return `
   <html>
