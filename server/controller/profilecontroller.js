@@ -1,9 +1,19 @@
-const profileservice = require('../service/profileservice')
+const profileservice = require("../service/profileservice");
 
-const profile = async(request, response) => {
-    profileservice.profile(request, response);
-}
+const profile = async (request, response) => {
+  profileservice.getUserProfile(request, response);
+};
 
+const updateProfile = async (request, response) => {
+  profileservice.updateProfile(request, response);
+};
 
+const updateAssociation = async (request, response) => {
+  profileservice.updateAssociation(request, response);
+};
 
-module.exports =  {profile};
+module.exports = {
+  profile,
+  updateProfile,
+  updateAssociation,
+};

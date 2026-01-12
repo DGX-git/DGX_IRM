@@ -1,8 +1,6 @@
 const { Sequelize, DataTypes, Model } = require('sequelize');
 const sequelize = require('../config/sequelize.config');
 const DGX_USER = require('./dgx_user.model');
-const Shift = require('./shift.model');
-const Status = require('./status.model');
 
 
 const GPU = sequelize.define('GPU', {

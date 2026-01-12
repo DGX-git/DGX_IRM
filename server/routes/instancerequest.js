@@ -1,3 +1,42 @@
+// var express = require('express');
+// var router = express.Router();
+// const instancerequest = require('../controller/instancerequestcontroller');
+// var cors = require('cors');
+
+// router.use(cors());
+
+// router.post('/getInstanceRequestByUserId', instancerequest.getInstanceRequestByUserId);
+
+// router.get('/getUserTypes', instancerequest.getUserTypes);
+
+// router.get('/getImages', instancerequest.getImages);
+
+// router.get('/getCpus', instancerequest.getCpus);
+
+// router.get('/getGpus', instancerequest.getGpus);
+
+// router.get('/getGpuPartition', instancerequest.getGpuPartition);
+
+// router.get('/getRams', instancerequest.getRams);
+
+// router.get('/getTimeSlots', instancerequest.getTimeSlots);
+
+// router.post('/getUserTimeSlotsByUserId', instancerequest.getUserTimeSlotsByUserId);
+
+// router.post('/saveInstanceRequest', instancerequest.saveInstanceRequest);
+
+// router.post('/updateInstanceRequest', instancerequest.updateInstanceRequest);
+
+// router.post('/deleteInstanceRequest', instancerequest.deleteInstanceRequest);
+
+
+
+
+// module.exports = router;
+
+
+
+
 var express = require('express');
 var router = express.Router();
 const instancerequest = require('../controller/instancerequestcontroller');
@@ -5,10 +44,30 @@ var cors = require('cors');
 
 router.use(cors());
 
-router.post('/instancerequest', instancerequest.instancerequest);
+// Existing POST/GET endpoints
+router.post('/getInstanceRequestByUserId', instancerequest.getInstanceRequestByUserId);
+router.get('/getUserTypes', instancerequest.getUserTypes);
+router.get('/getImages', instancerequest.getImages);
+router.get('/getCpus', instancerequest.getCpus);
+router.get('/getGpus', instancerequest.getGpus);
+router.get('/getGpuPartition', instancerequest.getGpuPartition);
+router.get('/getRams', instancerequest.getRams);
+router.get('/getTimeSlots', instancerequest.getTimeSlots);
+router.post('/getUserTimeSlotsByUserId', instancerequest.getUserTimeSlotsByUserId);
+router.post('/saveInstanceRequest', instancerequest.saveInstanceRequest);
+router.post('/updateInstanceRequest', instancerequest.updateInstanceRequest);
+router.post('/deleteInstanceRequest', instancerequest.deleteInstanceRequest);
 
-router.get('/getCpu', instancerequest.instancerequest);
+// New RESTful endpoints for instance requests
+router.get('/instanceRequests/:id', instancerequest.getInstanceRequestById);
+router.post('/instanceRequests', instancerequest.createInstanceRequest);
+router.put('/instanceRequests/:id', instancerequest.updateInstanceRequestById);
+router.delete('/instanceRequests/:id', instancerequest.deleteInstanceRequestById);
 
-
+// User time slots endpoints
+router.get('/userTimeSlots', instancerequest.getUserTimeSlots);
+router.post('/userTimeSlots/bulk', instancerequest.saveUserTimeSlotsBulk);
+router.delete('/userTimeSlots', instancerequest.deleteUserTimeSlotsByFilter);
+router.get('/userTimeSlots/conflicts', instancerequest.checkTimeSlotConflicts);
 
 module.exports = router;

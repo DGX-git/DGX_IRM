@@ -1,7 +1,7 @@
 const { Sequelize, DataTypes, Model } = require('sequelize');
 const sequelize = require('../config/sequelize.config');
 const GPU_Partition = require('./gpu_partition.model');
-const DGX_USER = require('./user.model');
+const DGX_USER = require('./dgx_user.model');
 const IMAGE = require('./image.model');
 const CPU = require('./cpu.model');
 const Status = require('./status.model');
@@ -110,16 +110,16 @@ const Instance_Request = sequelize.define('Instance_Request', {
         allowNull: false,
         defaultValue: false
     },
-    additional_inforamation: {
+    additional_information: {
         type: DataTypes.STRING,
         allowNull: true,
     },
      created_timestamp: {
-        type: DataTypes.TIMESTAMP,
+        type: DataTypes.DATE,
         allowNull: false,
     },
     updated_timestamp: {
-        type: DataTypes.TIMESTAMP,
+        type: DataTypes.DATE,
         allowNull: false,
     },
     created_by: {
@@ -132,14 +132,14 @@ const Instance_Request = sequelize.define('Instance_Request', {
     },
     updated_by: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references: {
             model: DGX_USER,
             key: 'user_id'
         }
     },
-    time_slot: {
-        type: DataTypes.STRING,
+    selected_date: {
+        type: DataTypes.DATE,
         allowNull: true,
     },
 }, {

@@ -23,7 +23,7 @@ const OTP = sequelize.define('OTP', {
         }
     },
     created_timestamp: {
-        type: DataTypes.TIMESTAMP,
+        type: DataTypes.DATE,
         allowNull: true
     }
 }, {

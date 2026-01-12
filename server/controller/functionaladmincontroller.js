@@ -1,9 +1,14 @@
 const functionaladminservice = require('../service/functionaladminservice')
 
-const functionaladmin = async(request, response) => {
-	functionaladminservice.functionaladmin(request, response);
+
+const approveFunctional = async(request, response) => {
+	functionaladminservice.approveFunctional(request, response);
+}
+
+const rejectRequest = async(request, response) => {
+	functionaladminservice.rejectRequest(request, response);
 }
 
 
 
-module.exports =  {functionaladmin};
+module.exports =  {approveFunctional, rejectRequest};

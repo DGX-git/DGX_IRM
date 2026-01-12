@@ -1,10 +1,52 @@
-const config = { 
-	// USER: "postgres",
-    // HOST: "localhost" ,
-    // DATABASE: "iglu",
-	// PASSWORD: "root",
-    // DIALECT: "postgres",
-    // PORT: "5432"
-} 
+// local
+// const config = {
+// 	USER: "postgres",
+//     HOST: "192.168.1.103" ,
+//     DATABASE: "DGX_dev",
+// 	PASSWORD: "root",
+//     DIALECT: "postgres",
+//     PORT: "5433"
+// }
+
+// module.exports = config;
+
+// QA
+// const config = {
+// 	USER: "postgres",
+//     HOST: "localhost" ,
+//     DATABASE: "qa_dgx",
+// 	PASSWORD: "root",
+//     DIALECT: "postgres",
+//     PORT: "7894"
+// }
+
+// module.exports = config;
+
+
+
+
+// UAT
+// const config = {
+//     USER: "postgres",
+//     HOST: "localhost",
+//     DATABASE: "dgx_uat",
+//     PASSWORD: "root",
+//     DIALECT: "postgres",
+//     PORT: "5432"
+// }
+
+// module.exports = config;
+
+
+
+// PRODUCTION
+const config = {
+    USER: "postgres",
+    HOST: "localhost",
+    DATABASE: "prod_dgx",
+    PASSWORD: "root",
+    DIALECT: "postgres",
+    PORT: "5432"
+}
 
 module.exports = config;
