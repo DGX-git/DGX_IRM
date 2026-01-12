@@ -49,7 +49,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER_QA }}@${{ secrets.SERVER_HOST_QA }} << 'EOF'
-              cd ${{ secret.APP_DIR }}
+              cd ${{ secrets.APP_DIR }}
               npm install --omit=dev
               pm2 delete qa-app || true
               pm2 start npm --name 'qa-app' -- start
