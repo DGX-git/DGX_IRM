@@ -1,0 +1,57 @@
+name: Deploying DGX on PROD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      'server/**'
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+
+    steps:
+      - name: Checkot code
+        uses: actions/checkout@v4
+
+      - name: Node Setup
+        uses: actions/node-setup@v4
+        with:
+          node-version: 20
+
+      - name: Frontend Dependancy Install
+        working-directory: server/client
+        run: npm install
+
+      - name: Frontend Build
+        working-directory: server/client
+        run: npm run build
+
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_PROD }}
+
+
+      - name: Deploy Code to Prod Server
+        run: |
+          rsync -avz --delete \
+            --exclude="node_modules" \
+            --exclude=".git" \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            server/ \
+            ${{ secrets.SERVER_USER_PROD }}@${{ secrets.SERVER_HOST }}:${{ secrets.APP_DIR }}
+
+      - name: Restart Prod Application
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.SERVER_USER_PROD }}@${{ secrets.SERVER_HOST }} << 'EOF'
+              cd ${{ secrets.APP_DIR }}
+              npm install --omit=dev
+              pm2 delete prod-app || true
+              pm2 start npm --name "prod-app" -- start
+              pm2 save
+          EOF
