@@ -43,12 +43,12 @@ jobs:
             --exclude=".git" \
             -e "ssh -o StrictHostKeyChecking=no" \
             server/ \
-            ${{ secret.SERVER_USER_QA }}@${{ secret.SERVER_HOST_QA }}:${{ secret.APP_DIR }}
+            ${{ secrets.SERVER_USER_QA }}@${{ secrets.SERVER_HOST_QA }}:${{ secrets.APP_DIR }}
 
       - name: Restart Uat Application
         run: |
           ssh -o StrictHostKeyChecking=no \
-            ${{ secret.SERVER_USER_QA }}@${{ secret.SERVER_HOST_QA }} << 'EOF'
+            ${{ secrets.SERVER_USER_QA }}@${{ secrets.SERVER_HOST_QA }} << 'EOF'
               cd ${{ secret.APP_DIR }}
               npm install --omit=dev
               pm2 delete qa-app || true
