@@ -3,7 +3,7 @@ name: Deploy Dgx on QA local machine
 on:
   push:
     branches:
-      - uat
+      - qa
     paths:
       - 'server/**'
 
