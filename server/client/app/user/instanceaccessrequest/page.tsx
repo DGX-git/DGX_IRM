@@ -3673,7 +3673,7 @@ useEffect(() => {
                           </label>
                           <input
                             type="date"
-                            value={instance_id ? getTodayDate() : selectedDate}
+                            value={selectedDate}
                             lang="en-IN"
                             min={getTodayDate()}
                             onChange={(e) => {
@@ -3781,7 +3781,7 @@ useEffect(() => {
                           </label>
                           <input
                             type="date"
-                            value={instance_id ? getTodayDate() : dateRange.start}
+                            value={dateRange.start}
                             lang="en-IN"
                             min={getTodayDate()}
                             onChange={(e) => {

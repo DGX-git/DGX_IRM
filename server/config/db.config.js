@@ -11,16 +11,16 @@
 // module.exports = config;
 
 // QA
-const config = {
-	USER: "postgres",
-    HOST: "192.168.1.105" ,
-    DATABASE: "qa_dgx",
-	PASSWORD: "root",
-    DIALECT: "postgres",
-    PORT: "7894"
-}
+// const config = {
+// 	USER: "postgres",
+//     HOST: "localhost" ,
+//     DATABASE: "qa_dgx",
+// 	PASSWORD: "root",
+//     DIALECT: "postgres",
+//     PORT: "7894"
+// }
 
-module.exports = config;
+// module.exports = config;
 
 
 
@@ -36,3 +36,17 @@ module.exports = config;
 // }
 
 // module.exports = config;
+
+
+
+// PRODUCTION
+const config = {
+    USER: "postgres",
+    HOST: "localhost",
+    DATABASE: "prod_dgx",
+    PASSWORD: "root",
+    DIALECT: "postgres",
+    PORT: "5432"
+}
+
+module.exports = config;
