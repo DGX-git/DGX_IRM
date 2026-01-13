@@ -1,0 +1,61 @@
+name: Build and Deploy to UAT
+
+on:
+  push:
+    branches:
+      - 
+    paths:
+      - 'server/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # ---------- FRONTEND ----------
+      - name: Install Frontend Dependencies
+        working-directory: server/client
+        run: npm install
+
+      - name: Build Frontend
+        working-directory: server/client
+        run: npm run build
+
+      # ---------- BACKEND ----------
+      - name: Install Backend Dependencies
+        working-directory: server
+        run: npm install
+
+      # ---------- SSH ----------
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_UAT }}
+
+      - name: Deploy code to UAT server
+        run: |
+          rsync -avz --delete \
+            --exclude="node_modules" \
+            --exclude=".git" \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            server/ \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.APP_DIR }}/
+
+      - name: Restart UAT Application
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+              cd ${{ secrets.APP_DIR }}
+              npm install --omit=dev
+              pm2 delete uat-app || true
+              pm2 start npm --name "uat-app" -- start
+              pm2 save
+          EOF
