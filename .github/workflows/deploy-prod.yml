@@ -3,7 +3,7 @@ name: Deploying DGX on PROD
 on:
   push:
     branches:
-      - main
+      - 
     paths:
       - 'server/**'
 
