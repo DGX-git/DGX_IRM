@@ -13,7 +13,7 @@
 // QA
 const config = {
 	USER: "postgres",
-    HOST: "192.168.1.105" ,
+    HOST: "localhost" ,
     DATABASE: "qa_dgx",
 	PASSWORD: "root",
     DIALECT: "postgres",
@@ -30,6 +30,20 @@ module.exports = config;
 //     USER: "postgres",
 //     HOST: "localhost",
 //     DATABASE: "dgx_uat",
+//     PASSWORD: "root",
+//     DIALECT: "postgres",
+//     PORT: "5432"
+// }
+
+// module.exports = config;
+
+
+
+// PRODUCTION
+// const config = {
+//     USER: "postgres",
+//     HOST: "localhost",
+//     DATABASE: "prod_dgx",
 //     PASSWORD: "root",
 //     DIALECT: "postgres",
 //     PORT: "5432"
