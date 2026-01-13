@@ -26,27 +26,27 @@
 
 
 // UAT
-// const config = {
-//     USER: "postgres",
-//     HOST: "localhost",
-//     DATABASE: "dgx_uat",
-//     PASSWORD: "root",
-//     DIALECT: "postgres",
-//     PORT: "5432"
-// }
-
-// module.exports = config;
-
-
-
-// PRODUCTION
 const config = {
     USER: "postgres",
     HOST: "localhost",
-    DATABASE: "prod_dgx",
+    DATABASE: "dgx_uat",
     PASSWORD: "root",
     DIALECT: "postgres",
     PORT: "5432"
 }
 
 module.exports = config;
+
+
+
+// PRODUCTION
+// const config = {
+//     USER: "postgres",
+//     HOST: "localhost",
+//     DATABASE: "prod_dgx",
+//     PASSWORD: "root",
+//     DIALECT: "postgres",
+//     PORT: "5432"
+// }
+
+// module.exports = config;
