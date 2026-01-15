@@ -910,6 +910,16 @@ function DGXInstanceRequestFormContent() {
     return timeSlot.findIndex((slot) => String(slot.time_slot_id) === String(slotId));
   };
 
+  // Helper function to check if a date is Sunday (0 = Sunday)
+  const isSunday = (dateString: string): boolean => {
+    // Parse the date string (format: YYYY-MM-DD from date input)
+    const [year, month, day] = dateString.split('-').map(Number);
+    // Create a date in the local timezone by using the components directly
+    const date = new Date(year, month - 1, day);
+    // getDay() returns 0-6 where 0 is Sunday
+    return date.getDay() === 0;
+  };
+
   // Helper function to format date as dd-mm-yyyy
   // const formatDateDDMMYYYY = (date: string | Date): string => {
   //   const d = typeof date === 'string' ? new Date(date) : date;
@@ -1059,6 +1069,13 @@ const formatDateDDMMYYYY = (date: string | Date): string => {
 
   const handleDateAdd = (dateValue: string) => {
     if (!dateValue) return;
+
+    // Check if Sunday
+    if (isSunday(dateValue)) {
+      showErrorSnackbarFunc("Sundays are not available for selection");
+      setSelectedDate("");
+      return;
+    }
 
     const dateObj = new Date(dateValue);
     const today = new Date();
@@ -1415,6 +1432,16 @@ const handleDateRangeAdd = () => {
     return;
   }
 
+  // Check if either start or end date is Sunday
+  if (isSunday(dateRange.start)) {
+    showErrorSnackbarFunc("Start date cannot be a Sunday");
+    return;
+  }
+  if (isSunday(dateRange.end)) {
+    showErrorSnackbarFunc("End date cannot be a Sunday");
+    return;
+  }
+
   const startDate = new Date(dateRange.start);
   const endDate = new Date(dateRange.end);
   const today = new Date();
@@ -1438,11 +1465,23 @@ const handleDateRangeAdd = () => {
   }
 
   const dates: string[] = [];
+  const skippedSundays: string[] = []; // Track skipped Sundays
   const currentDate = new Date(startDate);
   while (currentDate <= endDate) {
     const dateString = currentDate.toISOString().split("T")[0];
-    dates.push(dateString);
+    // Skip Sundays
+    if (!isSunday(dateString)) {
+      dates.push(dateString);
+    } else {
+      skippedSundays.push(dateString); // Track the skipped Sunday
+    }
     currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  // Check if any dates were added (all dates weren't Sundays)
+  if (dates.length === 0) {
+    showErrorSnackbarFunc("All dates in this range are Sundays. Please select a different range.");
+    return;
   }
 
 
@@ -1495,6 +1534,15 @@ const handleDateRangeAdd = () => {
   // Fetch booked slots only for new dates (dates that weren't previously loaded)
   const newDates = dates.filter(date => !formData.selectedDates.includes(date));
   newDates.forEach(date => getUserTimeSlotsForDate(date));
+
+  // Show notification if Sundays were skipped
+  if (skippedSundays.length > 0) {
+    const skippedFormattedDates = skippedSundays.map(date => formatDateDDMMYYYY(date));
+    const skippedMessage = skippedFormattedDates.length === 1
+      ? `${skippedFormattedDates[0]} is a Sunday and has been skipped.`
+      : `Sundays (${skippedFormattedDates.join(", ")}) have been skipped from the selected range.`;
+    showSuccessSnackbarFunc(skippedMessage);
+  }
 };
 
   
@@ -3677,22 +3725,25 @@ useEffect(() => {
                             lang="en-IN"
                             min={getTodayDate()}
                             onChange={(e) => {
+                              if (e.target.value && isSunday(e.target.value)) {
+                                showErrorSnackbarFunc("Sundays are not available for selection");
+                                setSelectedDate("");
+                                e.target.value = ""; // Clear the input field value
+                                return;
+                              }
                               setSelectedDate(e.target.value);
                               if (e.target.value) {
                                 handleDateAdd(e.target.value);
                               }
                             }}
-//                             onChange={(e) => {
-//   if (e.target.value && isSunday(e.target.value)) {
-//     showErrorSnackbarFunc("Sundays are not available for selection");
-//     setSelectedDate(""); // Clear the input
-//     return;
-//   }
-//   setSelectedDate(e.target.value);
-//   if (e.target.value) {
-//     handleDateAdd(e.target.value);
-//   }
-// }}
+                            onInput={(e) => {
+                              const input = e.target as HTMLInputElement;
+                              if (input.value && isSunday(input.value)) {
+                                showErrorSnackbarFunc("Sundays are not available for selection");
+                                input.value = "";
+                                setSelectedDate("");
+                              }
+                            }}
                             className="w-full px-3 pt-2 pb-2 text-sm rounded-lg focus:outline-none bg-white transition-all duration-200 hover:border-green-200 cursor-pointer"
                             style={{
                               color: "#2d4a00",
@@ -3785,6 +3836,15 @@ useEffect(() => {
                             lang="en-IN"
                             min={getTodayDate()}
                             onChange={(e) => {
+                              if (e.target.value && isSunday(e.target.value)) {
+                                showErrorSnackbarFunc("Sundays are not available for selection");
+                                setDateRange((prev) => ({
+                                  ...prev,
+                                  start: "",
+                                }));
+                                e.target.value = "";
+                                return;
+                              }
                               setDateRange((prev) => ({
                                 ...prev,
                                 start: e.target.value,
@@ -3793,23 +3853,17 @@ useEffect(() => {
                                 setDateRangeErrors((prev) => ({ ...prev, start: "" }));
                               }
                             }}
-//                             onChange={(e) => {
-//   if (e.target.value && isSunday(e.target.value)) {
-//     showErrorSnackbarFunc("Sundays are not available for selection");
-//     setDateRange((prev) => ({
-//       ...prev,
-//       start: "",
-//     }));
-//     return;
-//   }
-//   setDateRange((prev) => ({
-//     ...prev,
-//     start: e.target.value,
-//   }));
-//   if (dateRangeErrors.start) {
-//     setDateRangeErrors((prev) => ({ ...prev, start: "" }));
-//   }
-// }}
+                            onInput={(e) => {
+                              const input = e.target as HTMLInputElement;
+                              if (input.value && isSunday(input.value)) {
+                                showErrorSnackbarFunc("Sundays are not available for selection");
+                                input.value = "";
+                                setDateRange((prev) => ({
+                                  ...prev,
+                                  start: "",
+                                }));
+                              }
+                            }}
                             onFocus={(e) => {
                               e.target.style.borderColor = "#5A8F00";
                               e.target.style.boxShadow = "0 0 0 3px rgba(118, 185, 0, 0.1)";
@@ -3838,9 +3892,18 @@ useEffect(() => {
                           <input
                             type="date"
                             value={dateRange.end}
-                            lang= "en-IN"
+                            lang="en-IN"
                             min={getTodayDate()}
                             onChange={(e) => {
+                              if (e.target.value && isSunday(e.target.value)) {
+                                showErrorSnackbarFunc("Sundays are not available for selection");
+                                setDateRange((prev) => ({
+                                  ...prev,
+                                  end: "",
+                                }));
+                                e.target.value = "";
+                                return;
+                              }
                               setDateRange((prev) => ({
                                 ...prev,
                                 end: e.target.value,
@@ -3849,23 +3912,17 @@ useEffect(() => {
                                 setDateRangeErrors((prev) => ({ ...prev, end: "" }));
                               }
                             }}
-//                             onChange={(e) => {
-//   if (e.target.value && isSunday(e.target.value)) {
-//     showErrorSnackbarFunc("Sundays are not available for selection");
-//     setDateRange((prev) => ({
-//       ...prev,
-//       end: "",
-//     }));
-//     return;
-//   }
-//   setDateRange((prev) => ({
-//     ...prev,
-//     end: e.target.value,
-//   }));
-//   if (dateRangeErrors.end) {
-//     setDateRangeErrors((prev) => ({ ...prev, end: "" }));
-//   }
-// }}
+                            onInput={(e) => {
+                              const input = e.target as HTMLInputElement;
+                              if (input.value && isSunday(input.value)) {
+                                showErrorSnackbarFunc("Sundays are not available for selection");
+                                input.value = "";
+                                setDateRange((prev) => ({
+                                  ...prev,
+                                  end: "",
+                                }));
+                              }
+                            }}
                             onFocus={(e) => {
                               e.target.style.borderColor = "#5A8F00";
                               e.target.style.boxShadow = "0 0 0 3px rgba(118, 185, 0, 0.1)";
