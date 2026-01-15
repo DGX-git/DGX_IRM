@@ -83,6 +83,7 @@ function LoginCodeContent() {
 
       if (!data.roleName) {
         setError("Invalid code. Try again.");
+        setIsVerifying(false);
         return;
       }
 

@@ -2,7 +2,7 @@
 // const config = {
 // 	USER: "postgres",
 //     HOST: "192.168.1.103" ,
-//     DATABASE: "DGX_dev",
+//     DATABASE: "dgx_dev",
 // 	PASSWORD: "root",
 //     DIALECT: "postgres",
 //     PORT: "5433"
