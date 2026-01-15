@@ -109,6 +109,7 @@ function DGXDashboard() {
   const [gpuVendors, setGpuVendors] = useState<any[]>([]);
   const [image, setImage] = useState<any[]>([]);
   const [authLoading, setAuthLoading] = useState(true);
+  const [fullName,setFullName] = useState("");
 
   const admin = "Technical";
 
@@ -483,7 +484,10 @@ function DGXDashboard() {
 
     const fullName = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
     return fullName || "No Name";
+    
   };
+
+
 
   // Updated getInstituteName to show the correct filtered institute
   const getInstituteName = (userId: number): string => {
@@ -605,6 +609,10 @@ function DGXDashboard() {
 
     const timeDetails = getTimeDetailsForRequest(request.instance_request_id);
     setSelectedRequestTimeDetails(timeDetails);
+
+     // ✅ Get full name here
+    const fullName = getUserName(request.user_id);
+    setFullName(fullName);
 
     setIsPopupOpen(true);
   };
@@ -750,6 +758,7 @@ function DGXDashboard() {
           setIsConfirmationOpen(false);
           setSelectedRequest(null);
           showSnackbar("Access granted successfully!", "success");
+          fetchData(); // Refresh data
 
           // Prepare email data
           const timeDetails = getTimeDetailsForRequest(
@@ -763,6 +772,7 @@ function DGXDashboard() {
             ...selectedRequest,
             id: selectedRequest.instance_request_id,
             admin,
+            fullName,
             loggedInUserName,
             user: userDetails,
             date_time: timeDetails.formatted,
@@ -908,6 +918,7 @@ function DGXDashboard() {
         setConfirmationAction(null);
         setSelectedRequest(null);
         showSnackbar("Request approved successfully!", "success");
+        fetchData(); // Refresh data
 
         // Prepare email data
         const timeDetails = getTimeDetailsForRequest(
@@ -921,6 +932,7 @@ function DGXDashboard() {
           ...selectedRequest,
           id: selectedRequest.instance_request_id,
           admin,
+          fullName,
           loggedInUserName,
           user: userDetails,
           date_time: timeDetails.formatted,
@@ -1042,6 +1054,7 @@ function DGXDashboard() {
           setConfirmationAction(null);
           setIsConfirmationOpen(false);
           showSnackbar("Request rejected successfully!", "success");
+          fetchData(); // Refresh data
 
           // Prepare email data
           const timeDetails = getTimeDetailsForRequest(
@@ -1055,6 +1068,7 @@ function DGXDashboard() {
             ...selectedRequest,
             id: selectedRequest.instance_request_id,
             admin,
+            fullName,
             loggedInUserName,
             user: userDetails,
             date_time: timeDetails.formatted,
@@ -1140,6 +1154,7 @@ function DGXDashboard() {
           setIsConfirmationOpen(false);
           setConfirmationAction(null);
           showSnackbar("Access revoked successfully!", "success");
+          fetchData(); // Refresh data
 
           // Prepare email data
           const timeDetails = getTimeDetailsForRequest(
@@ -1153,6 +1168,7 @@ function DGXDashboard() {
             ...selectedRequest,
             id: selectedRequest.instance_request_id,
             admin,
+            fullName,
             loggedInUserName,
             user: userDetails,
             date_time: timeDetails.formatted,
