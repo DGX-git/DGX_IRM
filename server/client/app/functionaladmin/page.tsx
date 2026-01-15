@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo, Suspense } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import {
   ChevronDown,
   Filter,
@@ -13,7 +13,6 @@ import { Listbox } from "@headlessui/react";
 import { sendRejectionEmail } from "@/utils/email";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { log } from "console";
 import { checkAuth } from "@/utils/auth";
 
 // Define proper types that match the database schema
@@ -212,6 +211,7 @@ function DGXDashboard() {
     useState<Institute | null>(null);
   const [areFiltersApplied, setAreFiltersApplied] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
+  const [fullName,setFullName] = useState("");
 
   const admin = "Functional";
 
@@ -694,6 +694,11 @@ function DGXDashboard() {
     setSelectedRequest(request);
     const timeDetails = getTimeDetailsForRequest(request.instance_request_id);
     setSelectedRequestTimeDetails(timeDetails);
+
+       // ✅ Get full name here
+    const fullName = getUserName(request.user_id);
+    setFullName(fullName);
+
     setIsPopupOpen(true);
   };
 
@@ -751,10 +756,7 @@ function DGXDashboard() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            //   instance_request_id: selectedRequest.instance_request_id,
-            //   updated_by: loggedInUserId,
             instance_request_id: Number(selectedRequest.instance_request_id),
-            //   updated_by: Number(loggedInUserId),
             updated_by: loggedInUserId,
           }),
         }
@@ -825,7 +827,6 @@ function DGXDashboard() {
             instance_request_id: selectedRequest.instance_request_id,
             remarks: remarksText.trim(),
             new_status_id: newStatusId,
-            // logged_in_user_id: Number(loggedInUserId),
             logged_in_user_id: loggedInUserId,
           }),
         }
@@ -883,6 +884,7 @@ function DGXDashboard() {
         ...selectedRequest,
         id: selectedRequest.instance_request_id, // ✅ ADD THIS LINE
         admin,
+        fullName,
         loggedInUserName,
         user: userDetails,
         date_time: timeDetails.formatted,
