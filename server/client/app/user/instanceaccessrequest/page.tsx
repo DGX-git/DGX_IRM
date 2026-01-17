@@ -1432,11 +1432,13 @@ const handleDateRangeAdd = () => {
     return;
   }
 
-  // Check if either start or end date is Sunday
+  // Check if start date is Sunday
   if (isSunday(dateRange.start)) {
     showErrorSnackbarFunc("Start date cannot be a Sunday");
     return;
   }
+
+  // Check if end date is Sunday
   if (isSunday(dateRange.end)) {
     showErrorSnackbarFunc("End date cannot be a Sunday");
     return;
@@ -1465,22 +1467,17 @@ const handleDateRangeAdd = () => {
   }
 
   const dates: string[] = [];
-  const skippedSundays: string[] = []; // Track skipped Sundays
   const currentDate = new Date(startDate);
   while (currentDate <= endDate) {
     const dateString = currentDate.toISOString().split("T")[0];
-    // Skip Sundays
-    if (!isSunday(dateString)) {
-      dates.push(dateString);
-    } else {
-      skippedSundays.push(dateString); // Track the skipped Sunday
-    }
+    // Include all dates in range, including Sundays that fall in between
+    dates.push(dateString);
     currentDate.setDate(currentDate.getDate() + 1);
   }
 
-  // Check if any dates were added (all dates weren't Sundays)
+  // Check if any dates were added
   if (dates.length === 0) {
-    showErrorSnackbarFunc("All dates in this range are Sundays. Please select a different range.");
+    showErrorSnackbarFunc("Please select a valid date range.");
     return;
   }
 
@@ -1534,15 +1531,6 @@ const handleDateRangeAdd = () => {
   // Fetch booked slots only for new dates (dates that weren't previously loaded)
   const newDates = dates.filter(date => !formData.selectedDates.includes(date));
   newDates.forEach(date => getUserTimeSlotsForDate(date));
-
-  // Show notification if Sundays were skipped
-  if (skippedSundays.length > 0) {
-    const skippedFormattedDates = skippedSundays.map(date => formatDateDDMMYYYY(date));
-    const skippedMessage = skippedFormattedDates.length === 1
-      ? `${skippedFormattedDates[0]} is a Sunday and has been skipped.`
-      : `Sundays (${skippedFormattedDates.join(", ")}) have been skipped from the selected range.`;
-    showSuccessSnackbarFunc(skippedMessage);
-  }
 };
 
   
