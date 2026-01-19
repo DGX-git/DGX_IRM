@@ -484,8 +484,13 @@ function DGXDashboard() {
   const downloadReportAsExcel = () => {
     setIsExporting(true);
     try {
+      // Filter to include only Approved-Technical requests
+      const approvedTechnicalRequests = filteredRequests.filter(
+        (request) => getStatusName(request.status_id) === "Approved-Technical"
+      );
+
       // Prepare data for export
-      const dataToExport = filteredRequests.map((request) => {
+      const dataToExport = approvedTechnicalRequests.map((request) => {
         // Get role type for the user
         const user = getUser(request.user_id);
         const roleType = user?.role_id ? roles?.find((r) => r.role_id === user.role_id)?.role_name || 'N/A' : 'N/A';
@@ -1587,248 +1592,259 @@ function DGXDashboard() {
 
         {/* Search Filters */}
         <div className="mb-2">
-          <div className="flex gap-4 items-start flex-wrap">
-            {/* Date Range */}
-            <div className="flex space-x-4">
-              {/* From Date */}
-              <div className="relative flex items-center w-52">
-                <input
-                  type="date"
-                  id="fromDatePicker"
-                  value={fromDate}
-                  onChange={(e) => handleFromDateChange(e.target.value)}
-                  className="absolute opacity-0 w-full h-10 cursor-pointer pointer-events-none"
-                />
-                <label
-                  htmlFor="fromDatePicker"
-                  className={`w-full h-10 px-3 border border-gray-300 rounded-sm text-sm 
-         text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-black
-         focus-within:outline-none focus-within:ring-2 focus-within:ring-lime-500 focus-within:border-transparent 
-         cursor-pointer flex items-center justify-between
-         ${dateError ? "border-red-300" : ""}`}
-                  onClick={() => {
-                    const input = document.getElementById(
-                      "fromDatePicker"
-                    ) as HTMLInputElement;
-                    input?.showPicker?.();
-                  }}
-                >
-                  <span className="text-gray-700">
-                    {fromDate ? (
-                      <>
-                        <span className="text-gray-500">From</span>
-                        <span className="ml-3">
-                          {formatDateForDisplay(fromDate)}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-gray-500">From</span>
-                        <span className="text-gray-700 ml-3">dd/mm/yyyy</span>
-                      </>
-                    )}
-                  </span>
-                  <svg
-                    className="w-4 h-4 text-gray-700 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </label>
-              </div>
-
-              {/* To Date */}
-              <div className="relative flex items-center w-52">
-                <input
-                  type="date"
-                  id="toDatePicker"
-                  value={toDate}
-                  onChange={(e) => handleToDateChange(e.target.value)}
-                  className="absolute opacity-0 w-full h-10 cursor-pointer pointer-events-none"
-                />
-                <label
-                  htmlFor="toDatePicker"
-                  className={`w-full h-10 px-3 border border-gray-300 rounded-sm text-sm 
-         text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-black
-         focus-within:outline-none focus-within:ring-2 focus-within:ring-lime-500 focus-within:border-transparent 
-         cursor-pointer flex items-center justify-between
-         ${dateError ? "border-red-300" : ""}`}
-                  onClick={() => {
-                    const input = document.getElementById(
-                      "toDatePicker"
-                    ) as HTMLInputElement;
-                    input?.showPicker?.();
-                  }}
-                >
-                  <span className="text-gray-700">
-                    {toDate ? (
-                      <>
-                        <span className="text-gray-500">To</span>
-                        <span className="ml-3">
-                          {formatDateForDisplay(toDate)}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-gray-500">To</span>
-                        <span className="text-gray-700 ml-3">dd/mm/yyyy</span>
-                      </>
-                    )}
-                  </span>
-                  <svg
-                    className="w-4 h-4 text-gray-700 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </label>
-              </div>
-            </div>
-
-            {/* Status Dropdown */}
-            <div className="relative w-52">
-              <Listbox value={selectedStatus} onChange={setSelectedStatus}>
-                <div className="relative">
+          <div className="flex gap-4 items-start flex-wrap justify-between">
+            <div className="flex gap-4 items-start flex-wrap">
+              {/* Date Range */}
+              <div className="flex space-x-4">
+                {/* From Date */}
+                <div className="relative flex items-center w-52">
+                  <input
+                    type="date"
+                    id="fromDatePicker"
+                    value={fromDate}
+                    onChange={(e) => handleFromDateChange(e.target.value)}
+                    className="absolute opacity-0 w-full h-10 cursor-pointer pointer-events-none"
+                  />
                   <label
-                    className={`absolute left-3 transition-all duration-200 pointer-events-none z-20
-          ${
-            selectedStatus
-              ? "text-xs -top-2 px-1"
-              : "top-1/2 -translate-y-1/2 text-sm"
-          }
-          ${selectedStatus ? "text-[#5A8F00] font-medium" : "text-gray-500"}
-        `}
-                    style={{
-                      backgroundColor: selectedStatus
-                        ? "#ffffff"
-                        : "transparent",
+                    htmlFor="fromDatePicker"
+                    className={`w-full h-10 px-3 border border-gray-300 rounded-sm text-sm 
+           text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-black
+           focus-within:outline-none focus-within:ring-2 focus-within:ring-lime-500 focus-within:border-transparent 
+           cursor-pointer flex items-center justify-between
+           ${dateError ? "border-red-300" : ""}`}
+                    onClick={() => {
+                      const input = document.getElementById(
+                        "fromDatePicker"
+                      ) as HTMLInputElement;
+                      input?.showPicker?.();
                     }}
                   >
-                    {selectedStatus ? "Status" : "Select Status"}
-                  </label>
-
-                  <Listbox.Button
-                    className="w-full h-10 flex justify-between items-center px-3 border border-gray-300
-                   rounded-sm text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-black
-                   focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent truncate"
-                  >
-                    <span className="truncate mr-2">
-                      {selectedStatus ? selectedStatus.status_name : ""}
+                    <span className="text-gray-700">
+                      {fromDate ? (
+                        <>
+                          <span className="text-gray-500">From</span>
+                          <span className="ml-3">
+                            {formatDateForDisplay(fromDate)}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-gray-500">From</span>
+                          <span className="text-gray-700 ml-3">dd/mm/yyyy</span>
+                        </>
+                      )}
                     </span>
-                    <ChevronDown className="w-4 h-4 text-gray-700 flex-shrink-0 cursor-pointer" />
-                  </Listbox.Button>
-
-                  <Listbox.Options
-                    className="absolute mt-1 w-full min-w-max bg-white border border-lime-200 rounded-sm shadow-lg z-30
-                   focus:outline-none focus:border-none"
-                  >
-                    {status.map((statusItem) => (
-                      <Listbox.Option
-                        key={statusItem.status_id}
-                        value={statusItem}
-                        className="cursor-pointer px-3 py-0.5 text-sm text-gray-700 hover:bg-gray-100 whitespace-nowrap"
-                      >
-                        {statusItem.status_name}
-                      </Listbox.Option>
-                    ))}
-                  </Listbox.Options>
+                    <svg
+                      className="w-4 h-4 text-gray-700 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </label>
                 </div>
-              </Listbox>
-            </div>
 
-            {/* Institute Dropdown */}
-            <div className="relative w-90">
-              <Listbox
-                value={selectedInstitute}
-                onChange={setSelectedInstitute}
+                {/* To Date */}
+                <div className="relative flex items-center w-52">
+                  <input
+                    type="date"
+                    id="toDatePicker"
+                    value={toDate}
+                    onChange={(e) => handleToDateChange(e.target.value)}
+                    className="absolute opacity-0 w-full h-10 cursor-pointer pointer-events-none"
+                  />
+                  <label
+                    htmlFor="toDatePicker"
+                    className={`w-full h-10 px-3 border border-gray-300 rounded-sm text-sm 
+           text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-black
+           focus-within:outline-none focus-within:ring-2 focus-within:ring-lime-500 focus-within:border-transparent 
+           cursor-pointer flex items-center justify-between
+           ${dateError ? "border-red-300" : ""}`}
+                    onClick={() => {
+                      const input = document.getElementById(
+                        "toDatePicker"
+                      ) as HTMLInputElement;
+                      input?.showPicker?.();
+                    }}
+                  >
+                    <span className="text-gray-700">
+                      {toDate ? (
+                        <>
+                          <span className="text-gray-500">To</span>
+                          <span className="ml-3">
+                            {formatDateForDisplay(toDate)}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-gray-500">To</span>
+                          <span className="text-gray-700 ml-3">dd/mm/yyyy</span>
+                        </>
+                      )}
+                    </span>
+                    <svg
+                      className="w-4 h-4 text-gray-700 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </label>
+                </div>
+              </div>
+
+              {/* Status Dropdown */}
+              <div className="relative w-52">
+                <Listbox value={selectedStatus} onChange={setSelectedStatus}>
+                  <div className="relative">
+                    <label
+                      className={`absolute left-3 transition-all duration-200 pointer-events-none z-20
+            ${
+              selectedStatus
+                ? "text-xs -top-2 px-1"
+                : "top-1/2 -translate-y-1/2 text-sm"
+            }
+            ${selectedStatus ? "text-[#5A8F00] font-medium" : "text-gray-500"}
+          `}
+                      style={{
+                        backgroundColor: selectedStatus
+                          ? "#ffffff"
+                          : "transparent",
+                      }}
+                    >
+                      {selectedStatus ? "Status" : "Select Status"}
+                    </label>
+
+                    <Listbox.Button
+                      className="w-full h-10 flex justify-between items-center px-3 border border-gray-300
+                     rounded-sm text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-black
+                     focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent truncate"
+                    >
+                      <span className="truncate mr-2">
+                        {selectedStatus ? selectedStatus.status_name : ""}
+                      </span>
+                      <ChevronDown className="w-4 h-4 text-gray-700 flex-shrink-0 cursor-pointer" />
+                    </Listbox.Button>
+
+                    <Listbox.Options
+                      className="absolute mt-1 w-full min-w-max bg-white border border-lime-200 rounded-sm shadow-lg z-30
+                     focus:outline-none focus:border-none"
+                    >
+                      {status.map((statusItem) => (
+                        <Listbox.Option
+                          key={statusItem.status_id}
+                          value={statusItem}
+                          className="cursor-pointer px-3 py-0.5 text-sm text-gray-700 hover:bg-gray-100 whitespace-nowrap"
+                        >
+                          {statusItem.status_name}
+                        </Listbox.Option>
+                      ))}
+                    </Listbox.Options>
+                  </div>
+                </Listbox>
+              </div>
+
+              {/* Institute Dropdown */}
+              <div className="relative w-90">
+                <Listbox
+                  value={selectedInstitute}
+                  onChange={setSelectedInstitute}
+                >
+                  <div className="relative">
+                    <label
+                      className={`absolute left-3 transition-all duration-200 pointer-events-none z-20
+            ${
+              selectedInstitute
+                ? "text-xs -top-2 px-1"
+                : "top-1/2 -translate-y-1/2 text-sm"
+            }
+            ${selectedInstitute ? "text-[#5A8F00] font-medium" : "text-gray-500"}
+          `}
+                      style={{
+                        backgroundColor: selectedInstitute
+                          ? "#ffffff"
+                          : "transparent",
+                      }}
+                    >
+                      {selectedInstitute ? "Institute" : "Select Institute"}
+                    </label>
+
+                    <Listbox.Button
+                      className="w-full h-10 flex justify-between items-center px-3 border border-gray-300
+                     rounded-sm text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-black
+                     focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent truncate"
+                    >
+                      <span className="truncate mr-2">
+                        {selectedInstitute
+                          ? selectedInstitute.institute_name
+                          : ""}
+                      </span>
+
+                      <ChevronDown className="w-4 h-4 text-gray-700 flex-shrink-0 cursor-pointer" />
+                    </Listbox.Button>
+
+                    <Listbox.Options
+                      className="absolute mt-1 w-full min-w-max bg-white border border-lime-200 rounded-sm shadow-lg z-30
+                     focus:outline-none focus:border-none"
+                    >
+                      {userInstitutes.map((instituteItem) => (
+                        <Listbox.Option
+                          key={instituteItem.institute_id}
+                          value={instituteItem}
+                          className="cursor-pointer px-3 py-0.5 text-sm text-gray-700 hover:bg-gray-100 whitespace-nowrap"
+                        >
+                          {instituteItem.institute_name}
+                        </Listbox.Option>
+                      ))}
+                    </Listbox.Options>
+                  </div>
+                </Listbox>
+              </div>
+
+              {/* Filter Button */}
+              <button
+                onClick={validateAndFilter}
+                className="flex items-center justify-center gap-2 w-24 h-10 px-3 border border-gray-300 rounded-sm text-sm 
+                   text-gray-500 bg-gray-100 hover:bg-gray-200 transition-colors hover:border-black
+                   focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent cursor-pointer"
               >
-                <div className="relative">
-                  <label
-                    className={`absolute left-3 transition-all duration-200 pointer-events-none z-20
-          ${
-            selectedInstitute
-              ? "text-xs -top-2 px-1"
-              : "top-1/2 -translate-y-1/2 text-sm"
-          }
-          ${selectedInstitute ? "text-[#5A8F00] font-medium" : "text-gray-500"}
-        `}
-                    style={{
-                      backgroundColor: selectedInstitute
-                        ? "#ffffff"
-                        : "transparent",
-                    }}
-                  >
-                    {selectedInstitute ? "Institute" : "Select Institute"}
-                  </label>
-
-                  <Listbox.Button
-                    className="w-full h-10 flex justify-between items-center px-3 border border-gray-300
-                   rounded-sm text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 hover:border-black
-                   focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent truncate"
-                  >
-                    <span className="truncate mr-2">
-                      {selectedInstitute
-                        ? selectedInstitute.institute_name
-                        : ""}
-                    </span>
-
-                    <ChevronDown className="w-4 h-4 text-gray-700 flex-shrink-0 cursor-pointer" />
-                  </Listbox.Button>
-
-                  <Listbox.Options
-                    className="absolute mt-1 w-full min-w-max bg-white border border-lime-200 rounded-sm shadow-lg z-30
-                   focus:outline-none focus:border-none"
-                  >
-                    {userInstitutes.map((instituteItem) => (
-                      <Listbox.Option
-                        key={instituteItem.institute_id}
-                        value={instituteItem}
-                        className="cursor-pointer px-3 py-0.5 text-sm text-gray-700 hover:bg-gray-100 whitespace-nowrap"
-                      >
-                        {instituteItem.institute_name}
-                      </Listbox.Option>
-                    ))}
-                  </Listbox.Options>
-                </div>
-              </Listbox>
+                <Filter className="w-4 h-4 text-gray-700 cursor-pointer" />
+                Filter
+              </button>
             </div>
-
-            {/* Filter Button */}
-            <button
-              onClick={validateAndFilter}
-              className="flex items-center justify-center gap-2 w-24 h-10 px-3 border border-gray-300 rounded-sm text-sm 
-                 text-gray-500 bg-gray-100 hover:bg-gray-200 transition-colors hover:border-black
-                 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent cursor-pointer"
-            >
-              <Filter className="w-4 h-4 text-gray-700 cursor-pointer" />
-              Filter
-            </button>
 
             {/* Download Report Button */}
-            <button
+            {/* <button
               onClick={downloadReportAsExcel}
-              disabled={isExporting || filteredRequests.length === 0}
-              className="flex items-center justify-center gap-2 w-32 h-10 px-3 border border-gray-300 rounded-sm text-sm 
-                 text-gray-500 bg-gray-100 hover:bg-gray-200 transition-colors hover:border-black
+              disabled={isExporting || filteredRequests.filter((r) => getStatusName(r.status_id) === "Approved-Technical").length === 0}
+              className="flex items-center justify-center gap-2 w-52 h-10 px-3 border border-lime-500 rounded-sm text-sm 
+                 text-white bg-lime-500 hover:bg-lime-600 transition-colors hover:border-lime-600
                  focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent cursor-pointer
-                 disabled:opacity-50 disabled:cursor-not-allowed"
-              title={filteredRequests.length === 0 ? 'No data to download' : 'Download report as Excel'}
+                 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:border-gray-300"
+              title={filteredRequests.filter((r) => getStatusName(r.status_id) === "Approved-Technical").length === 0 ? 'No Approved-Technical requests to download' : 'Download report as Excel'}
             >
               <Download className="w-4 h-4 text-gray-700 cursor-pointer" />
+              {isExporting ? 'Exporting...' : 'Download'}
+            </button> */}
+            <button
+              onClick={downloadReportAsExcel}
+              disabled={isExporting || filteredRequests.filter((r) => getStatusName(r.status_id) === "Approved-Technical").length === 0}
+              className="flex items-center justify-center gap-2 w-56 h-10 bg-lime-500 text-white px-4 rounded-sm text-sm font-semibold hover:bg-lime-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              title={filteredRequests.filter((r) => getStatusName(r.status_id) === "Approved-Technical").length === 0 ? 'No Approved-Technical requests to download' : 'Download report as Excel'}
+            >
+              <Download className="w-4 h-4" />
               {isExporting ? 'Exporting...' : 'Download'}
             </button>
           </div>
