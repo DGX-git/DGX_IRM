@@ -1,0 +1,81 @@
+name: Build FE, Merge Into BE & Deploy to Lightsail
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'server/**'
+      
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # ------------------------
+      # 1. Build Frontend
+      # ------------------------
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      - name: Install FE deps
+        working-directory: ./server/client
+        run: npm ci
+
+      - name: Install BE deps
+        working-directory: ./server
+        run: npm ci
+
+      - name: Build FE
+        working-directory: ./server/client
+        run: CI=false npm run build
+
+      # ------------------------
+      # 2. Copy dist → server/views
+      # ------------------------
+      - name: Move FE build into server/views
+        run: |
+          rm -rf server/views/*
+          cp -r server/client/build/* server/views/
+
+      # ------------------------
+      # 3. Setup SSH
+      # ------------------------
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_PROD }}
+
+      - name: Add host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      # ------------------------
+      # 4. Deploy Backend Folder to Server
+      # ------------------------
+      - name: Deploy to Lightsail via rsync
+        run: |
+          rsync -avz --delete \
+            --exclude="node_modules" \
+            --exclude=".git" \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            ./server/ ${{ secrets.SERVER_USER_PROD }}@${{ secrets.SERVER_HOST_PROD }}:${{ secrets.APP_DIR_PROD }}/
+
+      # ------------------------
+      # 5. Install deps & restart PM2 on server
+      # ------------------------
+      - name: Restart Application on Server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER_PROD }}@${{ secrets.SERVER_HOST_PROD }} << 'EOF'
+            cd ${{ secrets.APP_DIR_PROD }}
+            npm2 ci --production
+            pm22 del all
+            pm22 start npm -- start
+          EOF
