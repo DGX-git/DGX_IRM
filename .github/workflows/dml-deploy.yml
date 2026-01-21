@@ -1,0 +1,77 @@
+name: Deploy DB Functions from DDL Directory
+
+on:
+  push:
+    branches:
+      - uat
+    paths:
+      - "DML/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed SQL files inside DML directory
+        id: changes
+        run: |
+          echo "Detecting changed SQL files inside DML directory..."
+
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep '^DML/.*\.sql$' || true)
+
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Setup SSH (runner only)
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+
+      - name: Copy changed SQL files to target server
+        if: steps.changes.outputs.files != ''
+        run: |
+          for file in ${{ steps.changes.outputs.files }}; do
+            echo "Uploading $file"
+            scp "$file" \
+              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/
+          done
+
+      - name: Execute SQL files on target server using local psql
+        if: steps.changes.outputs.files != ''
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            set -e
+
+            export PGPASSWORD='${{ secrets.DB_PASSWORD }}'
+
+            for file in /tmp/*.sql; do
+              echo "---------------------------------------------"
+              echo "Running SQL file: $file"
+              echo "---------------------------------------------"
+
+              psql \
+                -U '${{ secrets.DB_USER }}' \
+                -d '${{ secrets.DB_NAME }}' \
+                -v ON_ERROR_STOP=1 \
+                -f "$file"
+            done
+          EOF
+
+      - name: Cleanup uploaded SQL files
+        if: steps.changes.outputs.files != ''
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "rm -f /tmp/*.sql"
+
+      - name: No SQL files changed
+        if: steps.changes.outputs.files == ''
+        run: echo "No SQL files changed inside DML directory. Skipping deployment."
