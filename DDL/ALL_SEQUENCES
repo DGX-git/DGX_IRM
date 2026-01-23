@@ -1,0 +1,329 @@
+-- SEQUENCE: public.cpu_cpu_id_seq
+
+-- DROP SEQUENCE IF EXISTS public.cpu_cpu_id_seq;
+
+CREATE SEQUENCE IF NOT EXISTS public.cpu_cpu_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1
+    OWNED BY cpu.cpu_id;
+
+ALTER SEQUENCE public.cpu_cpu_id_seq
+    OWNER TO postgres;
+
+
+
+
+
+
+
+
+-- SEQUENCE: public.department_department_id_seq
+
+-- DROP SEQUENCE IF EXISTS public.department_department_id_seq;
+
+CREATE SEQUENCE IF NOT EXISTS public.department_department_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1
+    OWNED BY department.department_id;
+
+ALTER SEQUENCE public.department_department_id_seq
+    OWNER TO postgres;
+
+
+
+
+
+
+-- SEQUENCE: public.dgx_user_user_id_seq
+
+-- DROP SEQUENCE IF EXISTS public.dgx_user_user_id_seq;
+
+CREATE SEQUENCE IF NOT EXISTS public.dgx_user_user_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1
+    OWNED BY dgx_user.user_id;
+
+ALTER SEQUENCE public.dgx_user_user_id_seq
+    OWNER TO postgres;
+
+
+
+
+
+
+-- SEQUENCE: public.gpu_gpu_id_seq
+
+-- DROP SEQUENCE IF EXISTS public.gpu_gpu_id_seq;
+
+CREATE SEQUENCE IF NOT EXISTS public.gpu_gpu_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1
+    OWNED BY gpu.gpu_id;
+
+ALTER SEQUENCE public.gpu_gpu_id_seq
+    OWNER TO postgres;
+
+
+
+
+
+
+-- SEQUENCE: public.gpu_partition_gpu_partition_id_seq
+
+-- DROP SEQUENCE IF EXISTS public.gpu_partition_gpu_partition_id_seq;
+
+CREATE SEQUENCE IF NOT EXISTS public.gpu_partition_gpu_partition_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1
+    OWNED BY gpu_partition.gpu_partition_id;
+
+ALTER SEQUENCE public.gpu_partition_gpu_partition_id_seq
+    OWNER TO postgres;
+
+
+
+
+
+
+
+-- SEQUENCE: public.image_image_id_seq
+
+-- DROP SEQUENCE IF EXISTS public.image_image_id_seq;
+
+CREATE SEQUENCE IF NOT EXISTS public.image_image_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1
+    OWNED BY image.image_id;
+
+ALTER SEQUENCE public.image_image_id_seq
+    OWNER TO postgres;
+
+
+
+
+
+
+
+
+-- SEQUENCE: public.instance_request_instance_request_id_seq
+
+-- DROP SEQUENCE IF EXISTS public.instance_request_instance_request_id_seq;
+
+CREATE SEQUENCE IF NOT EXISTS public.instance_request_instance_request_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1
+    OWNED BY instance_request.instance_request_id;
+
+ALTER SEQUENCE public.instance_request_instance_request_id_seq
+    OWNER TO postgres;
+
+
+
+
+
+
+
+-- SEQUENCE: public.institute_institute_id_seq
+
+-- DROP SEQUENCE IF EXISTS public.institute_institute_id_seq;
+
+CREATE SEQUENCE IF NOT EXISTS public.institute_institute_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1
+    OWNED BY institute.institute_id;
+
+ALTER SEQUENCE public.institute_institute_id_seq
+    OWNER TO postgres;
+
+
+
+
+
+
+
+-- SEQUENCE: public.otp_otp_id_seq
+
+-- DROP SEQUENCE IF EXISTS public.otp_otp_id_seq;
+
+CREATE SEQUENCE IF NOT EXISTS public.otp_otp_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1
+    OWNED BY otp.otp_id;
+
+ALTER SEQUENCE public.otp_otp_id_seq
+    OWNER TO postgres;
+
+
+
+
+
+
+
+-- SEQUENCE: public.ram_ram_id_seq
+
+-- DROP SEQUENCE IF EXISTS public.ram_ram_id_seq;
+
+CREATE SEQUENCE IF NOT EXISTS public.ram_ram_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1
+    OWNED BY ram.ram_id;
+
+ALTER SEQUENCE public.ram_ram_id_seq
+    OWNER TO postgres;
+
+
+
+
+
+
+
+
+-- SEQUENCE: public.role_role_id_seq
+
+-- DROP SEQUENCE IF EXISTS public.role_role_id_seq;
+
+CREATE SEQUENCE IF NOT EXISTS public.role_role_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1
+    OWNED BY role.role_id;
+
+ALTER SEQUENCE public.role_role_id_seq
+    OWNER TO postgres;
+
+
+
+
+
+
+
+-- SEQUENCE: public.status_status_id_seq
+
+-- DROP SEQUENCE IF EXISTS public.status_status_id_seq;
+
+CREATE SEQUENCE IF NOT EXISTS public.status_status_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1
+    OWNED BY status.status_id;
+
+ALTER SEQUENCE public.status_status_id_seq
+    OWNER TO postgres;
+
+
+
+
+
+
+
+
+-- SEQUENCE: public.time_slot_time_slot_id_seq
+
+-- DROP SEQUENCE IF EXISTS public.time_slot_time_slot_id_seq;
+
+CREATE SEQUENCE IF NOT EXISTS public.time_slot_time_slot_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1
+    OWNED BY time_slot.time_slot_id;
+
+ALTER SEQUENCE public.time_slot_time_slot_id_seq
+    OWNER TO postgres;
+
+
+
+
+
+
+
+-- SEQUENCE: public.user_institue_association_user_institue_association_id_seq
+
+-- DROP SEQUENCE IF EXISTS public.user_institue_association_user_institue_association_id_seq;
+
+CREATE SEQUENCE IF NOT EXISTS public.user_institue_association_user_institue_association_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1
+    OWNED BY user_institute_association.user_institute_association_id;
+
+ALTER SEQUENCE public.user_institue_association_user_institue_association_id_seq
+    OWNER TO postgres;
+
+
+
+
+
+
+
+-- SEQUENCE: public.user_time_slot_user_time_slot_id_seq
+
+-- DROP SEQUENCE IF EXISTS public.user_time_slot_user_time_slot_id_seq;
+
+CREATE SEQUENCE IF NOT EXISTS public.user_time_slot_user_time_slot_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1
+    OWNED BY user_time_slot.user_time_slot_id;
+
+ALTER SEQUENCE public.user_time_slot_user_time_slot_id_seq
+    OWNER TO postgres;
+
+
+
+
+
+
+-- SEQUENCE: public.user_type_user_type_id_seq
+
+-- DROP SEQUENCE IF EXISTS public.user_type_user_type_id_seq;
+
+CREATE SEQUENCE IF NOT EXISTS public.user_type_user_type_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1
+    OWNED BY user_type.user_type_id;
+
+ALTER SEQUENCE public.user_type_user_type_id_seq
+    OWNER TO postgres;
