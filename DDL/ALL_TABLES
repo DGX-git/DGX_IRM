@@ -1,0 +1,501 @@
+-- Table: public.cpu
+
+-- DROP TABLE IF EXISTS public.cpu;
+
+CREATE TABLE IF NOT EXISTS public.cpu
+(
+    cpu_id integer NOT NULL DEFAULT nextval('cpu_cpu_id_seq'::regclass),
+    number_of_cpu integer,
+    CONSTRAINT cpu_pkey PRIMARY KEY (cpu_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.cpu
+    OWNER to postgres;
+
+
+
+
+
+
+
+
+
+-- Table: public.department
+
+-- DROP TABLE IF EXISTS public.department;
+
+CREATE TABLE IF NOT EXISTS public.department
+(
+    department_id integer NOT NULL DEFAULT nextval('department_department_id_seq'::regclass),
+    department_name character varying(100) COLLATE pg_catalog."default",
+    institute_id integer,
+    CONSTRAINT department_pkey PRIMARY KEY (department_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.department
+    OWNER to postgres;
+
+
+
+
+
+
+
+
+-- Table: public.dgx_user
+
+-- DROP TABLE IF EXISTS public.dgx_user;
+
+CREATE TABLE IF NOT EXISTS public.dgx_user
+(
+    user_id integer NOT NULL DEFAULT nextval('dgx_user_user_id_seq'::regclass),
+    first_name character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    last_name character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    role_id integer,
+    contact_no numeric(10,0),
+    email_id character varying(100) COLLATE pg_catalog."default",
+    created_timestamp timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp with time zone,
+    created_by integer,
+    updated_by integer,
+    CONSTRAINT dgx_user_pkey PRIMARY KEY (user_id),
+    CONSTRAINT dgx_user_created_by_fkey FOREIGN KEY (created_by)
+        REFERENCES public.dgx_user (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT dgx_user_role_id_fkey FOREIGN KEY (role_id)
+        REFERENCES public.role (role_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT dgx_user_updated_by_fkey FOREIGN KEY (updated_by)
+        REFERENCES public.dgx_user (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.dgx_user
+    OWNER to postgres;
+
+
+
+
+
+
+
+-- Table: public.gpu
+
+-- DROP TABLE IF EXISTS public.gpu;
+
+CREATE TABLE IF NOT EXISTS public.gpu
+(
+    gpu_id integer NOT NULL DEFAULT nextval('gpu_gpu_id_seq'::regclass),
+    gpu_vendor character varying COLLATE pg_catalog."default",
+    CONSTRAINT gpu_pkey PRIMARY KEY (gpu_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.gpu
+    OWNER to postgres;
+
+
+
+
+
+-- Table: public.gpu_partition
+
+-- DROP TABLE IF EXISTS public.gpu_partition;
+
+CREATE TABLE IF NOT EXISTS public.gpu_partition
+(
+    gpu_partition_id integer NOT NULL DEFAULT nextval('gpu_partition_gpu_partition_id_seq'::regclass),
+    gpu_partition character varying COLLATE pg_catalog."default",
+    CONSTRAINT gpu_partition_pkey PRIMARY KEY (gpu_partition_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.gpu_partition
+    OWNER to postgres;
+
+
+
+
+
+-- Table: public.image
+
+-- DROP TABLE IF EXISTS public.image;
+
+CREATE TABLE IF NOT EXISTS public.image
+(
+    image_id integer NOT NULL DEFAULT nextval('image_image_id_seq'::regclass),
+    image_name character varying COLLATE pg_catalog."default",
+    CONSTRAINT image_pkey PRIMARY KEY (image_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.image
+    OWNER to postgres;
+
+
+
+
+
+
+
+-- Table: public.instance_request
+
+-- DROP TABLE IF EXISTS public.instance_request;
+
+CREATE TABLE IF NOT EXISTS public.instance_request
+(
+    instance_request_id integer NOT NULL DEFAULT nextval('instance_request_instance_request_id_seq'::regclass),
+    user_id integer NOT NULL,
+    remarks character varying(500) COLLATE pg_catalog."default",
+    image_id integer NOT NULL,
+    cpu_id integer NOT NULL,
+    gpu_id integer NOT NULL,
+    gpu_partition_id integer NOT NULL,
+    ram_id integer NOT NULL,
+    work_description character varying(500) COLLATE pg_catalog."default",
+    status_id integer,
+    storage_volume integer,
+    user_type_id integer NOT NULL,
+    login_id character varying(200) COLLATE pg_catalog."default",
+    password character varying(200) COLLATE pg_catalog."default",
+    access_link character varying(500) COLLATE pg_catalog."default",
+    is_access_granted boolean,
+    additional_information character varying(500) COLLATE pg_catalog."default",
+    created_timestamp timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp with time zone,
+    created_by integer,
+    updated_by integer,
+    selected_date timestamp with time zone,
+    technical_approval_email_sent boolean,
+    CONSTRAINT workstation_request_pkey PRIMARY KEY (instance_request_id),
+    CONSTRAINT instance_request_cpu_id_fkey FOREIGN KEY (cpu_id)
+        REFERENCES public.cpu (cpu_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT instance_request_created_by_fkey FOREIGN KEY (created_by)
+        REFERENCES public.dgx_user (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT instance_request_gpu_id_fkey FOREIGN KEY (gpu_id)
+        REFERENCES public.gpu (gpu_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT instance_request_gpu_partiton_id_fkey FOREIGN KEY (gpu_partition_id)
+        REFERENCES public.gpu_partition (gpu_partition_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT instance_request_image_id_fkey FOREIGN KEY (image_id)
+        REFERENCES public.image (image_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT instance_request_ram_id_fkey FOREIGN KEY (ram_id)
+        REFERENCES public.ram (ram_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT instance_request_status_id_fkey FOREIGN KEY (status_id)
+        REFERENCES public.status (status_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT instance_request_updated_by_fkey FOREIGN KEY (updated_by)
+        REFERENCES public.dgx_user (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT instance_request_user_id_fkey FOREIGN KEY (user_id)
+        REFERENCES public.dgx_user (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT instance_request_user_type_id_fkey FOREIGN KEY (user_type_id)
+        REFERENCES public.user_type (user_type_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.instance_request
+    OWNER to postgres;
+
+
+
+
+
+
+
+
+
+-- Table: public.institute
+
+-- DROP TABLE IF EXISTS public.institute;
+
+CREATE TABLE IF NOT EXISTS public.institute
+(
+    institute_id integer NOT NULL DEFAULT nextval('institute_institute_id_seq'::regclass),
+    institute_name character varying(200) COLLATE pg_catalog."default",
+    CONSTRAINT institute_pkey PRIMARY KEY (institute_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.institute
+    OWNER to postgres;
+
+
+
+
+
+
+
+
+-- Table: public.otp
+
+-- DROP TABLE IF EXISTS public.otp;
+
+CREATE TABLE IF NOT EXISTS public.otp
+(
+    otp_id integer NOT NULL DEFAULT nextval('otp_otp_id_seq'::regclass),
+    otp integer,
+    user_id integer NOT NULL,
+    created_timestamp timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT otp_pkey PRIMARY KEY (otp_id),
+    CONSTRAINT otp_user_id_fkey FOREIGN KEY (user_id)
+        REFERENCES public.dgx_user (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.otp
+    OWNER to postgres;
+
+
+
+
+
+-- Table: public.ram
+
+-- DROP TABLE IF EXISTS public.ram;
+
+CREATE TABLE IF NOT EXISTS public.ram
+(
+    ram_id integer NOT NULL DEFAULT nextval('ram_ram_id_seq'::regclass),
+    ram integer,
+    CONSTRAINT ram_pkey PRIMARY KEY (ram_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.ram
+    OWNER to postgres;
+
+
+
+
+
+-- Table: public.role
+
+-- DROP TABLE IF EXISTS public.role;
+
+CREATE TABLE IF NOT EXISTS public.role
+(
+    role_id integer NOT NULL DEFAULT nextval('role_role_id_seq'::regclass),
+    role_name character varying(100) COLLATE pg_catalog."default",
+    CONSTRAINT role_pkey PRIMARY KEY (role_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.role
+    OWNER to postgres;
+
+
+
+
+
+-- Table: public.status
+
+-- DROP TABLE IF EXISTS public.status;
+
+CREATE TABLE IF NOT EXISTS public.status
+(
+    status_id integer NOT NULL DEFAULT nextval('status_status_id_seq'::regclass),
+    status_name character varying(100) COLLATE pg_catalog."default",
+    CONSTRAINT status_pkey PRIMARY KEY (status_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.status
+    OWNER to postgres;
+
+
+
+
+-- Table: public.time_slot
+
+-- DROP TABLE IF EXISTS public.time_slot;
+
+CREATE TABLE IF NOT EXISTS public.time_slot
+(
+    time_slot_id integer NOT NULL DEFAULT nextval('time_slot_time_slot_id_seq'::regclass),
+    time_slot character varying(100) COLLATE pg_catalog."default",
+    CONSTRAINT time_slot_pkey PRIMARY KEY (time_slot_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.time_slot
+    OWNER to postgres;
+
+
+
+
+
+
+
+-- Table: public.user_institute_association
+
+-- DROP TABLE IF EXISTS public.user_institute_association;
+
+CREATE TABLE IF NOT EXISTS public.user_institute_association
+(
+    user_institute_association_id integer NOT NULL DEFAULT nextval('user_institue_association_user_institue_association_id_seq'::regclass),
+    user_id integer NOT NULL,
+    institute_id integer NOT NULL,
+    department_id integer,
+    created_timestamp timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp with time zone,
+    created_by integer,
+    updated_by integer,
+    is_reg_institute boolean DEFAULT false,
+    CONSTRAINT user_institue_association_pkey PRIMARY KEY (user_institute_association_id),
+    CONSTRAINT user_institue_association_created_by_fkey FOREIGN KEY (created_by)
+        REFERENCES public.dgx_user (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT user_institue_association_department_id_fkey FOREIGN KEY (department_id)
+        REFERENCES public.department (department_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT user_institue_association_institue_id_fkey FOREIGN KEY (institute_id)
+        REFERENCES public.institute (institute_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT user_institue_association_updated_by_fkey FOREIGN KEY (updated_by)
+        REFERENCES public.dgx_user (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT user_institue_association_user_id_fkey FOREIGN KEY (user_id)
+        REFERENCES public.dgx_user (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.user_institute_association
+    OWNER to postgres;
+
+
+
+
+
+-- Table: public.user_time_slot
+
+-- DROP TABLE IF EXISTS public.user_time_slot;
+
+CREATE TABLE IF NOT EXISTS public.user_time_slot
+(
+    user_time_slot_id integer NOT NULL DEFAULT nextval('user_time_slot_user_time_slot_id_seq'::regclass),
+    instance_request_id integer NOT NULL,
+    time_slot_id integer NOT NULL,
+    selected_date date NOT NULL,
+    created_timestamp timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp with time zone,
+    created_by integer,
+    updated_by integer,
+    CONSTRAINT user_selected_time_slot_pkey PRIMARY KEY (user_time_slot_id),
+    CONSTRAINT user_time_slot_created_by_fkey FOREIGN KEY (created_by)
+        REFERENCES public.dgx_user (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT user_time_slot_instance_request_id_fkey FOREIGN KEY (instance_request_id)
+        REFERENCES public.instance_request (instance_request_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT user_time_slot_time_slot_id_fkey FOREIGN KEY (time_slot_id)
+        REFERENCES public.time_slot (time_slot_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT user_time_slot_updated_by_fkey FOREIGN KEY (updated_by)
+        REFERENCES public.dgx_user (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.user_time_slot
+    OWNER to postgres;
+
+
+
+
+
+
+
+
+-- Table: public.user_type
+
+-- DROP TABLE IF EXISTS public.user_type;
+
+CREATE TABLE IF NOT EXISTS public.user_type
+(
+    user_type_id integer NOT NULL DEFAULT nextval('user_type_user_type_id_seq'::regclass),
+    user_type character varying(100) COLLATE pg_catalog."default",
+    CONSTRAINT user_type_pkey PRIMARY KEY (user_type_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.user_type
+    OWNER to postgres;
+
+
+
+
+
+
