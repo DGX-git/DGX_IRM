@@ -1,4 +1,4 @@
--- FUNCTION: public.delete_instance_request(integer) TESTT
+-- FUNCTION: public.delete_instance_request(integer) TESTTT
 
 -- DROP FUNCTION IF EXISTS public.delete_instance_request(integer);
 
