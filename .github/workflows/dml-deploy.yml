@@ -61,7 +61,7 @@ jobs:
 
               psql \
                 -U '${{ secrets.DB_USER }}' \
-                -d '${{ secrets.DB_NAME }}' \
+                -d '${{ secrets.DB_NAME_UAT }}' \
                 -v ON_ERROR_STOP=1 \
                 -f "$file"
             done
