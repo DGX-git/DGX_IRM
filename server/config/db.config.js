@@ -15,7 +15,7 @@ const config = {
 	USER: "postgres",
     HOST: "localhost" ,
     DATABASE: "dgx_qa",
-	PASSWORD: "root",
+	PASSWORD: "root_dgx",
     DIALECT: "postgres",
     PORT: "7894"
 }
