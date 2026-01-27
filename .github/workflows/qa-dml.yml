@@ -61,9 +61,9 @@ jobs:
 
               psql \
                 -h localhost \
-                -p 5432 \
-                -U jhsqa \
-                -d jhs \
+                -p 7894 \
+                -U postgres \
+                -d dgx_qa \
                 -v ON_ERROR_STOP=1 \
                 -f "$file"
             done
