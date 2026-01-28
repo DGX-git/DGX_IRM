@@ -40,6 +40,7 @@ type InstanceRequest = {
   password?: string;
   additional_information?: string;
   is_access_granted?: boolean;
+  technical_approval_email_sent?: boolean;
   updated_by?: number;
   [key: string]: any;
 };
@@ -80,7 +81,7 @@ function DGXDashboard() {
   const [status, setStatus] = useState<Status[]>([]);
   const [requests, setRequests] = useState<InstanceRequest[]>([]);
   const [filteredRequests, setFilteredRequests] = useState<InstanceRequest[]>(
-    []
+    [],
   );
   const [users, setUsers] = useState<User[]>([]);
   const [institutes, setInstitutes] = useState<Institute[]>([]);
@@ -136,30 +137,30 @@ function DGXDashboard() {
   const currentUserId = Number(searchParams.get("userId") || "");
 
   // const currentUserId = 8; // <---- HARD-CODED
-    useEffect(() => {
-      const verifyUser = async () => {
-        const result = await checkAuth(["User"]); // ✅ Only allow 'User' role here
-        if (!result.authorized) {
-          router.replace(result.redirect || "/login");
-        } else {
-          setAuthLoading(false);
-        }
-      };
+  useEffect(() => {
+    const verifyUser = async () => {
+      const result = await checkAuth(["User"]); // ✅ Only allow 'User' role here
+      if (!result.authorized) {
+        router.replace(result.redirect || "/login");
+      } else {
+        setAuthLoading(false);
+      }
+    };
 
-      verifyUser();
-    }, [router]);
+    verifyUser();
+  }, [router]);
   // Fetch time data
   const fetchTimeData = async () => {
     try {
       // Fetch time slots
       const timeSlotRes = await fetch(
-        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/time-slots"
+        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/time-slots",
       );
       const timeSlotsData = await timeSlotRes.json();
 
       // Fetch user time slots
       const userTimeSlotRes = await fetch(
-        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/user-time-slots"
+        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/user-time-slots",
       );
       const userTimeSlotsData = await userTimeSlotRes.json();
 
@@ -178,7 +179,7 @@ function DGXDashboard() {
   const getTimeDetailsForRequest = (instanceRequestId: number) => {
     try {
       const allUserTimeSlotsForRequest = userTimeSlots.filter(
-        (uts) => uts.instance_request_id === instanceRequestId
+        (uts) => uts.instance_request_id === instanceRequestId,
       );
 
       if (
@@ -254,7 +255,7 @@ function DGXDashboard() {
             ranges.push(
               currentRangeStart.minutes === currentRangeEnd.minutes
                 ? currentRangeStart.original
-                : `${currentRangeStart.original} - ${currentRangeEnd.original}`
+                : `${currentRangeStart.original} - ${currentRangeEnd.original}`,
             );
             currentRangeStart = currentTime;
             currentRangeEnd = currentTime;
@@ -264,7 +265,7 @@ function DGXDashboard() {
         ranges.push(
           currentRangeStart.minutes === currentRangeEnd.minutes
             ? currentRangeStart.original
-            : `${currentRangeStart.original} - ${currentRangeEnd.original}`
+            : `${currentRangeStart.original} - ${currentRangeEnd.original}`,
         );
 
         return ranges.join(" , ");
@@ -302,7 +303,7 @@ function DGXDashboard() {
     const fetchMasters = async () => {
       try {
         const response = await fetch(
-          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/masters"
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/masters",
         );
         const data = await response.json();
 
@@ -338,7 +339,7 @@ function DGXDashboard() {
 
   const getGpuPartitionName = (partitionId: number) => {
     const partition = gpuPartitions.find(
-      (p) => p.gpu_partition_id === partitionId
+      (p) => p.gpu_partition_id === partitionId,
     );
 
     return partition?.gpu_partition || "";
@@ -362,7 +363,7 @@ function DGXDashboard() {
         setSnackbar({ show: false, message: "", type: "success" });
       }, 3000);
     },
-    []
+    [],
   );
 
   // Delete handler functions
@@ -389,7 +390,7 @@ function DGXDashboard() {
           `/users/delete/${instanceRequestId}`,
         {
           method: "DELETE",
-        }
+        },
       );
 
       const result = await res.json();
@@ -414,7 +415,7 @@ function DGXDashboard() {
 
       // Remove from local userTimeSlots state
       const updatedUserTimeSlots = userTimeSlots.filter(
-        (uts) => uts.instance_request_id !== instanceRequestId
+        (uts) => uts.instance_request_id !== instanceRequestId,
       );
       setUserTimeSlots(updatedUserTimeSlots);
 
@@ -434,7 +435,7 @@ function DGXDashboard() {
   useEffect(() => {
     if (currentUserId && requests.length > 0 && filteredRequests.length === 0) {
       const userRequests = requests.filter(
-        (req) => req.user_id === currentUserId
+        (req) => req.user_id === currentUserId,
       );
       setFilteredRequests(userRequests);
     } else if (currentUserId && filteredRequests.length === 0) {
@@ -472,10 +473,10 @@ function DGXDashboard() {
       const [usersRes, instRes, assocRes] = await Promise.all([
         fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/users"),
         fetch(
-          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/institutes"
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/institutes",
         ),
         fetch(
-          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/associations"
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/associations",
         ),
       ]);
 
@@ -510,7 +511,7 @@ function DGXDashboard() {
     async (
       filterFromDate?: string,
       filterToDate?: string,
-      filterStatusId?: number
+      filterStatusId?: number,
     ) => {
       // if (!currentUserId) return;
       // const currentUserId = 8;   // <---- HARD-CODED
@@ -527,7 +528,7 @@ function DGXDashboard() {
 
         const res = await fetch(
           process.env.NEXT_PUBLIC_DGX_API_URL +
-            `/users/get-user?${params.toString()}`
+            `/users/get-user?${params.toString()}`,
         );
         const data = await res.json();
 
@@ -541,7 +542,7 @@ function DGXDashboard() {
         setLoading(false);
       }
     },
-    [currentUserId, showSnackbar]
+    [currentUserId, showSnackbar],
   );
   // }, [showSnackbar]);
 
@@ -587,7 +588,7 @@ function DGXDashboard() {
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
 
         if (!response.ok) {
@@ -625,13 +626,13 @@ function DGXDashboard() {
 
     const association = userInstituteAssociation.find(
       (assoc: any) =>
-        assoc.user_id === userId && assoc.is_reg_institute === true
+        assoc.user_id === userId && assoc.is_reg_institute === true,
     );
 
     if (!association) return "No Registered Institute";
 
     const institute = institutes.find(
-      (inst) => inst.institute_id === association.institute_id
+      (inst) => inst.institute_id === association.institute_id,
     );
 
     return institute?.institute_name || "Unknown Institute";
@@ -690,13 +691,13 @@ function DGXDashboard() {
   const totalPages = Math.ceil(sortedRequests.length / rowsPerPage);
   const paginatedRequests = sortedRequests.slice(
     (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
+    currentPage * rowsPerPage,
   );
 
   const requestRangeStart = (currentPage - 1) * rowsPerPage + 1;
   const requestRangeEnd = Math.min(
     currentPage * rowsPerPage,
-    sortedRequests.length
+    sortedRequests.length,
   );
 
   const handleSort = (key: string) => {
@@ -722,7 +723,7 @@ function DGXDashboard() {
 
     if (statusName === "Pending") {
       router.push(
-        `/user/instanceaccessrequest?id=${request.instance_request_id}`
+        `/user/instanceaccessrequest?id=${request.instance_request_id}`,
       );
       return;
     }
@@ -744,7 +745,6 @@ function DGXDashboard() {
     return users.find((u) => u.user_id === userId);
   };
 
-
   const getDepartmentName = (userId: number): string => {
     if (!userId) return "Not Assigned";
 
@@ -752,12 +752,12 @@ function DGXDashboard() {
     if (!user) return `Unknown User (${userId})`;
 
     const association = userInstituteAssociation.find(
-      (assoc: any) => assoc.user_id === userId
+      (assoc: any) => assoc.user_id === userId,
     );
     if (!association) return "No Department Assigned";
 
     const department = departments.find(
-      (dept) => dept.department_id === association.department_id
+      (dept) => dept.department_id === association.department_id,
     );
 
     return department?.department_name ?? "";
@@ -809,19 +809,19 @@ function DGXDashboard() {
       }
 
       const currentRequestTimeSlots = userTimeSlots.filter(
-        (uts) => uts.instance_request_id === currentRequest.instance_request_id
+        (uts) => uts.instance_request_id === currentRequest.instance_request_id,
       );
 
       if (currentRequestTimeSlots.length === 0) {
         return requests.filter(
-          (req) => getStatusName(req.status_id) === currentStatusName
+          (req) => getStatusName(req.status_id) === currentStatusName,
         ).length;
       }
 
       const currentDateTimes = new Set(
         currentRequestTimeSlots.map(
-          (uts) => `${uts.selected_date}_${uts.time_slot_id}`
-        )
+          (uts) => `${uts.selected_date}_${uts.time_slot_id}`,
+        ),
       );
 
       const count = requests.filter((req) => {
@@ -830,7 +830,7 @@ function DGXDashboard() {
         }
 
         const reqTimeSlots = userTimeSlots.filter(
-          (uts) => uts.instance_request_id === req.instance_request_id
+          (uts) => uts.instance_request_id === req.instance_request_id,
         );
 
         return reqTimeSlots.some((uts) => {
@@ -846,7 +846,7 @@ function DGXDashboard() {
     }
   };
 
-    if (authLoading) {
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
@@ -856,7 +856,6 @@ function DGXDashboard() {
       </div>
     );
   }
-
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -890,7 +889,7 @@ function DGXDashboard() {
                     ${dateError ? "border-red-300" : ""}`}
                   onClick={() => {
                     const input = document.getElementById(
-                      "fromDatePicker"
+                      "fromDatePicker",
                     ) as HTMLInputElement;
                     input?.showPicker?.();
                   }}
@@ -944,7 +943,7 @@ function DGXDashboard() {
                     ${dateError ? "border-red-300" : ""}`}
                   onClick={() => {
                     const input = document.getElementById(
-                      "toDatePicker"
+                      "toDatePicker",
                     ) as HTMLInputElement;
                     input?.showPicker?.();
                   }}
@@ -1162,9 +1161,9 @@ function DGXDashboard() {
                                     }) =>
                                       new Date(s.selected_date)
                                         .toLocaleDateString("en-GB")
-                                        .replace(/\//g, "-")
-                                  )
-                                )
+                                        .replace(/\//g, "-"),
+                                  ),
+                                ),
                               ) as string[];
 
                               // Sort dates (DD-MM-YYYY) with typed parameters
@@ -1221,7 +1220,7 @@ function DGXDashboard() {
                                       s: {
                                         selected_date: string | number | Date;
                                         time_slot: any;
-                                      }
+                                      },
                                     ) => {
                                       const date = new Date(s.selected_date)
                                         .toLocaleDateString("en-GB")
@@ -1231,7 +1230,7 @@ function DGXDashboard() {
                                       acc[date].push(s.time_slot);
                                       return acc;
                                     },
-                                    {}
+                                    {},
                                   );
 
                                   const extractStartTime = (slot: string) =>
@@ -1266,7 +1265,7 @@ function DGXDashboard() {
                                         ranges.push(
                                           start.minutes === end.minutes
                                             ? start.original
-                                            : `${start.original} - ${end.original}`
+                                            : `${start.original} - ${end.original}`,
                                         );
                                         start = cur;
                                         end = cur;
@@ -1276,7 +1275,7 @@ function DGXDashboard() {
                                     ranges.push(
                                       start.minutes === end.minutes
                                         ? start.original
-                                        : `${start.original} - ${end.original}`
+                                        : `${start.original} - ${end.original}`,
                                     );
 
                                     return ranges.join(", ");
@@ -1294,7 +1293,7 @@ function DGXDashboard() {
                                         new Date(yA, mA - 1, dA).getTime() -
                                         new Date(yB, mB - 1, dB).getTime()
                                       );
-                                    }
+                                    },
                                   );
 
                                   return (
@@ -1325,7 +1324,7 @@ function DGXDashboard() {
                                 {request.work_description.length > 20
                                   ? `${request.work_description.substring(
                                       0,
-                                      30
+                                      30,
                                     )}...`
                                   : request.work_description}
                               </span>
@@ -1624,8 +1623,7 @@ function DGXDashboard() {
                       label: "Email Id",
                       value: getUser(selectedRequest.user_id)?.email_id,
                     },
-                    ...(getStatusName(selectedRequest.status_id) ===
-                    "Approved-Technical"
+                    ...(selectedRequest.technical_approval_email_sent === true
                       ? [
                           {
                             label: "User ID",
@@ -1704,7 +1702,7 @@ function DGXDashboard() {
                     {
                       label: "Number of GPU",
                       value: getGpuPartitionName(
-                        selectedRequest.gpu_partition_id || 0
+                        selectedRequest.gpu_partition_id || 0,
                       ),
                     },
                     {
@@ -1735,15 +1733,17 @@ function DGXDashboard() {
                           },
                         ]
                       : getStatusName(selectedRequest.status_id) === "Rejected"
-                      ? [
-                          {
-                            label: "Rejected By",
-                            value: getUserName(selectedRequest.updated_by || 0),
-                          },
-                        ]
-                      : []),
+                        ? [
+                            {
+                              label: "Rejected By",
+                              value: getUserName(
+                                selectedRequest.updated_by || 0,
+                              ),
+                            },
+                          ]
+                        : []),
                     ...(["Rejected"].includes(
-                      getStatusName(selectedRequest.status_id)
+                      getStatusName(selectedRequest.status_id),
                     )
                       ? [
                           {
