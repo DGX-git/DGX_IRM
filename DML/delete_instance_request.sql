@@ -10,7 +10,7 @@ CREATE OR REPLACE FUNCTION public.delete_instance_request(
     VOLATILE PARALLEL UNSAFE
 AS $BODY$
 BEGIN
-    DELETE FROM instance_request WHERE instance_id = p_instance_id;
+    DELETE FROM instance_request WHERE instance_id = p_instance_id; -- TEST
 END;
 $BODY$;
 
