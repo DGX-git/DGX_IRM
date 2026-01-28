@@ -10,7 +10,7 @@ import {
 import { Info } from "lucide-react";
 import Header from "@/app/navbar/page"; // Adjust the import path as necessary
 import { Listbox } from "@headlessui/react";
-import { sendRejectionEmail } from "@/utils/email";
+import { sendFunctionalApprovalEmail, sendRejectionEmail } from "@/utils/email";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { checkAuth } from "@/utils/auth";
@@ -108,6 +108,7 @@ interface InstanceRequest {
   password?: string | null;
   access_link?: string | null;
   is_access_granted?: boolean | null;
+  technical_approval_email_sent?: boolean | null;
   additional_information?: string | null;
   created_timestamp?: string;
   updated_timestamp?: string;
@@ -140,7 +141,7 @@ function DGXDashboard() {
   const [status, setStatus] = useState<Status[]>([]);
   const [requests, setRequests] = useState<InstanceRequest[]>([]);
   const [filteredRequests, setFilteredRequests] = useState<InstanceRequest[]>(
-    []
+    [],
   );
   const [users, setUsers] = useState<User[]>([]);
   const [institutes, setInstitutes] = useState<Institute[]>([]);
@@ -205,20 +206,20 @@ function DGXDashboard() {
   >([]);
   const [userInstitutes, setUserInstitutes] = useState<Institute[]>([]);
   const [selectedInstitute, setSelectedInstitute] = useState<Institute | null>(
-    null
+    null,
   );
   const [currentFilteredInstitute, setCurrentFilteredInstitute] =
     useState<Institute | null>(null);
   const [areFiltersApplied, setAreFiltersApplied] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
-  const [fullName,setFullName] = useState("");
+  const [fullName, setFullName] = useState("");
 
   const admin = "Functional";
 
   const searchParams = useSearchParams();
   const loggedInUserId = searchParams.get("userId") || "";
   const loggedInUserName = decodeURIComponent(
-    searchParams.get("userName") || ""
+    searchParams.get("userName") || "",
   );
   const router = useRouter();
   useEffect(() => {
@@ -244,7 +245,7 @@ function DGXDashboard() {
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
 
         if (!response.ok) throw new Error("Network response was not ok");
@@ -281,13 +282,13 @@ function DGXDashboard() {
     try {
       // Fetch time slots
       const timeSlotRes = await fetch(
-        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/time-slots"
+        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/time-slots",
       );
       const timeSlotsData = await timeSlotRes.json();
 
       // Fetch user time slots
       const userTimeSlotRes = await fetch(
-        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/user-time-slots"
+        process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/user-time-slots",
       );
       const userTimeSlotsData = await userTimeSlotRes.json();
 
@@ -306,12 +307,12 @@ function DGXDashboard() {
   const getTimeDetailsForRequest = (instanceRequestId: number) => {
     try {
       const allUserTimeSlotsForRequest = userTimeSlots.filter(
-        (uts) => uts.instance_request_id === instanceRequestId
+        (uts) => uts.instance_request_id === instanceRequestId,
       );
 
       // Fallback: find instanceRequest for this ID
       const relatedRequest = requests.find(
-        (req) => req.instance_request_id === instanceRequestId
+        (req) => req.instance_request_id === instanceRequestId,
       );
 
       // Case 1: No user time slots found — fallback to instanceRequest date
@@ -323,14 +324,14 @@ function DGXDashboard() {
 
         if (fallbackDate) {
           const formattedFallbackDate = new Date(
-            fallbackDate
+            fallbackDate,
           ).toLocaleDateString("en-GB");
           return {
             date: "1 date selected",
             time: "No time slots",
             formatted: `${formattedFallbackDate.replace(
               /\//g,
-              "-"
+              "-",
             )} / No time slots`,
           };
         }
@@ -407,7 +408,7 @@ function DGXDashboard() {
             ranges.push(
               currentRangeStart.minutes === currentRangeEnd.minutes
                 ? currentRangeStart.original
-                : `${currentRangeStart.original} - ${currentRangeEnd.original}`
+                : `${currentRangeStart.original} - ${currentRangeEnd.original}`,
             );
             currentRangeStart = currentTime;
             currentRangeEnd = currentTime;
@@ -417,7 +418,7 @@ function DGXDashboard() {
         ranges.push(
           currentRangeStart.minutes === currentRangeEnd.minutes
             ? currentRangeStart.original
-            : `${currentRangeStart.original} - ${currentRangeEnd.original}`
+            : `${currentRangeStart.original} - ${currentRangeEnd.original}`,
         );
 
         return ranges.join(" , ");
@@ -460,7 +461,7 @@ function DGXDashboard() {
     const fetchMasters = async () => {
       try {
         const response = await fetch(
-          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/masters"
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/masters",
         );
         const data = await response.json();
 
@@ -487,12 +488,12 @@ function DGXDashboard() {
     if (!user) return `Unknown User (${userId})`;
 
     const association = userInstituteAssociation.find(
-      (assoc) => assoc.user_id === userId
+      (assoc) => assoc.user_id === userId,
     );
     if (!association) return "No Department Assigned";
 
     const department = departments.find(
-      (dept) => dept.department_id === association.department_id
+      (dept) => dept.department_id === association.department_id,
     );
 
     return department?.department_name ?? "";
@@ -515,7 +516,7 @@ function DGXDashboard() {
 
   const getGpuPartitionName = (partitionId: number) => {
     const partition = gpuPartitions.find(
-      (p) => p.gpu_partition_id === partitionId
+      (p) => p.gpu_partition_id === partitionId,
     );
     return partition?.gpu_partition || "";
   };
@@ -533,7 +534,7 @@ function DGXDashboard() {
   // Show snackbar
   const showSnackbar = (
     message: string,
-    type: "success" | "error" = "success"
+    type: "success" | "error" = "success",
   ) => {
     setSnackbar({ show: true, message, type });
     setTimeout(() => {
@@ -593,7 +594,7 @@ function DGXDashboard() {
       const hasAssociation = userInstituteAssociation.some(
         (assoc) =>
           assoc.user_id === userId &&
-          assoc.institute_id === currentFilteredInstitute.institute_id
+          assoc.institute_id === currentFilteredInstitute.institute_id,
       );
 
       if (hasAssociation) {
@@ -603,14 +604,14 @@ function DGXDashboard() {
 
     // Otherwise → find user's first/default institute
     const association = userInstituteAssociation.find(
-      (assoc) => assoc.user_id === userId
+      (assoc) => assoc.user_id === userId,
     );
 
     if (!association) return "No Institute Assigned";
 
     // Match institute details
     const institute = institutes.find(
-      (inst) => inst.institute_id === association.institute_id
+      (inst) => inst.institute_id === association.institute_id,
     );
 
     return (
@@ -670,13 +671,13 @@ function DGXDashboard() {
   const totalPages = Math.ceil(sortedRequests.length / rowsPerPage);
   const paginatedRequests = sortedRequests.slice(
     (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
+    currentPage * rowsPerPage,
   );
 
   const requestRangeStart = (currentPage - 1) * rowsPerPage + 1;
   const requestRangeEnd = Math.min(
     currentPage * rowsPerPage,
-    sortedRequests.length
+    sortedRequests.length,
   );
 
   // Handle sorting toggle
@@ -695,7 +696,7 @@ function DGXDashboard() {
     const timeDetails = getTimeDetailsForRequest(request.instance_request_id);
     setSelectedRequestTimeDetails(timeDetails);
 
-       // ✅ Get full name here
+    // ✅ Get full name here
     const fullName = getUserName(request.user_id);
     setFullName(fullName);
 
@@ -737,6 +738,67 @@ function DGXDashboard() {
     setIsConfirmationOpen(true);
   };
 
+  // const handleConfirmationYes = async () => {
+  //   if (!selectedRequest || !confirmationAction) return;
+
+  //   // If rejecting, open remarks modal
+  //   if (confirmationAction === "reject") {
+  //     setIsConfirmationOpen(false);
+  //     setIsRemarksModalOpen(true);
+  //     return;
+  //   }
+
+  //   try {
+  //     // Call backend API
+  //     const response = await fetch(
+  //       process.env.NEXT_PUBLIC_DGX_API_URL +
+  //         "/functionaladmin/approve-functional",
+  //       {
+  //         method: "POST",
+  //         headers: { "Content-Type": "application/json" },
+  //         body: JSON.stringify({
+  //           instance_request_id: Number(selectedRequest.instance_request_id),
+  //           updated_by: loggedInUserId,
+  //         }),
+  //       }
+  //     );
+
+  //     const result = await response.json();
+
+  //     if (!response.ok) {
+  //       showSnackbar(result.message || "Error approving request", "error");
+  //       return;
+  //     }
+
+  //     const newStatusId = result.data.status_id;
+
+  //     // Update local state
+  //     setRequests((prevRequests) =>
+  //       prevRequests.map((req) =>
+  //         req.instance_request_id === selectedRequest.instance_request_id
+  //           ? { ...req, status_id: newStatusId }
+  //           : req
+  //       )
+  //     );
+
+  //     setFilteredRequests((prevFiltered) =>
+  //       prevFiltered.map((req) =>
+  //         req.instance_request_id === selectedRequest.instance_request_id
+  //           ? { ...req, status_id: newStatusId }
+  //           : req
+  //       )
+  //     );
+
+  //     closeConfirmation();
+  //     setSelectedRequest(null);
+  //     showSnackbar("Request approved successfully!", "success");
+  //     fetchData();
+  //   } catch (error) {
+  //     console.error("Error approving request:", error);
+  //     showSnackbar("Error approving request. Please try again.", "error");
+  //   }
+  // };
+
   const handleConfirmationYes = async () => {
     if (!selectedRequest || !confirmationAction) return;
 
@@ -748,7 +810,9 @@ function DGXDashboard() {
     }
 
     try {
-      // Call backend API
+      setIsEmailSending(true); // ✅ Show loading indicator
+
+      // Call backend API to approve
       const response = await fetch(
         process.env.NEXT_PUBLIC_DGX_API_URL +
           "/functionaladmin/approve-functional",
@@ -759,13 +823,14 @@ function DGXDashboard() {
             instance_request_id: Number(selectedRequest.instance_request_id),
             updated_by: loggedInUserId,
           }),
-        }
+        },
       );
 
       const result = await response.json();
 
       if (!response.ok) {
         showSnackbar(result.message || "Error approving request", "error");
+        setIsEmailSending(false);
         return;
       }
 
@@ -776,18 +841,54 @@ function DGXDashboard() {
         prevRequests.map((req) =>
           req.instance_request_id === selectedRequest.instance_request_id
             ? { ...req, status_id: newStatusId }
-            : req
-        )
+            : req,
+        ),
       );
 
       setFilteredRequests((prevFiltered) =>
         prevFiltered.map((req) =>
           req.instance_request_id === selectedRequest.instance_request_id
             ? { ...req, status_id: newStatusId }
-            : req
-        )
+            : req,
+        ),
       );
 
+      // ✅ Send functional approval email
+      const timeDetails = getTimeDetailsForRequest(
+        selectedRequest.instance_request_id,
+      );
+      const userDetails = users.find(
+        (u) => u.user_id === selectedRequest.user_id,
+      );
+
+      const emailData = {
+        instance_request_id: selectedRequest.instance_request_id,
+        admin,
+        fullName,
+        loggedInUserName,
+        user: userDetails,
+        date_time: timeDetails.formatted,
+        userTypeName: getUserTypeName(selectedRequest.user_type_id),
+        customImageName: getCustomImageName(selectedRequest.image_id),
+        cpuName: getCpuName(selectedRequest.cpu_id),
+        ramName: getRamName(selectedRequest.ram_id),
+        gpuPartitionName: getGpuPartitionName(selectedRequest.gpu_partition_id),
+        gpuVendorName: getGpuName(selectedRequest.gpu_id),
+        work_description: selectedRequest.work_description,
+      };
+
+      // Send email asynchronously
+      sendFunctionalApprovalEmail(emailData).catch((emailError) => {
+        console.error("Error sending functional approval email:", emailError);
+        setTimeout(() => {
+          showSnackbar(
+            "Note: Request approved but there was an issue sending the notification email.",
+            "error",
+          );
+        }, 2000);
+      });
+
+      setIsEmailSending(false);
       closeConfirmation();
       setSelectedRequest(null);
       showSnackbar("Request approved successfully!", "success");
@@ -795,6 +896,7 @@ function DGXDashboard() {
     } catch (error) {
       console.error("Error approving request:", error);
       showSnackbar("Error approving request. Please try again.", "error");
+      setIsEmailSending(false);
     }
   };
 
@@ -829,7 +931,7 @@ function DGXDashboard() {
             new_status_id: newStatusId,
             logged_in_user_id: loggedInUserId,
           }),
-        }
+        },
       );
 
       const result = await res.json();
@@ -848,8 +950,8 @@ function DGXDashboard() {
                 status_id: newStatusId,
                 remarks: remarksText.trim(),
               }
-            : req
-        )
+            : req,
+        ),
       );
 
       setFilteredRequests((prevFiltered) =>
@@ -860,8 +962,8 @@ function DGXDashboard() {
                 status_id: newStatusId,
                 remarks: remarksText.trim(),
               }
-            : req
-        )
+            : req,
+        ),
       );
       fetchTimeData();
       setIsEmailSending(false);
@@ -874,10 +976,10 @@ function DGXDashboard() {
 
       // Send email asynchronously
       const timeDetails = getTimeDetailsForRequest(
-        selectedRequest.instance_request_id
+        selectedRequest.instance_request_id,
       );
       const userDetails = users.find(
-        (u) => u.user_id === selectedRequest.user_id
+        (u) => u.user_id === selectedRequest.user_id,
       );
 
       const emailData = {
@@ -901,7 +1003,7 @@ function DGXDashboard() {
         setTimeout(() => {
           showSnackbar(
             "Note: There was an issue sending the notification email.",
-            "error"
+            "error",
           );
         }, 2000);
       });
@@ -932,7 +1034,7 @@ function DGXDashboard() {
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
 
         if (!response.ok) {
@@ -966,10 +1068,10 @@ function DGXDashboard() {
       const [userRes, assocRes, instRes] = await Promise.all([
         fetch(process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/users"),
         fetch(
-          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/associations"
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/associations",
         ),
         fetch(
-          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/institutes"
+          process.env.NEXT_PUBLIC_DGX_API_URL + "/technicaladmin/institutes",
         ),
       ]);
 
@@ -999,7 +1101,7 @@ function DGXDashboard() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
-        }
+        },
       );
 
       const requests = await reqRes.json();
@@ -1065,7 +1167,7 @@ function DGXDashboard() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
-        }
+        },
       );
 
       const filtered = await response.json();
@@ -1115,7 +1217,7 @@ function DGXDashboard() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
-        }
+        },
       );
 
       const filtered = await response.json();
@@ -1206,7 +1308,7 @@ function DGXDashboard() {
                   ${dateError ? "border-red-300" : ""}`}
                   onClick={() => {
                     const input = document.getElementById(
-                      "fromDatePicker"
+                      "fromDatePicker",
                     ) as HTMLInputElement;
                     input?.showPicker?.();
                   }}
@@ -1260,7 +1362,7 @@ function DGXDashboard() {
                   ${dateError ? "border-red-300" : ""}`}
                   onClick={() => {
                     const input = document.getElementById(
-                      "toDatePicker"
+                      "toDatePicker",
                     ) as HTMLInputElement;
                     input?.showPicker?.();
                   }}
@@ -1515,7 +1617,7 @@ function DGXDashboard() {
                               const requestTimeSlots = userTimeSlots.filter(
                                 (uts) =>
                                   uts.instance_request_id ===
-                                  request.instance_request_id
+                                  request.instance_request_id,
                               );
 
                               if (requestTimeSlots.length === 0) {
@@ -1535,18 +1637,18 @@ function DGXDashboard() {
                                   const date = uts?.selected_date;
                                   if (!date) return "No date";
                                   const formatted = new Date(
-                                    date
+                                    date,
                                   ).toLocaleDateString("en-GB", {
                                     day: "2-digit",
                                     month: "2-digit",
                                     year: "numeric",
                                   });
                                   return formatted.replace(/\//g, "-");
-                                }
+                                },
                               );
 
                               const uniqueDates = Array.from(
-                                new Set(formattedDates)
+                                new Set(formattedDates),
                               );
 
                               const sortedDates = uniqueDates.sort((a, b) => {
@@ -1585,7 +1687,7 @@ function DGXDashboard() {
                                       userTimeSlots.filter(
                                         (uts) =>
                                           uts.instance_request_id ===
-                                          request.instance_request_id
+                                          request.instance_request_id,
                                       );
 
                                     if (requestTimeSlots.length === 0) {
@@ -1628,11 +1730,11 @@ function DGXDashboard() {
                                           groups[dateKey].push(uts);
                                           return groups;
                                         },
-                                        {}
+                                        {},
                                       );
 
                                     const sortedDates = Object.keys(
-                                      groupedByDate
+                                      groupedByDate,
                                     ).sort((a, b) => {
                                       if (a === "No date" || b === "No date")
                                         return 0;
@@ -1646,18 +1748,18 @@ function DGXDashboard() {
                                         new Date(
                                           yearA,
                                           monthA - 1,
-                                          dayA
+                                          dayA,
                                         ).getTime() -
                                         new Date(
                                           yearB,
                                           monthB - 1,
-                                          dayB
+                                          dayB,
                                         ).getTime()
                                       );
                                     });
 
                                     const extractStartTime = (
-                                      timeSlotStr: string
+                                      timeSlotStr: string,
                                     ) => {
                                       if (!timeSlotStr) return "";
                                       if (timeSlotStr.includes("-")) {
@@ -1702,7 +1804,7 @@ function DGXDashboard() {
                                           ranges.push(
                                             start.minutes === end.minutes
                                               ? start.original
-                                              : `${start.original} - ${end.original}`
+                                              : `${start.original} - ${end.original}`,
                                           );
                                           start = end = current;
                                         }
@@ -1711,7 +1813,7 @@ function DGXDashboard() {
                                       ranges.push(
                                         start.minutes === end.minutes
                                           ? start.original
-                                          : `${start.original} - ${end.original}`
+                                          : `${start.original} - ${end.original}`,
                                       );
 
                                       return ranges.join(", ");
@@ -1726,7 +1828,7 @@ function DGXDashboard() {
                                               const timeSlot = timeSlots.find(
                                                 (ts) =>
                                                   ts.time_slot_id ===
-                                                  uts.time_slot_id
+                                                  uts.time_slot_id,
                                               );
                                               return (
                                                 timeSlot?.time_slot || null
@@ -1762,7 +1864,7 @@ function DGXDashboard() {
                                 {request.work_description.length > 20
                                   ? `${request.work_description.substring(
                                       0,
-                                      30
+                                      30,
                                     )}...`
                                   : request.work_description}
                               </span>
@@ -2041,8 +2143,7 @@ function DGXDashboard() {
                       label: "Email Id",
                       value: getUser(selectedRequest.user_id)?.email_id,
                     },
-                    ...(getStatusName(selectedRequest.status_id || 0) ===
-                    "Approved-Technical"
+                    ...(selectedRequest.technical_approval_email_sent === true
                       ? [
                           {
                             label: "User ID",
@@ -2119,7 +2220,7 @@ function DGXDashboard() {
                     {
                       label: "Requested RAM in GB",
                       value: `${parseInt(
-                        getRamName(selectedRequest.ram_id)
+                        getRamName(selectedRequest.ram_id),
                       )} + 1 (${
                         parseInt(getRamName(selectedRequest.ram_id)) + 1
                       }) GB`,
@@ -2127,7 +2228,7 @@ function DGXDashboard() {
                     {
                       label: "Number of GPU",
                       value: getGpuPartitionName(
-                        selectedRequest.gpu_partition_id
+                        selectedRequest.gpu_partition_id,
                       ),
                     },
                     {
@@ -2158,16 +2259,18 @@ function DGXDashboard() {
                           },
                         ]
                       : getStatusName(selectedRequest.status_id || 0) ===
-                        "Rejected"
-                      ? [
-                          {
-                            label: "Rejected By",
-                            value: getUserName(selectedRequest.updated_by || 0),
-                          },
-                        ]
-                      : []),
+                          "Rejected"
+                        ? [
+                            {
+                              label: "Rejected By",
+                              value: getUserName(
+                                selectedRequest.updated_by || 0,
+                              ),
+                            },
+                          ]
+                        : []),
                     ...(["Rejected"].includes(
-                      getStatusName(selectedRequest.status_id || 0)
+                      getStatusName(selectedRequest.status_id || 0),
                     )
                       ? [
                           {
@@ -2284,8 +2387,8 @@ function DGXDashboard() {
                 remarksError
                   ? "text-red-500"
                   : remarksText
-                  ? "text-[#5a8f00] font-medium"
-                  : "text-gray-500"
+                    ? "text-[#5a8f00] font-medium"
+                    : "text-gray-500"
               }
             `}
                   style={{

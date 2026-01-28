@@ -1,19 +1,12 @@
-const sequelize = require('../config/sequelize.config');
+const sequelize = require("../config/sequelize.config");
 
 const approveFunctional = async (req, res) => {
   try {
     const { instance_request_id, updated_by } = req.body;
 
-    // if (!instance_request_id || !updated_by) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "Missing required fields",
-    //   });
-    // }
-
     // Get Approved-Functional status ID
     const [statusRow] = await sequelize.query(
-      "SELECT status_id FROM status WHERE status_name = 'Approved-Functional'"
+      "SELECT status_id FROM status WHERE status_name = 'Approved-Functional'",
     );
 
     if (!statusRow.length) {
@@ -41,7 +34,7 @@ const approveFunctional = async (req, res) => {
           updated_by,
           instance_request_id,
         },
-      }
+      },
     );
 
     if (!updated.length) {
@@ -69,10 +62,16 @@ const rejectRequest = async (req, res) => {
   const t = await sequelize.transaction();
 
   try {
-    const { instance_request_id, remarks, new_status_id, logged_in_user_id } = req.body;
+    const { instance_request_id, remarks, new_status_id, logged_in_user_id } =
+      req.body;
 
     // Validate input
-    if (!instance_request_id || !remarks || !new_status_id || !logged_in_user_id) {
+    if (
+      !instance_request_id ||
+      !remarks ||
+      !new_status_id ||
+      !logged_in_user_id
+    ) {
       return res.status(400).json({
         success: false,
         message: "Missing required fields",
@@ -99,7 +98,7 @@ const rejectRequest = async (req, res) => {
           instance_request_id,
         },
         transaction: t,
-      }
+      },
     );
 
     if (updateResult.length === 0) {
@@ -119,7 +118,7 @@ const rejectRequest = async (req, res) => {
       {
         replacements: { instance_request_id },
         transaction: t,
-      }
+      },
     );
 
     await t.commit();
@@ -129,7 +128,6 @@ const rejectRequest = async (req, res) => {
       message: "Request rejected successfully",
       data: updateResult[0],
     });
-
   } catch (err) {
     await t.rollback();
     console.error("Reject request error:", err);
@@ -141,5 +139,4 @@ const rejectRequest = async (req, res) => {
   }
 };
 
-
-module.exports = { approveFunctional, rejectRequest }
+module.exports = { approveFunctional, rejectRequest };
