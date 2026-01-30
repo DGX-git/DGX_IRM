@@ -380,6 +380,7 @@ function DGXDashboard() {
 
         setDepartments(data.departments || []);
         setUserTypes(data.userTypes || []);
+        setRoles(data.roles || []);
         setCpuList(data.cpuList || []);
         setRamList(data.ramList || []);
         setGpuPartitions(data.gpuPartitions || []);
@@ -483,85 +484,223 @@ function DGXDashboard() {
   const downloadReportAsExcel = () => {
     setIsExporting(true);
     try {
-      // Filter to include only Approved-Technical requests
-      const approvedTechnicalRequests = filteredRequests.filter(
-        (request) => getStatusName(request.status_id) === "Approved-Technical",
-      );
+// <<<<<<< Updated upstream
+//       // Filter to include only Approved-Technical requests
+//       const approvedTechnicalRequests = filteredRequests.filter(
+//         (request) => getStatusName(request.status_id) === "Approved-Technical",
+//       );
 
-      // Prepare data for export
-      const dataToExport = approvedTechnicalRequests.map((request) => {
-        // Get role type for the user
-        const user = getUser(request.user_id);
-        const roleType = user?.role_id
-          ? roles?.find((r) => r.role_id === user.role_id)?.role_name || "N/A"
-          : "N/A";
+//       // Prepare data for export
+//       const dataToExport = approvedTechnicalRequests.map((request) => {
+//         // Get role type for the user
+//         const user = getUser(request.user_id);
+//         const roleType = user?.role_id
+//           ? roles?.find((r) => r.role_id === user.role_id)?.role_name || "N/A"
+//           : "N/A";
 
-        return {
-          Institute: getInstituteName(request.user_id),
-          Department: getDepartmentName(request.user_id),
-          Name: getUserName(request.user_id),
-          Roll_No: request.instance_request_id || "N/A",
-          type: roleType,
-          CPU: request.cpu_id ? request.cpu_id : "N/A",
-          RAM: request.ram_id || "N/A",
-          "141_GPU": request.gpu_141
-            ? 1
-            : request.gpu_partition_id === 1
-              ? 1
-              : 0,
-          "71GB_GPU": request.gpu_71
-            ? 1
-            : request.gpu_partition_id === 2
-              ? 1
-              : 0,
-          "35GB_GPU": request.gpu_35
-            ? 1
-            : request.gpu_partition_id === 3
-              ? 1
-              : 0,
-          "18GB_GPU": request.gpu_18
-            ? 1
-            : request.gpu_partition_id === 4
-              ? 1
-              : 0,
-          Storage: request.storage_volume || 10,
-        };
-      });
+//         return {
+//           Institute: getInstituteName(request.user_id),
+//           Department: getDepartmentName(request.user_id),
+//           Name: getUserName(request.user_id),
+//           Roll_No: request.instance_request_id || "N/A",
+//           type: roleType,
+//           CPU: request.cpu_id ? request.cpu_id : "N/A",
+//           RAM: request.ram_id || "N/A",
+//           "141_GPU": request.gpu_141
+//             ? 1
+//             : request.gpu_partition_id === 1
+//               ? 1
+//               : 0,
+//           "71GB_GPU": request.gpu_71
+//             ? 1
+//             : request.gpu_partition_id === 2
+//               ? 1
+//               : 0,
+//           "35GB_GPU": request.gpu_35
+//             ? 1
+//             : request.gpu_partition_id === 3
+//               ? 1
+//               : 0,
+//           "18GB_GPU": request.gpu_18
+//             ? 1
+//             : request.gpu_partition_id === 4
+//               ? 1
+//               : 0,
+//           Storage: request.storage_volume || 10,
+//         };
+//       });
 
-      // Create a new workbook
-      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Instance Requests");
+//       // Create a new workbook
+//       const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+//       const workbook = XLSX.utils.book_new();
+//       XLSX.utils.book_append_sheet(workbook, worksheet, "Instance Requests");
 
-      // Adjust column widths
-      const colWidths = [
-        { wch: 15 }, // Institute
-        { wch: 15 }, // Department
-        { wch: 18 }, // Name
-        { wch: 12 }, // Roll_No
-        { wch: 12 }, // type
-        { wch: 10 }, // CPU
-        { wch: 10 }, // RAM
-        { wch: 12 }, // 141_GPU
-        { wch: 12 }, // 71GB_GPU
-        { wch: 12 }, // 35GB_GPU
-        { wch: 12 }, // 18GB_GPU
-        { wch: 12 }, // Storage
-      ];
-      worksheet["!cols"] = colWidths;
+//       // Adjust column widths
+//       const colWidths = [
+//         { wch: 15 }, // Institute
+//         { wch: 15 }, // Department
+//         { wch: 18 }, // Name
+//         { wch: 12 }, // Roll_No
+//         { wch: 12 }, // type
+//         { wch: 10 }, // CPU
+//         { wch: 10 }, // RAM
+//         { wch: 12 }, // 141_GPU
+//         { wch: 12 }, // 71GB_GPU
+//         { wch: 12 }, // 35GB_GPU
+//         { wch: 12 }, // 18GB_GPU
+//         { wch: 12 }, // Storage
+//       ];
+//       worksheet["!cols"] = colWidths;
 
       // Generate filename with timestamp
-      const timestamp = new Date().toISOString().slice(0, 10);
-      const filename = `DGX_Instance_Requests_${timestamp}.xlsx`;
+// =======
+      // Get today's date and tomorrow's date
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
 
-      // Write the file
-      XLSX.writeFile(workbook, filename);
+      // Helper function to format date for comparison (YYYY-MM-DD)
+      const formatDateForComparison = (dateStr: string) => {
+        const date = new Date(dateStr);
+        return date.toISOString().split('T')[0];
+      };
+
+      const todayStr = today.toISOString().split('T')[0];
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+      // Filter 1: Functionally Approved requests for current and next day
+      const functionallyApprovedRequests = filteredRequests.filter((request) => {
+        const statusName = getStatusName(request.status_id);
+        if (statusName !== "Approved-Functional") return false;
+        
+        const requestDate = formatDateForComparison(request.selected_date || request.created_timestamp);
+        return requestDate === todayStr || requestDate === tomorrowStr;
+      });
+
+      // Filter 2: Completed requests for current date only
+      const completedRequests = filteredRequests.filter((request) => {
+        const statusName = getStatusName(request.status_id);
+        if (statusName !== "Completed") return false;
+        
+        const requestDate = formatDateForComparison(request.selected_date || request.created_timestamp);
+        return requestDate === todayStr;
+      });
+
+      // Check if there's any data to download
+      if (functionallyApprovedRequests.length === 0 && completedRequests.length === 0) {
+        setSnackbar({
+          show: true,
+          message: 'No Functionally Approved or Completed requests to download',
+          type: 'error',
+        });
+        setTimeout(() => {
+          setSnackbar({ show: false, message: '', type: 'error' });
+        }, 3000);
+        setIsExporting(false);
+        return;
+      }
+
+// >>>>>>> Stashed changes
+      const timestamp = new Date().toISOString().slice(0, 10);
+      let downloadedFilesCount = 0;
+
+      // Download File 1: Functionally Approved requests
+      if (functionallyApprovedRequests.length > 0) {
+        const functionalData = functionallyApprovedRequests.map((request) => {
+          return {
+            'Institute': getInstituteName(request.user_id),
+            'Department': getDepartmentName(request.user_id),
+            'Name': getUserName(request.user_id),
+            'Roll_No': request.instance_request_id || 'N/A',
+            'Type': request.role_name || 'N/A',
+            'CPU': request.cpu_id ? request.cpu_id : 'N/A',
+            'RAM': request.ram_id || 'N/A',
+            '141_GPU': request.gpu_141 ? 1 : (request.gpu_partition_id === 1 ? 1 : 0),
+            '71GB_GPU': request.gpu_71 ? 1 : (request.gpu_partition_id === 2 ? 1 : 0),
+            '35GB_GPU': request.gpu_35 ? 1 : (request.gpu_partition_id === 3 ? 1 : 0),
+            '18GB_GPU': request.gpu_18 ? 1 : (request.gpu_partition_id === 4 ? 1 : 0),
+            'Storage': request.storage_volume || 10,
+          };
+        });
+
+        const workbook1 = XLSX.utils.book_new();
+        const functionalSheet = XLSX.utils.json_to_sheet(functionalData);
+        const colWidths = [
+          { wch: 15 }, // Institute
+          { wch: 15 }, // Department
+          { wch: 18 }, // Name
+          { wch: 12 }, // Roll_No
+          { wch: 12 }, // Type
+          { wch: 10 }, // CPU
+          { wch: 10 }, // RAM
+          { wch: 12 }, // 141_GPU
+          { wch: 12 }, // 71GB_GPU
+          { wch: 12 }, // 35GB_GPU
+          { wch: 12 }, // 18GB_GPU
+          { wch: 12 }, // Storage
+        ];
+        functionalSheet['!cols'] = colWidths;
+        XLSX.utils.book_append_sheet(workbook1, functionalSheet, 'Functionally Approved');
+
+        const filename1 = `DGX_Approved_Requests_${timestamp}.xlsx`;
+        XLSX.writeFile(workbook1, filename1);
+        downloadedFilesCount++;
+      }
+
+      // Download File 2: Completed requests
+      if (completedRequests.length > 0) {
+        const completedData = completedRequests.map((request) => {
+          return {
+            'Institute': getInstituteName(request.user_id),
+            'Department': getDepartmentName(request.user_id),
+            'Name': getUserName(request.user_id),
+            'Roll_No': request.instance_request_id || 'N/A',
+            'Type': request.role_name || 'N/A',
+            'CPU': request.cpu_id ? request.cpu_id : 'N/A',
+            'RAM': request.ram_id || 'N/A',
+            '141_GPU': request.gpu_141 ? 1 : (request.gpu_partition_id === 1 ? 1 : 0),
+            '71GB_GPU': request.gpu_71 ? 1 : (request.gpu_partition_id === 2 ? 1 : 0),
+            '35GB_GPU': request.gpu_35 ? 1 : (request.gpu_partition_id === 3 ? 1 : 0),
+            '18GB_GPU': request.gpu_18 ? 1 : (request.gpu_partition_id === 4 ? 1 : 0),
+            'Storage': request.storage_volume || 10,
+          };
+        });
+
+        const workbook2 = XLSX.utils.book_new();
+        const completedSheet = XLSX.utils.json_to_sheet(completedData);
+        const colWidths = [
+          { wch: 15 }, // Institute
+          { wch: 15 }, // Department
+          { wch: 18 }, // Name
+          { wch: 12 }, // Roll_No
+          { wch: 12 }, // Type
+          { wch: 10 }, // CPU
+          { wch: 10 }, // RAM
+          { wch: 12 }, // 141_GPU
+          { wch: 12 }, // 71GB_GPU
+          { wch: 12 }, // 35GB_GPU
+          { wch: 12 }, // 18GB_GPU
+          { wch: 12 }, // Storage
+        ];
+        completedSheet['!cols'] = colWidths;
+        XLSX.utils.book_append_sheet(workbook2, completedSheet, 'Completed');
+
+        const filename2 = `DGX_Completed_Requests_${timestamp}.xlsx`;
+        XLSX.writeFile(workbook2, filename2);
+        downloadedFilesCount++;
+      }
 
       // Show success message
       setSnackbar({
         show: true,
-        message: `Report downloaded successfully as ${filename}`,
-        type: "success",
+// <<<<<<< Updated upstream
+        // message: `Report downloaded successfully as ${filename}`,
+        // type: "success",
+// =======
+        message: `Successfully downloaded ${downloadedFilesCount} file(s)`,
+        type: 'success',
+// >>>>>>> Stashed changes
       });
       setTimeout(() => {
         setSnackbar({ show: false, message: "", type: "success" });
@@ -1538,6 +1677,12 @@ function DGXDashboard() {
             ✓
           </div>
         );
+      case "Completed":
+        return (
+          <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">
+            ✓
+          </div>
+        );
       case "Rejected":
         return (
           <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">
@@ -1805,34 +1950,39 @@ function DGXDashboard() {
             </div>
 
             {/* Download Report Button */}
-            {/* <button
-              onClick={downloadReportAsExcel}
-              disabled={isExporting || filteredRequests.filter((r) => getStatusName(r.status_id) === "Approved-Technical").length === 0}
-              className="flex items-center justify-center gap-2 w-52 h-10 px-3 border border-lime-500 rounded-sm text-sm 
-                 text-white bg-lime-500 hover:bg-lime-600 transition-colors hover:border-lime-600
-                 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent cursor-pointer
-                 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:border-gray-300"
-              title={filteredRequests.filter((r) => getStatusName(r.status_id) === "Approved-Technical").length === 0 ? 'No Approved-Technical requests to download' : 'Download report as Excel'}
-            >
-              <Download className="w-4 h-4 text-gray-700 cursor-pointer" />
-              {isExporting ? 'Exporting...' : 'Download'}
-            </button> */}
             <button
               onClick={downloadReportAsExcel}
-              disabled={
-                isExporting ||
-                filteredRequests.filter(
-                  (r) => getStatusName(r.status_id) === "Approved-Technical",
-                ).length === 0
-              }
+// <<<<<<< Updated upstream
+              // disabled={
+              //   isExporting ||
+              //   filteredRequests.filter(
+              //     (r) => getStatusName(r.status_id) === "Approved-Technical",
+              //   ).length === 0
+              // }
+              // className="flex items-center justify-center gap-2 w-56 h-10 bg-lime-500 text-white px-4 rounded-sm text-sm font-semibold hover:bg-lime-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              // title={
+              //   filteredRequests.filter(
+              //     (r) => getStatusName(r.status_id) === "Approved-Technical",
+              //   ).length === 0
+              //     ? "No Approved-Technical requests to download"
+              //     : "Download report as Excel"
+              // }
+// =======
+              disabled={isExporting || (filteredRequests.filter((r) => {
+                const statusName = getStatusName(r.status_id);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const todayStr = today.toISOString().split('T')[0];
+                const tomorrowStr = tomorrow.toISOString().split('T')[0];
+                const requestDate = new Date(r.selected_date || r.created_timestamp).toISOString().split('T')[0];
+                return (statusName === "Approved-Functional" && (requestDate === todayStr || requestDate === tomorrowStr)) ||
+                       (statusName === "Completed" && requestDate === todayStr);
+              }).length === 0)}
               className="flex items-center justify-center gap-2 w-56 h-10 bg-lime-500 text-white px-4 rounded-sm text-sm font-semibold hover:bg-lime-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              title={
-                filteredRequests.filter(
-                  (r) => getStatusName(r.status_id) === "Approved-Technical",
-                ).length === 0
-                  ? "No Approved-Technical requests to download"
-                  : "Download report as Excel"
-              }
+              title="Download Functionally Approved requests (today/tomorrow) and Completed requests (today)"
+// {/* >>>>>>> Stashed changes */}
             >
               <Download className="w-4 h-4" />
               {isExporting ? "Exporting..." : "Download"}
@@ -2318,6 +2468,12 @@ function DGXDashboard() {
               <span className="font-medium text-gray-700">
                 Approved-Technical
               </span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">
+                ✓
+              </div>
+              <span className="font-medium text-gray-700">Completed</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-4 h-4 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">
