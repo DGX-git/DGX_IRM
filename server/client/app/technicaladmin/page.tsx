@@ -19,8 +19,8 @@ import {
 } from "@/utils/email";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { log } from "console";
 import { checkAuth } from "@/utils/auth";
+
 function DGXDashboard() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -2444,7 +2444,8 @@ function DGXDashboard() {
                       label: "Email Id",
                       value: getUser(selectedRequest.user_id)?.email_id,
                     },
-                    ...(selectedRequest.technical_approval_email_sent === true
+                    ...(getStatusName(selectedRequest.status_id) ===
+                    "Approved-Technical"
                       ? [
                           {
                             label: "User ID",
